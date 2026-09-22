@@ -1,0 +1,2831 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="Multi-Hospital Blood Bank Management & Blood Availability Platform. Real-time unit tracking, emergency requests, and verified hospital network.">
+  <title>BloodLink — Multi-Hospital Blood Bank & Availability Network</title>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#fef2f2',
+              100: '#fee2e2',
+              500: '#ef4444',
+              600: '#dc2626',
+              700: '#b91c1c',
+              800: '#991b1b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Custom CSS -->
+  <noscript>
+    <style>
+      .reveal-text, .text-reveal {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+      }
+    </style>
+  </noscript>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body class="min-h-screen flex flex-col bg-slate-50 text-slate-900 relative">
+
+  <!-- Ambient Red Blood Cells & Platelets Background Simulation -->
+  <canvas id="platelets-canvas" aria-hidden="true"></canvas>
+
+  <!-- ======================================================================== -->
+  <!-- NAVIGATION BAR                                                           -->
+  <!-- ======================================================================== -->
+  <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <!-- Logo -->
+        <div class="flex items-center gap-3">
+          <div
+            class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-white shadow-md shadow-red-500/20">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+            </svg>
+          </div>
+          <div>
+            <span class="text-xl font-extrabold tracking-tight text-slate-900">Blood<span
+                class="text-red-600">Link</span></span>
+            <span
+              class="hidden sm:inline-block ml-2 px-2 py-0.5 text-xs font-semibold rounded-full bg-red-100 text-red-700 border border-red-200">Network</span>
+          </div>
+        </div>
+
+        <!-- Center Nav -->
+        <nav class="hidden md:flex items-center space-x-8 text-sm font-medium text-slate-600">
+          <a href="#search" class="hover:text-red-600 transition-colors">Find Blood</a>
+          <a href="#features" class="hover:text-red-600 transition-colors">Platform Capabilities</a>
+          <a href="#portals" class="hover:text-red-600 transition-colors">Role Portals</a>
+          <a href="#safety" class="hover:text-red-600 transition-colors">Medical Protocol</a>
+        </nav>
+
+        <!-- Right Action Buttons & Mobile Hamburger Button -->
+        <div class="flex items-center gap-2 sm:gap-3">
+          <!-- Auth Action Buttons (Desktop & Mobile) -->
+          <div class="flex items-center gap-2" id="nav-auth-container">
+            <!-- Guest State: Register & Sign In -->
+            <div id="nav-guest-group" class="flex items-center gap-1.5 sm:gap-2" data-guest-only>
+              <a href="/register.html" id="nav-register-btn"
+                class="inline-flex items-center px-2.5 sm:px-3.5 py-2 text-xs font-semibold rounded-lg text-slate-700 hover:text-red-600 hover:bg-red-50/80 transition-colors">
+                Register
+              </a>
+              <a href="/login.html" id="nav-login-btn"
+                class="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-2 text-xs font-semibold rounded-lg text-slate-800 bg-white hover:bg-slate-50 border border-slate-300 hover:border-slate-400 shadow-xs transition-colors">
+                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
+                <span>Sign In</span>
+              </a>
+            </div>
+
+            <!-- Authenticated State: User Profile Icon & Logout Button -->
+            <div id="nav-user-group" class="hidden flex items-center gap-2 sm:gap-3" data-auth-only>
+              <a 
+                href="/dashboard/donor/index.html" 
+                id="nav-profile-btn" 
+                data-profile-link
+                title="Go to Your Profile & Workspace" 
+                aria-label="User Profile & Workspace"
+                class="relative inline-flex items-center justify-center w-9 h-9 rounded-full bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-600 border border-slate-200 hover:border-red-200 shadow-xs hover:shadow-sm transition-all duration-150 cursor-pointer group"
+              >
+                <svg class="w-5 h-5 text-slate-600 group-hover:text-red-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <!-- Small Active Indicator Dot -->
+                <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white"></span>
+              </a>
+
+              <button id="nav-logout-btn" type="button" data-logout-btn title="Sign Out of BloodLink"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-rose-200 transition-colors shadow-xs cursor-pointer">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
+                <span>Log Out</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Mobile Hamburger Toggle Button -->
+          <button
+            id="mobile-menu-btn"
+            type="button"
+            class="md:hidden inline-flex items-center justify-center p-2 rounded-xl text-slate-700 hover:text-red-600 hover:bg-slate-100 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all cursor-pointer"
+            aria-controls="mobile-menu"
+            aria-expanded="false"
+            aria-label="Toggle navigation menu"
+          >
+            <!-- Hamburger Icon (Menu closed) -->
+            <svg id="hamburger-icon" class="w-5 h-5 block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+            <!-- Close Icon (Menu open) -->
+            <svg id="close-icon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation Drawer / Dropdown -->
+    <div id="mobile-menu" class="hidden md:hidden border-t border-slate-200 bg-white/95 backdrop-blur-md px-4 pt-3 pb-5 space-y-1.5 shadow-xl transition-all duration-200">
+      <a href="#search" class="mobile-nav-link flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-700 hover:text-red-600 hover:bg-red-50 transition-colors">
+        <span>Find Blood</span>
+        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      </a>
+      <a href="#features" class="mobile-nav-link flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-700 hover:text-red-600 hover:bg-red-50 transition-colors">
+        <span>Platform Capabilities</span>
+        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      </a>
+      <a href="#portals" class="mobile-nav-link flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-700 hover:text-red-600 hover:bg-red-50 transition-colors">
+        <span>Role Portals</span>
+        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      </a>
+      <a href="#safety" class="mobile-nav-link flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-700 hover:text-red-600 hover:bg-red-50 transition-colors">
+        <span>Medical Protocol</span>
+        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      </a>
+
+      <!-- Quick Action Buttons on Mobile -->
+      <div class="pt-3 mt-2 border-t border-slate-100 flex flex-col gap-2">
+        <a href="/emergency.html" class="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 shadow-sm shadow-red-500/20 transition-all">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          <span>Emergency Request</span>
+        </a>
+        <a href="/register-organization.html" class="flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:text-red-600 bg-slate-50 hover:bg-red-50 border border-slate-200 transition-colors">
+          <span>🏥 Register Healthcare Facility</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ======================================================================== -->
+  <!-- HERO SECTION                                                             -->
+  <!-- ======================================================================== -->
+  <main class="flex-grow">
+    <section class="relative hero-gradient pt-12 pb-20 px-4 sm:px-6 lg:px-8 border-b border-slate-200 overflow-hidden">
+
+      <!-- Two Hero RBC (Red Blood Cell) & Ambient Glow Visuals -->
+      <!-- 1. Left Top RBC & Ambient Glow -->
+      <div class="absolute top-6 sm:top-10 left-3 sm:left-8 lg:left-16 pointer-events-none z-0 cell-float-1">
+        <div class="absolute -inset-4 sm:-inset-6 bg-red-500/20 rounded-full blur-2xl"></div>
+        <svg class="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 drop-shadow-md" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="60" cy="60" rx="52" ry="36" fill="url(#heroRbcGrad1)" transform="rotate(-22 60 60)" />
+          <ellipse cx="58" cy="58" rx="26" ry="16" fill="url(#heroRbcInner1)" transform="rotate(-22 58 58)" />
+          <ellipse cx="60" cy="52" rx="38" ry="8" fill="#ffffff" opacity="0.22" transform="rotate(-25 60 52)" />
+          <defs>
+            <radialGradient id="heroRbcGrad1" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse"
+              gradientTransform="translate(54 48) rotate(45) scale(62 44)">
+              <stop offset="0%" stop-color="#f87171" />
+              <stop offset="45%" stop-color="#ef4444" />
+              <stop offset="80%" stop-color="#dc2626" />
+              <stop offset="100%" stop-color="#991b1b" />
+            </radialGradient>
+            <radialGradient id="heroRbcInner1" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse"
+              gradientTransform="translate(60 60) scale(26 16)">
+              <stop offset="0%" stop-color="#7f1d1d" stop-opacity="0.85" />
+              <stop offset="70%" stop-color="#991b1b" stop-opacity="0.5" />
+              <stop offset="100%" stop-color="#dc2626" stop-opacity="0" />
+            </radialGradient>
+          </defs>
+        </svg>
+      </div>
+
+      <!-- 2. Right Bottom RBC & Ambient Glow -->
+      <div class="absolute bottom-6 sm:bottom-12 right-3 sm:right-8 lg:right-20 pointer-events-none z-0 cell-float-2">
+        <div class="absolute -inset-6 sm:-inset-8 bg-rose-500/20 rounded-full blur-2xl"></div>
+        <svg class="w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 drop-shadow-lg" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="70" cy="70" rx="60" ry="42" fill="url(#heroRbcGrad2)" transform="rotate(28 70 70)" />
+          <ellipse cx="70" cy="70" rx="30" ry="18" fill="url(#heroRbcInner2)" transform="rotate(28 70 70)" />
+          <ellipse cx="68" cy="62" rx="42" ry="10" fill="#ffffff" opacity="0.25" transform="rotate(26 68 62)" />
+          <defs>
+            <radialGradient id="heroRbcGrad2" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse"
+              gradientTransform="translate(64 56) rotate(45) scale(70 50)">
+              <stop offset="0%" stop-color="#fca5a5" />
+              <stop offset="35%" stop-color="#f87171" />
+              <stop offset="70%" stop-color="#dc2626" />
+              <stop offset="100%" stop-color="#881337" />
+            </radialGradient>
+            <radialGradient id="heroRbcInner2" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse"
+              gradientTransform="translate(70 70) scale(30 18)">
+              <stop offset="0%" stop-color="#701a2d" stop-opacity="0.9" />
+              <stop offset="70%" stop-color="#9f1239" stop-opacity="0.55" />
+              <stop offset="100%" stop-color="#dc2626" stop-opacity="0" />
+            </radialGradient>
+          </defs>
+        </svg>
+      </div>
+
+      <div class="max-w-5xl mx-auto text-center space-y-6 relative z-10">
+
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-tight reveal-text text-reveal">
+          Multi-Hospital Blood Availability & <br class="hidden sm:inline" />
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-rose-600">Traceable Unit
+            Coordination</span>
+        </h1>
+
+        <p class="max-w-2xl mx-auto text-base sm:text-lg text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+          Unifying hospitals, regional blood banks, and verified clinicians on a single auditable platform. Track
+          individual blood units from voluntary donation to bedside issuing.
+        </p>
+
+        <!-- Hero Primary Call to Action Buttons: Compact & Side-by-Side on Desktop -->
+        <div id="hero-cta-container"
+          class="hero-cta-container pt-2 pb-1 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full max-w-md mx-auto reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+          <!-- Mobile-only Row: Register & Sign In side-by-side (screens <= 425px) -->
+          <div class="hero-mobile-auth-row" data-guest-only>
+            <a href="/register.html" id="hero-register-btn" class="btn-hero-register">
+              <span>Register</span>
+            </a>
+            <a href="/login.html" id="hero-login-btn" class="btn-hero-login">
+              <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+              </svg>
+              <span>Sign In</span>
+            </a>
+          </div>
+
+          <!-- Button 1: Emergency Request (Primary Solid Red) -->
+          <a href="/emergency.html" id="hero-emergency-btn" class="btn-hero-emergency w-full sm:w-auto">
+            <svg class="w-4 h-4 text-white animate-pulse shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd"
+                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                clip-rule="evenodd" />
+            </svg>
+            <span>Emergency Request</span>
+          </a>
+
+          <!-- Button 2: Connect Your Organization (Glassmorphic Secondary) -->
+          <a href="/register-organization.html" id="hero-connect-org-btn" class="btn-hero-connect-org w-full sm:w-auto">
+            <svg class="w-4 h-4 text-red-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+            <span>Connect Your Organization</span>
+          </a>
+        </div>
+
+        <!-- Search Bar Preview Card -->
+        <div id="search" class="mt-8 max-w-4xl mx-auto glass-card rounded-2xl p-4 sm:p-6 red-halo red-glow-card">
+          <div class="text-left mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400 reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">Instant Availability Search</span>
+          </div>
+          <form class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-500 mb-1">Blood Group</label>
+              <select
+                class="w-full text-sm rounded-lg border-slate-200 bg-white px-3 py-2 text-slate-800 focus:ring-2 focus:ring-red-500 focus:outline-none border shadow-sm">
+                <option value="">All Groups</option>
+                <option>A+</option>
+                <option>A-</option>
+                <option>B+</option>
+                <option>B-</option>
+                <option>AB+</option>
+                <option>AB-</option>
+                <option>O+</option>
+                <option selected>O- (Universal)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-500 mb-1">Component</label>
+              <select
+                class="w-full text-sm rounded-lg border-slate-200 bg-white px-3 py-2 text-slate-800 focus:ring-2 focus:ring-red-500 focus:outline-none border shadow-sm">
+                <option value="">All Components</option>
+                <option selected>Whole Blood</option>
+                <option>Packed RBC</option>
+                <option>Fresh Frozen Plasma</option>
+                <option>Platelets</option>
+                <option>Cryoprecipitate</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-500 mb-1">City / Location</label>
+              <input type="text" placeholder="e.g. Central District" value="Metro Area"
+                class="w-full text-sm rounded-lg border-slate-200 bg-white px-3 py-2 text-slate-800 focus:ring-2 focus:ring-red-500 focus:outline-none border shadow-sm" />
+            </div>
+            <div class="flex items-end">
+              <button type="button"
+                class="w-full py-2 px-4 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium text-sm transition-all shadow-md shadow-red-500/20 flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                Search Units
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Telemetry Details Bar -->
+        <div id="telemetry-bar"
+          class="max-w-md mx-auto p-3 rounded-xl bg-white border border-slate-200 text-xs text-slate-500 flex items-center justify-between shadow-sm reveal-text text-reveal reveal-delay-3 text-reveal-delay-3">
+          <span>Backend Server: <strong id="telemetry-env" class="text-slate-700">Connecting...</strong></span>
+          <span>Latency: <strong id="telemetry-latency" class="text-slate-700">-- ms</strong></span>
+          <span class="text-emerald-600 font-medium" id="telemetry-ver">v1.0.0</span>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ======================================================================== -->
+    <!-- CONNECTED ORGANIZATIONS SECTION                                          -->
+    <!-- ======================================================================== -->
+    <section id="network" class="scroll-mt-24 pt-16 sm:pt-24 pb-20 sm:pb-28 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-b border-slate-200/80 relative box-border">
+      
+      <!-- Ambient Background Glow -->
+      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[800px] h-[450px] bg-gradient-to-tr from-red-500/5 via-rose-500/8 to-transparent rounded-full blur-3xl pointer-events-none -z-10"></div>
+
+      <!-- Section Header -->
+      <div class="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+        <span
+          class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-red-600 mb-3.5 bg-red-50/90 px-3.5 py-1.5 rounded-full border border-red-200/80 shadow-2xs reveal-text text-reveal">
+          <span class="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
+          CONNECTED ORGANIZATIONS
+        </span>
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+          One Platform. Multiple Healthcare Organizations.
+        </h2>
+        <p class="mt-4 text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+          Every organization gets its own secure workspace while participating in a connected blood availability network.
+        </p>
+      </div>
+
+      <!-- ==================================================================== -->
+      <!-- DESKTOP & TABLET STRUCTURED NETWORK VISUALIZATION                    -->
+      <!-- ==================================================================== -->
+      <div class="network-viz-container relative max-w-5xl mx-auto hidden md:block py-6 my-4">
+        
+        <!-- SVG Connection Lines Layer (Positioned behind cards with z-0) -->
+        <svg class="network-svg-layer absolute inset-0 w-full h-full pointer-events-none z-0 overflow-visible" fill="none">
+          <defs>
+            <!-- Gradient for connection lines -->
+            <linearGradient id="netLineGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#f87171" stop-opacity="0.75" />
+              <stop offset="50%" stop-color="#ef4444" stop-opacity="0.95" />
+              <stop offset="100%" stop-color="#b91c1c" stop-opacity="0.75" />
+            </linearGradient>
+
+            <!-- Glow Filter for traveling data pulses -->
+            <filter id="netPulseGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="2.5" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+
+          <!-- 1. Hospital Connection Track & Path -->
+          <path id="track-hospital" d="M 245 155 C 245 210, 420 200, 420 255" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="3 4" stroke-linecap="round" fill="none" opacity="0.45" />
+          <path id="path-hospital" d="M 245 155 C 245 210, 420 200, 420 255" class="conn-line-path" data-conn-line="hospital" stroke="url(#netLineGrad)" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.7" />
+          <circle r="4" fill="#dc2626" filter="url(#netPulseGlow)">
+            <animateMotion dur="3.6s" repeatCount="indefinite"><mpath href="#path-hospital" /></animateMotion>
+          </circle>
+          <circle r="2" fill="#ffffff">
+            <animateMotion dur="3.6s" repeatCount="indefinite"><mpath href="#path-hospital" /></animateMotion>
+          </circle>
+
+          <!-- 2. Clinic Connection Track & Path -->
+          <path id="track-clinic" d="M 755 155 C 755 210, 580 200, 580 255" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="3 4" stroke-linecap="round" fill="none" opacity="0.45" />
+          <path id="path-clinic" d="M 755 155 C 755 210, 580 200, 580 255" class="conn-line-path" data-conn-line="clinic" stroke="url(#netLineGrad)" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.7" />
+          <circle r="4" fill="#dc2626" filter="url(#netPulseGlow)">
+            <animateMotion dur="4.2s" repeatCount="indefinite"><mpath href="#path-clinic" /></animateMotion>
+          </circle>
+          <circle r="2" fill="#ffffff">
+            <animateMotion dur="4.2s" repeatCount="indefinite"><mpath href="#path-clinic" /></animateMotion>
+          </circle>
+
+          <!-- 3. Medical Center Connection Track & Path -->
+          <path id="track-medical-center" d="M 245 520 C 245 470, 420 480, 420 425" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="3 4" stroke-linecap="round" fill="none" opacity="0.45" />
+          <path id="path-medical-center" d="M 245 520 C 245 470, 420 480, 420 425" class="conn-line-path" data-conn-line="medical-center" stroke="url(#netLineGrad)" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.7" />
+          <circle r="4" fill="#dc2626" filter="url(#netPulseGlow)">
+            <animateMotion dur="3.8s" repeatCount="indefinite"><mpath href="#path-medical-center" /></animateMotion>
+          </circle>
+          <circle r="2" fill="#ffffff">
+            <animateMotion dur="3.8s" repeatCount="indefinite"><mpath href="#path-medical-center" /></animateMotion>
+          </circle>
+
+          <!-- 4. Emergency Care Connection Track & Path -->
+          <path id="track-emergency-care" d="M 755 520 C 755 470, 580 480, 580 425" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="3 4" stroke-linecap="round" fill="none" opacity="0.45" />
+          <path id="path-emergency-care" d="M 755 520 C 755 470, 580 480, 580 425" class="conn-line-path" data-conn-line="emergency-care" stroke="url(#netLineGrad)" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.7" />
+          <circle r="4" fill="#dc2626" filter="url(#netPulseGlow)">
+            <animateMotion dur="3.3s" repeatCount="indefinite"><mpath href="#path-emergency-care" /></animateMotion>
+          </circle>
+          <circle r="2" fill="#ffffff">
+            <animateMotion dur="3.3s" repeatCount="indefinite"><mpath href="#path-emergency-care" /></animateMotion>
+          </circle>
+
+          <!-- 5. Diagnostic Center Connection Path (Smooth Curved Red Line — Flow Upward to Central Hub) -->
+          <path id="path-diagnostic-center" d="M 570 680 C 557 591, 500 547, 500 425" class="conn-line-path" data-conn-line="diagnostic-center" stroke="url(#netLineGrad)" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.7" />
+          <circle r="4" fill="#dc2626" filter="url(#netPulseGlow)">
+            <animateMotion dur="4.0s" repeatCount="indefinite"><mpath href="#path-diagnostic-center" /></animateMotion>
+          </circle>
+          <circle r="2" fill="#ffffff">
+            <animateMotion dur="4.0s" repeatCount="indefinite"><mpath href="#path-diagnostic-center" /></animateMotion>
+          </circle>
+        </svg>
+
+        <!-- TIER 1: Hospital (Left) & Clinic (Right) -->
+        <div class="flex items-center justify-between gap-6 lg:gap-14 max-w-4xl mx-auto w-full relative z-10 mb-8 lg:mb-10">
+          
+          <!-- Hospital Card -->
+          <div class="w-[280px] sm:w-[310px] lg:w-[330px] shrink-0 animate-net-float-1 network-card-init network-card-delay-1" data-org-node="hospital">
+            <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:border-red-300 hover:shadow-xl hover:shadow-red-500/10 transition-all duration-300 transform hover:-translate-y-1 hover:scale-[1.02] cursor-pointer group">
+              <div class="flex items-center justify-between mb-3">
+                <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center group-hover:bg-red-600 group-hover:text-white transition-all shadow-2xs">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M6 3v18m12-18v18M9 7.5h6M9 12h6M12 9.5v5" /></svg>
+                </div>
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200 group-hover:border-red-200 group-hover:bg-red-50 group-hover:text-red-700 transition-colors">
+                  HOSPITAL
+                </span>
+              </div>
+              <h4 class="text-base font-bold text-slate-900 group-hover:text-red-600 transition-colors reveal-text text-reveal">
+                Hospitals
+              </h4>
+              <p class="text-xs text-slate-500 font-medium mb-3 reveal-text text-reveal reveal-delay-1 reveal-delay-1 text-reveal-delay-1">
+                Inpatient & Bedside Care
+              </p>
+              <div class="space-y-1.5 text-[11px] text-slate-600 reveal-text text-reveal reveal-delay-2 reveal-delay-2 text-reveal-delay-2">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-1 h-1 rounded-full bg-red-500"></span>
+                  <span>Emergency blood reservations</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="w-1 h-1 rounded-full bg-red-500"></span>
+                  <span>Direct bedside unit issuing</span>
+                </div>
+              </div>
+              <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[10px] font-semibold text-slate-400 group-hover:text-red-600 transition-colors">
+                <span>Isolated Workspace</span>
+                <span class="flex items-center gap-1 text-emerald-600 font-medium">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  <span>Synced</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Clinic Card -->
+          <div class="w-[280px] sm:w-[310px] lg:w-[330px] shrink-0 animate-net-float-2 network-card-init network-card-delay-2" data-org-node="clinic">
+            <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:border-red-300 hover:shadow-xl hover:shadow-red-500/10 transition-all duration-300 transform hover:-translate-y-1 hover:scale-[1.02] cursor-pointer group">
+              <div class="flex items-center justify-between mb-3">
+                <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center group-hover:bg-red-600 group-hover:text-white transition-all shadow-2xs">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /><rect x="3" y="3" width="18" height="18" rx="5" stroke-width="1.8" /></svg>
+                </div>
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200 group-hover:border-red-200 group-hover:bg-red-50 group-hover:text-red-700 transition-colors">
+                  CLINIC
+                </span>
+              </div>
+              <h4 class="text-base font-bold text-slate-900 group-hover:text-red-600 transition-colors reveal-text text-reveal">
+                Clinics
+              </h4>
+              <p class="text-xs text-slate-500 font-medium mb-3 reveal-text text-reveal reveal-delay-1 reveal-delay-1 text-reveal-delay-1">
+                Outpatient & Ambulatory Care
+              </p>
+              <div class="space-y-1.5 text-[11px] text-slate-600 reveal-text text-reveal reveal-delay-2 reveal-delay-2 text-reveal-delay-2">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-1 h-1 rounded-full bg-red-500"></span>
+                  <span>Scheduled & urgent requests</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="w-1 h-1 rounded-full bg-red-500"></span>
+                  <span>Fast inventory routing</span>
+                </div>
+              </div>
+              <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[10px] font-semibold text-slate-400 group-hover:text-red-600 transition-colors">
+                <span>Isolated Workspace</span>
+                <span class="flex items-center gap-1 text-emerald-600 font-medium">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  <span>Synced</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- TIER 2: Central Blood Bank Network Hub (Centered) -->
+        <div class="flex items-center justify-center my-6 lg:my-8 relative z-20">
+          <div class="w-[300px] sm:w-[340px] lg:w-[370px] bg-white/95 backdrop-blur-md rounded-3xl p-6 border-2 border-red-200 shadow-xl shadow-red-500/10 text-center relative group network-hub-glow network-hub-init" data-network-hub>
+            <!-- Soft Ambient Breathing Halo Behind Hub -->
+            <div class="absolute -inset-3 bg-gradient-to-r from-red-500/10 via-rose-500/15 to-red-500/10 rounded-3xl blur-md -z-10 animate-pulse pointer-events-none"></div>
+
+            <!-- Central Hub Icon Badge -->
+            <div class="w-13 h-13 mx-auto rounded-2xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-white shadow-md shadow-red-500/25 mb-3 group-hover:scale-105 transition-transform duration-300">
+              <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+              </svg>
+            </div>
+
+            <!-- Eyebrow Tag -->
+            <span class="text-[10px] font-extrabold uppercase tracking-widest text-red-600 bg-red-50 px-2.5 py-1 rounded-full border border-red-200 inline-block mb-1.5 shadow-2xs">
+              CENTRAL NETWORK HUB
+            </span>
+
+            <!-- Main Hub Title -->
+            <h3 class="text-lg lg:text-xl font-extrabold text-slate-900 leading-tight tracking-tight reveal-text text-reveal">
+              Blood Bank Network
+            </h3>
+            <p class="text-xs text-slate-500 mt-1 leading-snug reveal-text text-reveal reveal-delay-1 reveal-delay-1 text-reveal-delay-1">
+              Unified Availability & Transit Liquidity Engine
+            </p>
+
+            <!-- Telemetry Indicator Pill -->
+            <div class="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-center gap-2 text-[11px] font-semibold text-slate-600 reveal-text text-reveal reveal-delay-2 reveal-delay-2 text-reveal-delay-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Real-Time Data Sync Active</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- TIER 3: Medical Center (Left) & Emergency Care (Right) -->
+        <div class="flex items-center justify-between gap-6 lg:gap-14 max-w-4xl mx-auto w-full relative z-10 mb-8 lg:mb-10">
+          
+          <!-- Medical Center Card -->
+          <div class="w-[280px] sm:w-[310px] lg:w-[330px] shrink-0 animate-net-float-3 network-card-init network-card-delay-3" data-org-node="medical-center">
+            <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:border-red-300 hover:shadow-xl hover:shadow-red-500/10 transition-all duration-300 transform hover:-translate-y-1 hover:scale-[1.02] cursor-pointer group">
+              <div class="flex items-center justify-between mb-3">
+                <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center group-hover:bg-red-600 group-hover:text-white transition-all shadow-2xs">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
+                </div>
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200 group-hover:border-red-200 group-hover:bg-red-50 group-hover:text-red-700 transition-colors">
+                  MEDICAL CENTER
+                </span>
+              </div>
+              <h4 class="text-base font-bold text-slate-900 group-hover:text-red-600 transition-colors reveal-text text-reveal">
+                Medical Centers
+              </h4>
+              <p class="text-xs text-slate-500 font-medium mb-3 reveal-text text-reveal reveal-delay-1 reveal-delay-1 text-reveal-delay-1">
+                Multi-Specialty & Surgical Hubs
+              </p>
+              <div class="space-y-1.5 text-[11px] text-slate-600 reveal-text text-reveal reveal-delay-2 reveal-delay-2 text-reveal-delay-2">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-1 h-1 rounded-full bg-red-500"></span>
+                  <span>Departmental inventory pools</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="w-1 h-1 rounded-full bg-red-500"></span>
+                  <span>Cross-facility stock visibility</span>
+                </div>
+              </div>
+              <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[10px] font-semibold text-slate-400 group-hover:text-red-600 transition-colors">
+                <span>Isolated Workspace</span>
+                <span class="flex items-center gap-1 text-emerald-600 font-medium">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  <span>Synced</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Emergency Care Card -->
+          <div class="w-[280px] sm:w-[310px] lg:w-[330px] shrink-0 animate-net-float-2 network-card-init network-card-delay-5" data-org-node="emergency-care">
+            <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:border-red-300 hover:shadow-xl hover:shadow-red-500/10 transition-all duration-300 transform hover:-translate-y-1 hover:scale-[1.02] cursor-pointer group">
+              <div class="flex items-center justify-between mb-3">
+                <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center group-hover:bg-red-600 group-hover:text-white transition-all shadow-2xs">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg>
+                </div>
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 group-hover:border-red-200 group-hover:bg-red-600 group-hover:text-white transition-colors">
+                  EMERGENCY
+                </span>
+              </div>
+              <h4 class="text-base font-bold text-slate-900 group-hover:text-red-600 transition-colors reveal-text text-reveal">
+                Emergency Care
+              </h4>
+              <p class="text-xs text-slate-500 font-medium mb-3 reveal-text text-reveal reveal-delay-1 reveal-delay-1 text-reveal-delay-1">
+                Trauma & Urgent Resuscitation
+              </p>
+              <div class="space-y-1.5 text-[11px] text-slate-600 reveal-text text-reveal reveal-delay-2 reveal-delay-2 text-reveal-delay-2">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-1 h-1 rounded-full bg-red-500"></span>
+                  <span>High-priority unit broadcasts</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="w-1 h-1 rounded-full bg-red-500"></span>
+                  <span>Immediate allocation protocol</span>
+                </div>
+              </div>
+              <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[10px] font-semibold text-slate-400 group-hover:text-red-600 transition-colors">
+                <span>Isolated Workspace</span>
+                <span class="flex items-center gap-1 text-emerald-600 font-medium">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  <span>Synced</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- TIER 4: Diagnostic Center (Centered at Bottom) -->
+        <div class="flex items-center justify-center relative z-10">
+          <div class="w-[280px] sm:w-[310px] lg:w-[330px] shrink-0 animate-net-float-1 network-card-init network-card-delay-4" data-org-node="diagnostic-center">
+            <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:border-red-300 hover:shadow-xl hover:shadow-red-500/10 transition-all duration-300 transform hover:-translate-y-1 hover:scale-[1.02] cursor-pointer group">
+              <div class="flex items-center justify-between mb-3">
+                <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center group-hover:bg-red-600 group-hover:text-white transition-all shadow-2xs">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5a4.5 4.5 0 003.182 7.682h7.636A4.5 4.5 0 0019 14.5l-4.091-4.091a2.25 2.25 0 01-.659-1.591V3.104M9.75 3.104h4.5M9.75 3.104H8.25m6 0h1.5M7 16.5h10" /></svg>
+                </div>
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200 group-hover:border-red-200 group-hover:bg-red-50 group-hover:text-red-700 transition-colors">
+                  DIAGNOSTIC LAB
+                </span>
+              </div>
+              <h4 class="text-base font-bold text-slate-900 group-hover:text-red-600 transition-colors reveal-text text-reveal">
+                Diagnostic Centers
+              </h4>
+              <p class="text-xs text-slate-500 font-medium mb-3 reveal-text text-reveal reveal-delay-1 reveal-delay-1 text-reveal-delay-1">
+                Testing & Component Clearing
+              </p>
+              <div class="space-y-1.5 text-[11px] text-slate-600 reveal-text text-reveal reveal-delay-2 reveal-delay-2 text-reveal-delay-2">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-1 h-1 rounded-full bg-red-500"></span>
+                  <span>TTIs testing & safety screening</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="w-1 h-1 rounded-full bg-red-500"></span>
+                  <span>Digital quarantine clearance</span>
+                </div>
+              </div>
+              <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[10px] font-semibold text-slate-400 group-hover:text-red-600 transition-colors">
+                <span>Isolated Workspace</span>
+                <span class="flex items-center gap-1 text-emerald-600 font-medium">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  <span>Synced</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ==================================================================== -->
+      <!-- MOBILE VERTICAL CHAIN LAYOUT (< 768px)                               -->
+      <!-- Blood Bank Network -> Hospital -> Clinic -> MedCenter -> Diag -> Emg -->
+      <!-- ==================================================================== -->
+      <div class="md:hidden space-y-2 my-6 network-reveal-init max-w-md mx-auto">
+        
+        <!-- 1. Blood Bank Network (Top) -->
+        <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 border-2 border-red-200 shadow-md shadow-red-500/10 text-center relative network-hub-glow">
+          <div class="w-11 h-11 mx-auto rounded-xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-white shadow-sm shadow-red-500/25 mb-2.5">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+            </svg>
+          </div>
+          <span class="text-[9px] font-extrabold uppercase tracking-widest text-red-600 bg-red-50 px-2.5 py-0.5 rounded-full border border-red-200 inline-block mb-1">
+            CENTRAL NETWORK HUB
+          </span>
+          <h3 class="text-base font-extrabold text-slate-900 leading-tight reveal-text text-reveal">
+            Blood Bank Network
+          </h3>
+          <p class="text-[11px] text-slate-500 mt-0.5 reveal-text text-reveal reveal-delay-1 reveal-delay-1 text-reveal-delay-1">
+            Unified Availability & Transit Liquidity Engine
+          </p>
+          <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[10px] font-semibold text-slate-600">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>Real-Time Data Sync Active</span>
+          </div>
+        </div>
+
+        <!-- Connector Down Arrow 1 -->
+        <div class="flex flex-col items-center justify-center py-1">
+          <div class="w-0.5 h-6 bg-gradient-to-b from-red-500 to-red-300 relative overflow-hidden rounded-full">
+            <div class="w-full h-3 bg-white animate-spine-pulse rounded-full"></div>
+          </div>
+          <svg class="w-3.5 h-3.5 text-red-500 -mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </div>
+
+        <!-- 2. Hospital -->
+        <div class="bg-white/95 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-2xs hover:border-red-200 transition-all">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shadow-2xs">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M6 3v18m12-18v18M9 7.5h6M9 12h6M12 9.5v5" /></svg>
+              </div>
+              <div>
+                <span class="text-sm font-bold text-slate-900 block leading-tight">Hospitals</span>
+                <span class="text-[10px] text-slate-500 font-medium">Inpatient & Bedside Care</span>
+              </div>
+            </div>
+            <span class="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+              <span class="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></span>
+              Connected
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-500 leading-snug reveal-text text-reveal reveal-delay-1 reveal-delay-1 text-reveal-delay-1">Emergency blood reservations & direct bedside unit issuing verification.</p>
+        </div>
+
+        <!-- Connector Down Arrow 2 -->
+        <div class="flex flex-col items-center justify-center py-1">
+          <div class="w-0.5 h-6 bg-gradient-to-b from-red-500 to-red-300 relative overflow-hidden rounded-full">
+            <div class="w-full h-3 bg-white animate-spine-pulse rounded-full"></div>
+          </div>
+          <svg class="w-3.5 h-3.5 text-red-500 -mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </div>
+
+        <!-- 3. Clinic -->
+        <div class="bg-white/95 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-2xs hover:border-red-200 transition-all">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shadow-2xs">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /><rect x="3" y="3" width="18" height="18" rx="5" stroke-width="1.8" /></svg>
+              </div>
+              <div>
+                <span class="text-sm font-bold text-slate-900 block leading-tight">Clinics</span>
+                <span class="text-[10px] text-slate-500 font-medium">Outpatient & Ambulatory Care</span>
+              </div>
+            </div>
+            <span class="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+              <span class="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></span>
+              Connected
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-500 leading-snug reveal-text text-reveal reveal-delay-1 reveal-delay-1 text-reveal-delay-1">Scheduled requests, urgent fulfillment submissions & fast inventory routing.</p>
+        </div>
+
+        <!-- Connector Down Arrow 3 -->
+        <div class="flex flex-col items-center justify-center py-1">
+          <div class="w-0.5 h-6 bg-gradient-to-b from-red-500 to-red-300 relative overflow-hidden rounded-full">
+            <div class="w-full h-3 bg-white animate-spine-pulse rounded-full"></div>
+          </div>
+          <svg class="w-3.5 h-3.5 text-red-500 -mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </div>
+
+        <!-- 4. Medical Center -->
+        <div class="bg-white/95 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-2xs hover:border-red-200 transition-all">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shadow-2xs">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
+              </div>
+              <div>
+                <span class="text-sm font-bold text-slate-900 block leading-tight">Medical Centers</span>
+                <span class="text-[10px] text-slate-500 font-medium">Multi-Specialty Hubs</span>
+              </div>
+            </div>
+            <span class="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+              <span class="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></span>
+              Connected
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-500 leading-snug reveal-text text-reveal reveal-delay-1 reveal-delay-1 text-reveal-delay-1">Departmental inventory pools & cross-facility stock synchronization.</p>
+        </div>
+
+        <!-- Connector Down Arrow 4 -->
+        <div class="flex flex-col items-center justify-center py-1">
+          <div class="w-0.5 h-6 bg-gradient-to-b from-red-500 to-red-300 relative overflow-hidden rounded-full">
+            <div class="w-full h-3 bg-white animate-spine-pulse rounded-full"></div>
+          </div>
+          <svg class="w-3.5 h-3.5 text-red-500 -mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </div>
+
+        <!-- 5. Diagnostic Center -->
+        <div class="bg-white/95 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-2xs hover:border-red-200 transition-all">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shadow-2xs">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5a4.5 4.5 0 003.182 7.682h7.636A4.5 4.5 0 0019 14.5l-4.091-4.091a2.25 2.25 0 01-.659-1.591V3.104M9.75 3.104h4.5M9.75 3.104H8.25m6 0h1.5M7 16.5h10" /></svg>
+              </div>
+              <div>
+                <span class="text-sm font-bold text-slate-900 block leading-tight">Diagnostic Centers</span>
+                <span class="text-[10px] text-slate-500 font-medium">Testing & Component Clearing</span>
+              </div>
+            </div>
+            <span class="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+              <span class="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></span>
+              Connected
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-500 leading-snug reveal-text text-reveal reveal-delay-1 reveal-delay-1 text-reveal-delay-1">TTIs testing screening & digital unit quarantine clearance protocol.</p>
+        </div>
+
+        <!-- Connector Down Arrow 5 -->
+        <div class="flex flex-col items-center justify-center py-1">
+          <div class="w-0.5 h-6 bg-gradient-to-b from-red-500 to-red-300 relative overflow-hidden rounded-full">
+            <div class="w-full h-3 bg-white animate-spine-pulse rounded-full"></div>
+          </div>
+          <svg class="w-3.5 h-3.5 text-red-500 -mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </div>
+
+        <!-- 6. Emergency Care -->
+        <div class="bg-white/95 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-2xs hover:border-red-200 transition-all">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shadow-2xs">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg>
+              </div>
+              <div>
+                <span class="text-sm font-bold text-slate-900 block leading-tight">Emergency Care</span>
+                <span class="text-[10px] text-slate-500 font-medium">Trauma & Resuscitation</span>
+              </div>
+            </div>
+            <span class="text-[9px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200 flex items-center gap-1">
+              <span class="w-1 h-1 rounded-full bg-rose-500 animate-pulse"></span>
+              Priority
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-500 leading-snug reveal-text text-reveal reveal-delay-1 reveal-delay-1 text-reveal-delay-1">High-priority unit broadcasts & instant emergency allocation protocol.</p>
+        </div>
+
+      </div>
+
+      <!-- ==================================================================== -->
+      <!-- SECURE WORKSPACE & TENANT ISOLATION GUARANTEE                        -->
+      <!-- ==================================================================== -->
+      <div class="mt-14 sm:mt-16 bg-gradient-to-br from-slate-50 via-white to-slate-50 rounded-3xl p-6 sm:p-8 lg:p-10 border border-slate-200/90 shadow-sm max-w-5xl mx-auto network-reveal-init">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 lg:gap-10">
+          <div class="max-w-2xl">
+            <div class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-red-600 mb-2.5 reveal-text text-reveal">
+              <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+              </svg>
+              TENANT PRIVACY & ARCHITECTURAL ISOLATION
+            </div>
+            <h3 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight leading-snug reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+              “Your Workspace. Your Organization. One Connected Network.”
+            </h3>
+            <p class="mt-2.5 text-sm sm:text-base text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+              “Each organization manages its own staff, inventory, requests, and operational data while BloodLink enables connected blood availability across the network.”
+            </p>
+          </div>
+
+          <!-- Feature Badges -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 shrink-0 reveal-text text-reveal reveal-delay-3 text-reveal-delay-3">
+            <div class="flex items-center gap-2.5 text-xs sm:text-sm font-semibold text-slate-800 bg-white px-3.5 py-2.5 rounded-xl border border-slate-200/90 shadow-2xs">
+              <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+              <span>Organization-level access</span>
+            </div>
+            <div class="flex items-center gap-2.5 text-xs sm:text-sm font-semibold text-slate-800 bg-white px-3.5 py-2.5 rounded-xl border border-slate-200/90 shadow-2xs">
+              <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+              <span>Secure workspace</span>
+            </div>
+            <div class="flex items-center gap-2.5 text-xs sm:text-sm font-semibold text-slate-800 bg-white px-3.5 py-2.5 rounded-xl border border-slate-200/90 shadow-2xs">
+              <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+              <span>Connected blood availability</span>
+            </div>
+            <div class="flex items-center gap-2.5 text-xs sm:text-sm font-semibold text-slate-800 bg-white px-3.5 py-2.5 rounded-xl border border-slate-200/90 shadow-2xs">
+              <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+              <span>Auditable operations</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ======================================================================== -->
+    <!-- HOW BLOODLINK WORKS — 5-STEP WORKFLOW                                    -->
+    <!-- ======================================================================== -->
+    <section id="workflow" class="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-b border-slate-200/80">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span
+          class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-red-600 mb-3 bg-red-50 px-3 py-1 rounded-full border border-red-100 reveal-text text-reveal">
+          HOW IT WORKS
+        </span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+          From Blood Search to Verified Issuing
+        </h2>
+        <p class="mt-4 text-base sm:text-lg text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+          BloodLink connects availability, requests and unit tracking into one coordinated workflow.
+        </p>
+      </div>
+
+      <!-- 5-Step Process Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-4 relative">
+
+        <!-- Step 01: SEARCH -->
+        <div
+          class="relative bg-white rounded-2xl p-6 border border-slate-200/90 shadow-sm hover:border-red-200 hover:shadow-md hover-lift transition-all flex flex-col justify-between group">
+          <div>
+            <div class="flex items-center justify-between mb-5">
+              <span
+                class="w-8 h-8 rounded-lg bg-red-50 text-red-600 font-bold text-xs flex items-center justify-center border border-red-100">
+                01
+              </span>
+              <div
+                class="w-8 h-8 rounded-lg bg-slate-50 text-slate-600 flex items-center justify-center group-hover:bg-red-50 group-hover:text-red-600 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+            </div>
+            <h3 class="text-sm font-bold tracking-wider text-slate-900 uppercase mb-2 reveal-text text-reveal">SEARCH</h3>
+            <p class="text-xs text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+              Find available blood units across connected organizations.
+            </p>
+          </div>
+          <!-- Desktop Arrow Connector -->
+          <div
+            class="hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 z-20 w-6 h-6 rounded-full bg-white border border-slate-200 items-center justify-center text-slate-400 shadow-xs pointer-events-none"
+            aria-hidden="true">
+            <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Step 02: REQUEST -->
+        <div
+          class="relative bg-white rounded-2xl p-6 border border-slate-200/90 shadow-sm hover:border-red-200 hover:shadow-md hover-lift transition-all flex flex-col justify-between group">
+          <div>
+            <div class="flex items-center justify-between mb-5">
+              <span
+                class="w-8 h-8 rounded-lg bg-red-50 text-red-600 font-bold text-xs flex items-center justify-center border border-red-100">
+                02
+              </span>
+              <div
+                class="w-8 h-8 rounded-lg bg-slate-50 text-slate-600 flex items-center justify-center group-hover:bg-red-50 group-hover:text-red-600 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+            </div>
+            <h3 class="text-sm font-bold tracking-wider text-slate-900 uppercase mb-2 reveal-text text-reveal">REQUEST</h3>
+            <p class="text-xs text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+              Submit a blood request with the required blood group, component and quantity.
+            </p>
+          </div>
+          <!-- Desktop Arrow Connector -->
+          <div
+            class="hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 z-20 w-6 h-6 rounded-full bg-white border border-slate-200 items-center justify-center text-slate-400 shadow-xs pointer-events-none"
+            aria-hidden="true">
+            <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Step 03: VERIFY -->
+        <div
+          class="relative bg-white rounded-2xl p-6 border border-slate-200/90 shadow-sm hover:border-red-200 hover:shadow-md hover-lift transition-all flex flex-col justify-between group">
+          <div>
+            <div class="flex items-center justify-between mb-5">
+              <span
+                class="w-8 h-8 rounded-lg bg-red-50 text-red-600 font-bold text-xs flex items-center justify-center border border-red-100">
+                03
+              </span>
+              <div
+                class="w-8 h-8 rounded-lg bg-slate-50 text-slate-600 flex items-center justify-center group-hover:bg-red-50 group-hover:text-red-600 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+              </div>
+            </div>
+            <h3 class="text-sm font-bold tracking-wider text-slate-900 uppercase mb-2 reveal-text text-reveal">VERIFY</h3>
+            <p class="text-xs text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+              Organizations review and coordinate the request according to their workflow.
+            </p>
+          </div>
+          <!-- Desktop Arrow Connector -->
+          <div
+            class="hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 z-20 w-6 h-6 rounded-full bg-white border border-slate-200 items-center justify-center text-slate-400 shadow-xs pointer-events-none"
+            aria-hidden="true">
+            <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Step 04: RESERVE -->
+        <div
+          class="relative bg-white rounded-2xl p-6 border border-slate-200/90 shadow-sm hover:border-red-200 hover:shadow-md hover-lift transition-all flex flex-col justify-between group">
+          <div>
+            <div class="flex items-center justify-between mb-5">
+              <span
+                class="w-8 h-8 rounded-lg bg-red-50 text-red-600 font-bold text-xs flex items-center justify-center border border-red-100">
+                04
+              </span>
+              <div
+                class="w-8 h-8 rounded-lg bg-slate-50 text-slate-600 flex items-center justify-center group-hover:bg-red-50 group-hover:text-red-600 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+            </div>
+            <h3 class="text-sm font-bold tracking-wider text-slate-900 uppercase mb-2 reveal-text text-reveal">RESERVE</h3>
+            <p class="text-xs text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+              Available units can be reserved for an approved request.
+            </p>
+          </div>
+          <!-- Desktop Arrow Connector -->
+          <div
+            class="hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 z-20 w-6 h-6 rounded-full bg-white border border-slate-200 items-center justify-center text-slate-400 shadow-xs pointer-events-none"
+            aria-hidden="true">
+            <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Step 05: ISSUE -->
+        <div
+          class="relative bg-white rounded-2xl p-6 border border-slate-200/90 shadow-sm hover:border-red-200 hover:shadow-md hover-lift transition-all flex flex-col justify-between group">
+          <div>
+            <div class="flex items-center justify-between mb-5">
+              <span
+                class="w-8 h-8 rounded-lg bg-red-50 text-red-600 font-bold text-xs flex items-center justify-center border border-red-100">
+                05
+              </span>
+              <div
+                class="w-8 h-8 rounded-lg bg-slate-50 text-slate-600 flex items-center justify-center group-hover:bg-red-50 group-hover:text-red-600 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+            <h3 class="text-sm font-bold tracking-wider text-slate-900 uppercase mb-2 reveal-text text-reveal">ISSUE</h3>
+            <p class="text-xs text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+              Track the unit through issuing and completion.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ======================================================================== -->
+    <!-- PLATFORM CAPABILITIES — 6 CORE CAPABILITY MODULES                        -->
+    <!-- ======================================================================== -->
+    <section id="features" class="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-b border-slate-200/80">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span
+          class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-red-600 mb-3 bg-red-50 px-3 py-1 rounded-full border border-red-100 reveal-text text-reveal">
+          PLATFORM CAPABILITIES
+        </span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+          Everything You Need to Coordinate Blood Operations
+        </h2>
+        <p class="mt-4 text-base sm:text-lg text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+          BloodLink brings blood availability, inventory, requests and traceability into one centralized platform.
+        </p>
+      </div>
+
+      <!-- 6 Capability Cards Grid: 3 col desktop, 2 col tablet, 1 col mobile -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+
+        <!-- Capability 1: BLOOD AVAILABILITY -->
+        <div
+          class="bg-white rounded-2xl p-7 border border-slate-200/90 shadow-xs hover:border-red-200 hover:shadow-md hover-lift transition-all flex flex-col justify-between group">
+          <div>
+            <div
+              class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 mb-2 group-hover:text-red-600 transition-colors reveal-text text-reveal">
+              Blood Availability
+            </h3>
+            <p class="text-sm text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+              Search available blood across connected organizations.
+            </p>
+          </div>
+          <div
+            class="mt-6 pt-4 border-t border-slate-100 flex items-center gap-1.5 text-xs font-medium text-slate-400 group-hover:text-red-600 transition-colors reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+            <span>Availability Discovery</span>
+            <svg class="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Capability 2: INVENTORY MANAGEMENT -->
+        <div
+          class="bg-white rounded-2xl p-7 border border-slate-200/90 shadow-xs hover:border-red-200 hover:shadow-md hover-lift transition-all flex flex-col justify-between group">
+          <div>
+            <div
+              class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 mb-2 group-hover:text-red-600 transition-colors reveal-text text-reveal">
+              Inventory Management
+            </h3>
+            <p class="text-sm text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+              Track available blood units and inventory activity within your organization.
+            </p>
+          </div>
+          <div
+            class="mt-6 pt-4 border-t border-slate-100 flex items-center gap-1.5 text-xs font-medium text-slate-400 group-hover:text-red-600 transition-colors reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+            <span>Stock Tracking</span>
+            <svg class="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Capability 3: BLOOD REQUESTS -->
+        <div
+          class="bg-white rounded-2xl p-7 border border-slate-200/90 shadow-xs hover:border-red-200 hover:shadow-md hover-lift transition-all flex flex-col justify-between group">
+          <div>
+            <div
+              class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 mb-2 group-hover:text-red-600 transition-colors reveal-text text-reveal">
+              Blood Requests
+            </h3>
+            <p class="text-sm text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+              Create, review and track blood requests through a structured workflow.
+            </p>
+          </div>
+          <div
+            class="mt-6 pt-4 border-t border-slate-100 flex items-center gap-1.5 text-xs font-medium text-slate-400 group-hover:text-red-600 transition-colors reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+            <span>Workflow Routing</span>
+            <svg class="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Capability 4: UNIT TRACEABILITY -->
+        <div
+          class="bg-white rounded-2xl p-7 border border-slate-200/90 shadow-xs hover:border-red-200 hover:shadow-md hover-lift transition-all flex flex-col justify-between group">
+          <div>
+            <div
+              class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 mb-2 group-hover:text-red-600 transition-colors reveal-text text-reveal">
+              Unit Traceability
+            </h3>
+            <p class="text-sm text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+              Follow individual blood units throughout their operational lifecycle.
+            </p>
+          </div>
+          <div
+            class="mt-6 pt-4 border-t border-slate-100 flex items-center gap-1.5 text-xs font-medium text-slate-400 group-hover:text-red-600 transition-colors reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+            <span>Lifecycle Tracking</span>
+            <svg class="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Capability 5: RESERVATIONS & ISSUING -->
+        <div
+          class="bg-white rounded-2xl p-7 border border-slate-200/90 shadow-xs hover:border-red-200 hover:shadow-md hover-lift transition-all flex flex-col justify-between group">
+          <div>
+            <div
+              class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 mb-2 group-hover:text-red-600 transition-colors reveal-text text-reveal">
+              Reservations & Issuing
+            </h3>
+            <p class="text-sm text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+              Coordinate unit reservations and issuing through controlled workflows.
+            </p>
+          </div>
+          <div
+            class="mt-6 pt-4 border-t border-slate-100 flex items-center gap-1.5 text-xs font-medium text-slate-400 group-hover:text-red-600 transition-colors reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+            <span>Controlled Fulfillment</span>
+            <svg class="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Capability 6: REPORTS & AUDIT HISTORY -->
+        <div
+          class="bg-white rounded-2xl p-7 border border-slate-200/90 shadow-xs hover:border-red-200 hover:shadow-md hover-lift transition-all flex flex-col justify-between group">
+          <div>
+            <div
+              class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 mb-2 group-hover:text-red-600 transition-colors reveal-text text-reveal">
+              Reports & Audit History
+            </h3>
+            <p class="text-sm text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+              Monitor operational activity with reports and traceable records.
+            </p>
+          </div>
+          <div
+            class="mt-6 pt-4 border-t border-slate-100 flex items-center gap-1.5 text-xs font-medium text-slate-400 group-hover:text-red-600 transition-colors reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+            <span>Accountability Logs</span>
+            <svg class="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ======================================================================== -->
+    <!-- BLOOD UNIT TRACEABILITY — OPERATIONAL LIFECYCLE                          -->
+    <!-- ======================================================================== -->
+    <section id="traceability" class="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-b border-slate-200/80">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span
+          class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-red-600 mb-3 bg-red-50 px-3 py-1 rounded-full border border-red-100 reveal-text text-reveal">
+          UNIT TRACEABILITY
+        </span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+          Know the Journey of Every Blood Unit
+        </h2>
+        <p class="mt-4 text-base sm:text-lg text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+          BloodLink provides a structured view of a blood unit's operational lifecycle—from donation through
+          availability, reservation and issuing.
+        </p>
+      </div>
+
+      <!-- Main Container: Soft Neutral Dashboard Frame -->
+      <div class="bg-slate-50/70 border border-slate-200/90 rounded-3xl p-6 sm:p-10 lg:p-12 shadow-xs">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+
+          <!-- Left Column: Visual Operational Lifecycle (7 cols) -->
+          <div class="lg:col-span-7">
+            <div class="flex items-center justify-between mb-6">
+              <div>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block reveal-text text-reveal">Workflow
+                  Progression</span>
+                <h3 class="text-lg font-bold text-slate-900 reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">Operational Unit Lifecycle</h3>
+              </div>
+              <span class="text-xs text-slate-500 font-medium bg-white px-3 py-1 rounded-full border border-slate-200 reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+                6 Managed States
+              </span>
+            </div>
+
+            <!-- Lifecycle Flow: DONATED ↓ TESTING ↓ AVAILABLE ↓ RESERVED ↓ ISSUED ↓ COMPLETED -->
+            <div class="space-y-2">
+
+              <!-- State 01: DONATED -->
+              <div
+                class="bg-white rounded-xl p-3.5 border border-slate-200/80 shadow-xs flex items-center justify-between hover-lift transition-all">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 font-bold text-xs flex items-center justify-center shrink-0">
+                    01
+                  </div>
+                  <div>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-900 reveal-text text-reveal">DONATED</h4>
+                    <p class="text-[11px] text-slate-500 reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">Initial intake and donation logging</p>
+                  </div>
+                </div>
+                <span class="text-[10px] font-medium text-slate-400 bg-slate-50 px-2 py-0.5 rounded reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">Intake</span>
+              </div>
+
+              <!-- Direction Arrow -->
+              <div class="flex justify-center py-0.5 text-slate-300" aria-hidden="true">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                    d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+              </div>
+
+              <!-- State 02: TESTING -->
+              <div
+                class="bg-white rounded-xl p-3.5 border border-slate-200/80 shadow-xs flex items-center justify-between hover-lift transition-all">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 font-bold text-xs flex items-center justify-center shrink-0">
+                    02
+                  </div>
+                  <div>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-900 reveal-text text-reveal">TESTING</h4>
+                    <p class="text-[11px] text-slate-500 reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">Laboratory screening and safety clearance</p>
+                  </div>
+                </div>
+                <span class="text-[10px] font-medium text-slate-400 bg-slate-50 px-2 py-0.5 rounded reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">Lab Protocol</span>
+              </div>
+
+              <!-- Direction Arrow -->
+              <div class="flex justify-center py-0.5 text-slate-300" aria-hidden="true">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                    d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+              </div>
+
+              <!-- State 03: AVAILABLE (ACTIVE STATE HIGHLIGHT WITH RED ACCENT) -->
+              <div
+                class="bg-gradient-to-r from-red-50/90 via-white to-red-50/50 rounded-xl p-4 border-2 border-red-500 shadow-sm flex items-center justify-between ring-4 ring-red-100/60 hover-lift transition-all">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-8 h-8 rounded-lg bg-red-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
+                    03
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <h4 class="text-xs font-black uppercase tracking-wider text-red-700 reveal-text text-reveal">AVAILABLE</h4>
+                      <span
+                        class="inline-flex items-center gap-1 text-[10px] font-bold text-red-600 bg-red-100/80 px-2 py-0.5 rounded-full reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse"></span>
+                        Active Example State
+                      </span>
+                    </div>
+                    <p class="text-[11px] text-slate-600 font-medium reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">Cleared and discoverable across connected network
+                    </p>
+                  </div>
+                </div>
+                <span
+                  class="text-[10px] font-bold text-red-700 bg-red-100 px-2.5 py-1 rounded-md border border-red-200 reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+                  Ready
+                </span>
+              </div>
+
+              <!-- Direction Arrow -->
+              <div class="flex justify-center py-0.5 text-slate-300" aria-hidden="true">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                    d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+              </div>
+
+              <!-- State 04: RESERVED -->
+              <div
+                class="bg-white rounded-xl p-3.5 border border-slate-200/80 shadow-xs flex items-center justify-between hover-lift transition-all">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 font-bold text-xs flex items-center justify-center shrink-0">
+                    04
+                  </div>
+                  <div>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-900 reveal-text text-reveal">RESERVED</h4>
+                    <p class="text-[11px] text-slate-500 reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">Controlled hold for an approved blood request</p>
+                  </div>
+                </div>
+                <span class="text-[10px] font-medium text-slate-400 bg-slate-50 px-2 py-0.5 rounded reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">Hold</span>
+              </div>
+
+              <!-- Direction Arrow -->
+              <div class="flex justify-center py-0.5 text-slate-300" aria-hidden="true">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                    d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+              </div>
+
+              <!-- State 05: ISSUED -->
+              <div
+                class="bg-white rounded-xl p-3.5 border border-slate-200/80 shadow-xs flex items-center justify-between hover-lift transition-all">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 font-bold text-xs flex items-center justify-center shrink-0">
+                    05
+                  </div>
+                  <div>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-900 reveal-text text-reveal">ISSUED</h4>
+                    <p class="text-[11px] text-slate-500 reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">Verified transfer and dispatch for clinical use</p>
+                  </div>
+                </div>
+                <span class="text-[10px] font-medium text-slate-400 bg-slate-50 px-2 py-0.5 rounded reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">Dispatch</span>
+              </div>
+
+              <!-- Direction Arrow -->
+              <div class="flex justify-center py-0.5 text-slate-300" aria-hidden="true">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                    d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+              </div>
+
+              <!-- State 06: COMPLETED -->
+              <div
+                class="bg-white rounded-xl p-3.5 border border-slate-200/80 shadow-xs flex items-center justify-between hover-lift transition-all">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 font-bold text-xs flex items-center justify-center shrink-0">
+                    06
+                  </div>
+                  <div>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-900 reveal-text text-reveal">COMPLETED</h4>
+                    <p class="text-[11px] text-slate-500 reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">Lifecycle finalized with complete audit history</p>
+                  </div>
+                </div>
+                <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">Finalized</span>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Right Column: Example Unit Card (5 cols) -->
+          <div class="lg:col-span-5">
+            <div
+              class="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 sm:p-7 relative hover-lift transition-all">
+
+              <!-- Card Header -->
+              <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-9 h-9 rounded-xl bg-red-50 text-red-600 flex items-center justify-center font-bold">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 class="text-base font-bold text-slate-900 reveal-text text-reveal">Blood Unit</h4>
+                    <span class="text-[11px] text-slate-400 font-mono reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">Sample Unit Passport</span>
+                  </div>
+                </div>
+                <span
+                  class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200 reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+                  DEMO / EXAMPLE
+                </span>
+              </div>
+
+              <!-- Unit Metadata Properties -->
+              <div class="space-y-3.5 text-xs reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+
+                <!-- Unit ID -->
+                <div class="flex items-center justify-between py-2 border-b border-slate-50">
+                  <span class="text-slate-500 font-medium">Unit ID</span>
+                  <span class="font-mono font-bold text-slate-900 bg-slate-100 px-2.5 py-1 rounded text-xs">
+                    BL-XXXXXX
+                  </span>
+                </div>
+
+                <!-- Blood Group -->
+                <div class="flex items-center justify-between py-2 border-b border-slate-50">
+                  <span class="text-slate-500 font-medium">Blood Group</span>
+                  <span class="font-black text-red-600 text-sm bg-red-50 px-3 py-0.5 rounded-md border border-red-100">
+                    O+
+                  </span>
+                </div>
+
+                <!-- Component -->
+                <div class="flex items-center justify-between py-2 border-b border-slate-50">
+                  <span class="text-slate-500 font-medium">Component</span>
+                  <span class="font-semibold text-slate-800">
+                    Whole Blood
+                  </span>
+                </div>
+
+                <!-- Status -->
+                <div class="flex items-center justify-between py-2 border-b border-slate-50">
+                  <span class="text-slate-500 font-medium">Status</span>
+                  <span
+                    class="inline-flex items-center gap-1.5 font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full text-xs border border-emerald-200">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    AVAILABLE
+                  </span>
+                </div>
+
+                <!-- Organization -->
+                <div class="flex items-center justify-between py-2">
+                  <span class="text-slate-500 font-medium">Organization</span>
+                  <span class="font-semibold text-slate-800">
+                    Example Hospital
+                  </span>
+                </div>
+
+              </div>
+
+              <!-- Visual Barcode & Demo Disclaimer -->
+              <div class="mt-6 pt-4 border-t border-slate-100 bg-slate-50/80 rounded-xl p-3.5 text-center">
+                <div class="font-mono text-xs tracking-widest text-slate-400 select-none">
+                  ||| | ||||| || |||| ||| |||| | |||
+                </div>
+                <div class="text-[10px] text-slate-500 font-medium mt-1.5 reveal-text text-reveal reveal-delay-3 text-reveal-delay-3">
+                  Illustrative demonstration only • No real patient data
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================== -->
+    <!-- ROLE PORTALS — ROLE-BASED WORKSPACES                                      -->
+    <!-- ======================================================================== -->
+    <section id="portals" class="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-b border-slate-200/80">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span
+          class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-red-600 mb-3 bg-red-50 px-3 py-1 rounded-full border border-red-100 reveal-text text-reveal">
+          ROLE PORTALS
+        </span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+          Built Around Every Role in the Blood Network
+        </h2>
+        <p class="mt-4 text-base sm:text-lg text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+          Each user gets access to the tools and information relevant to their role.
+        </p>
+      </div>
+
+      <!-- 6 Role Cards Grid: 3 col desktop, 2 col tablet, 1 col mobile -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+
+        <!-- Role 1: SUPER ADMIN -->
+        <div
+          class="bg-white rounded-2xl p-7 border border-slate-200/90 shadow-xs hover:border-red-200 hover:shadow-md hover-lift transition-all flex flex-col justify-between group">
+          <div>
+            <div class="flex items-center justify-between mb-5">
+              <div
+                class="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+              </div>
+              <span
+                class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-100 reveal-text text-reveal">
+                Governance
+              </span>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 mb-2 group-hover:text-red-600 transition-colors reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+              Super Admin
+            </h3>
+            <p class="text-sm text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+              Manage the BloodLink platform, organizations, users, system activity and platform-wide operations.
+            </p>
+          </div>
+          <div class="mt-6 pt-4 border-t border-slate-100 reveal-text text-reveal reveal-delay-3 text-reveal-delay-3">
+            <a href="/login.html"
+              class="inline-flex items-center gap-1.5 text-xs font-semibold text-red-600 hover:text-red-700 group/link">
+              <span>Explore Portal</span>
+              <svg class="w-3.5 h-3.5 group-hover/link:translate-x-1 transition-transform" fill="none"
+                stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- Role 2: ORGANIZATION ADMIN -->
+        <div
+          class="bg-white rounded-2xl p-7 border border-slate-200/90 shadow-xs hover:border-red-200 hover:shadow-md hover-lift transition-all flex flex-col justify-between group">
+          <div>
+            <div class="flex items-center justify-between mb-5">
+              <div
+                class="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+              <span
+                class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100 reveal-text text-reveal">
+                Facility Operations
+              </span>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 mb-2 group-hover:text-red-600 transition-colors reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+              Organization Admin
+            </h3>
+            <p class="text-sm text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+              Manage your organization's staff, inventory, requests, reservations, issuing and reports.
+            </p>
+          </div>
+          <div class="mt-6 pt-4 border-t border-slate-100 reveal-text text-reveal reveal-delay-3 text-reveal-delay-3">
+            <a href="/login.html"
+              class="inline-flex items-center gap-1.5 text-xs font-semibold text-red-600 hover:text-red-700 group/link">
+              <span>Explore Portal</span>
+              <svg class="w-3.5 h-3.5 group-hover/link:translate-x-1 transition-transform" fill="none"
+                stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- Role 3: DOCTOR / MEDICAL STAFF -->
+        <div
+          class="bg-white rounded-2xl p-7 border border-slate-200/90 shadow-xs hover:border-red-200 hover:shadow-md hover-lift transition-all flex flex-col justify-between group">
+          <div>
+            <div class="flex items-center justify-between mb-5">
+              <div
+                class="w-10 h-10 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <span
+                class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-teal-50 text-teal-700 border border-teal-100 reveal-text text-reveal">
+                Clinical Workflow
+              </span>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 mb-2 group-hover:text-red-600 transition-colors reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+              Doctor / Medical Staff
+            </h3>
+            <p class="text-sm text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+              Create and track blood requests within the organization's workflow.
+            </p>
+          </div>
+          <div class="mt-6 pt-4 border-t border-slate-100 reveal-text text-reveal reveal-delay-3 text-reveal-delay-3">
+            <a href="/login.html"
+              class="inline-flex items-center gap-1.5 text-xs font-semibold text-red-600 hover:text-red-700 group/link">
+              <span>Explore Portal</span>
+              <svg class="w-3.5 h-3.5 group-hover/link:translate-x-1 transition-transform" fill="none"
+                stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- Role 4: DONOR -->
+        <div
+          class="bg-white rounded-2xl p-7 border border-slate-200/90 shadow-xs hover:border-red-200 hover:shadow-md hover-lift transition-all flex flex-col justify-between group">
+          <div>
+            <div class="flex items-center justify-between mb-5">
+              <div
+                class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+                </svg>
+              </div>
+              <span
+                class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-red-50 text-red-700 border border-red-100 reveal-text text-reveal">
+                Community
+              </span>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 mb-2 group-hover:text-red-600 transition-colors reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+              Donor
+            </h3>
+            <p class="text-sm text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+              Manage your donor profile, donation history and available donation opportunities.
+            </p>
+          </div>
+          <div class="mt-6 pt-4 border-t border-slate-100 reveal-text text-reveal reveal-delay-3 text-reveal-delay-3">
+            <a href="/login.html"
+              class="inline-flex items-center gap-1.5 text-xs font-semibold text-red-600 hover:text-red-700 group/link">
+              <span>Explore Portal</span>
+              <svg class="w-3.5 h-3.5 group-hover/link:translate-x-1 transition-transform" fill="none"
+                stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- Role 5: PATIENT / REQUESTER -->
+        <div
+          class="bg-white rounded-2xl p-7 border border-slate-200/90 shadow-xs hover:border-red-200 hover:shadow-md hover-lift transition-all flex flex-col justify-between group">
+          <div>
+            <div class="flex items-center justify-between mb-5">
+              <div
+                class="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <span
+                class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-100 reveal-text text-reveal">
+                Patient Services
+              </span>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 mb-2 group-hover:text-red-600 transition-colors reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+              Patient / Requester
+            </h3>
+            <p class="text-sm text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+              Search blood availability and track permitted requests.
+            </p>
+          </div>
+          <div class="mt-6 pt-4 border-t border-slate-100 reveal-text text-reveal reveal-delay-3 text-reveal-delay-3">
+            <a href="/login.html"
+              class="inline-flex items-center gap-1.5 text-xs font-semibold text-red-600 hover:text-red-700 group/link">
+              <span>Explore Portal</span>
+              <svg class="w-3.5 h-3.5 group-hover/link:translate-x-1 transition-transform" fill="none"
+                stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- Role 6: STAFF -->
+        <div
+          class="bg-white rounded-2xl p-7 border border-slate-200/90 shadow-xs hover:border-red-200 hover:shadow-md hover-lift transition-all flex flex-col justify-between group">
+          <div>
+            <div class="flex items-center justify-between mb-5">
+              <div
+                class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                </svg>
+              </div>
+              <span
+                class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200 reveal-text text-reveal">
+                Authorized Operations
+              </span>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 mb-2 group-hover:text-red-600 transition-colors reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+              Staff
+            </h3>
+            <p class="text-sm text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+              Perform operational tasks according to assigned organization permissions.
+            </p>
+          </div>
+          <div class="mt-6 pt-4 border-t border-slate-100 reveal-text text-reveal reveal-delay-3 text-reveal-delay-3">
+            <a href="/login.html"
+              class="inline-flex items-center gap-1.5 text-xs font-semibold text-red-600 hover:text-red-700 group/link">
+              <span>Explore Portal</span>
+              <svg class="w-3.5 h-3.5 group-hover/link:translate-x-1 transition-transform" fill="none"
+                stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ======================================================================== -->
+    <!-- EMERGENCY BLOOD — RAPID COORDINATION CTA PANEL                           -->
+    <!-- ======================================================================== -->
+    <section id="emergency" class="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-b border-slate-200/80">
+      <div
+        class="relative overflow-hidden rounded-3xl bg-gradient-to-b from-red-50/80 via-white to-red-50/40 border-2 border-red-200/90 shadow-xl shadow-red-500/5 p-8 sm:p-14 text-center max-w-5xl mx-auto">
+
+        <!-- Subtle Red Ambient Glow Background -->
+        <div
+          class="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 bg-red-400/10 rounded-full blur-3xl pointer-events-none"
+          aria-hidden="true"></div>
+
+        <!-- Content -->
+        <div class="relative z-10">
+          <span
+            class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-red-600 mb-4 bg-red-100/90 px-3.5 py-1.5 rounded-full border border-red-200/80 shadow-xs reveal-text text-reveal">
+            <span class="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
+            EMERGENCY BLOOD
+          </span>
+
+          <h2 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight leading-tight mb-4 reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+            Need Blood Urgently?
+          </h2>
+
+          <p class="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed mb-8 reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+            Search connected organizations for available blood and submit an emergency request through the BloodLink
+            platform.
+          </p>
+
+          <!-- Action Buttons -->
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto reveal-text text-reveal reveal-delay-3 text-reveal-delay-3">
+            <a href="/login.html"
+              class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm sm:text-base shadow-lg shadow-red-600/25 hover:shadow-red-600/35 hover:-translate-y-0.5 transition-all">
+              <span>Emergency Request</span>
+              <span class="text-base leading-none">→</span>
+            </a>
+            <a href="#search"
+              class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-sm sm:text-base border border-slate-300 shadow-xs hover:border-slate-400 hover:-translate-y-0.5 transition-all">
+              Find Blood
+            </a>
+          </div>
+
+          <!-- Professional Assurance Badges -->
+          <div
+            class="mt-10 pt-6 border-t border-red-100/90 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-500 font-medium reveal-text text-reveal reveal-delay-4 text-reveal-delay-4">
+            <span class="inline-flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              Multi-Facility Network Search
+            </span>
+            <span class="text-slate-300 hidden sm:inline">•</span>
+            <span class="inline-flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+              Controlled Hospital Workflows
+            </span>
+            <span class="text-slate-300 hidden sm:inline">•</span>
+            <span class="inline-flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+              </svg>
+              Verified Unit Issuing
+            </span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ======================================================================== -->
+    <!-- FOR DONORS — CHAIN OF CARE VISUAL FLOW                                   -->
+    <!-- ======================================================================== -->
+    <section id="donors" class="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-b border-slate-200/80">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span
+          class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-red-600 mb-3 bg-red-50 px-3 py-1 rounded-full border border-red-100 reveal-text text-reveal">
+          FOR DONORS
+        </span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+          Every Donation Starts a Chain of Care
+        </h2>
+        <p class="mt-4 text-base sm:text-lg text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+          Your donation can become part of a coordinated blood network connecting donations with organizations and
+          patients who need blood.
+        </p>
+      </div>
+
+      <!-- Chain of Care Visual Flow: 5 Connected Stages -->
+      <div class="max-w-6xl mx-auto mb-14">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-4 relative">
+
+          <!-- Stage 1: DONOR -->
+          <div
+            class="relative bg-white rounded-2xl p-6 border border-slate-200/90 shadow-xs hover:border-red-200 hover:shadow-md hover-lift transition-all flex flex-col justify-between group">
+            <div>
+              <div
+                class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path
+                    d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                </svg>
+              </div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1 reveal-text text-reveal">Stage 01</span>
+              <h3 class="text-base font-bold text-slate-900 mb-2 group-hover:text-red-600 transition-colors reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">DONOR</h3>
+              <p class="text-xs text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+                Voluntary donor profile registered within the regional coordination network.
+              </p>
+            </div>
+            <!-- Desktop Connector Arrow -->
+            <div
+              class="hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 z-20 w-6 h-6 rounded-full bg-white border border-slate-200 items-center justify-center text-slate-400 shadow-xs pointer-events-none"
+              aria-hidden="true">
+              <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- Stage 2: DONATION -->
+          <div
+            class="relative bg-white rounded-2xl p-6 border border-slate-200/90 shadow-xs hover:border-red-200 hover:shadow-md hover-lift transition-all flex flex-col justify-between group">
+            <div>
+              <div
+                class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+              </div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1 reveal-text text-reveal">Stage 02</span>
+              <h3 class="text-base font-bold text-slate-900 mb-2 group-hover:text-red-600 transition-colors reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">DONATION
+              </h3>
+              <p class="text-xs text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+                Collection event recorded at an accredited facility or mobile blood drive.
+              </p>
+            </div>
+            <!-- Desktop Connector Arrow -->
+            <div
+              class="hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 z-20 w-6 h-6 rounded-full bg-white border border-slate-200 items-center justify-center text-slate-400 shadow-xs pointer-events-none"
+              aria-hidden="true">
+              <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- Stage 3: BLOOD UNIT -->
+          <div
+            class="relative bg-white rounded-2xl p-6 border border-slate-200/90 shadow-xs hover:border-red-200 hover:shadow-md hover-lift transition-all flex flex-col justify-between group">
+            <div>
+              <div
+                class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+                </svg>
+              </div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1 reveal-text text-reveal">Stage 03</span>
+              <h3 class="text-base font-bold text-slate-900 mb-2 group-hover:text-red-600 transition-colors reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">BLOOD UNIT
+              </h3>
+              <p class="text-xs text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+                Discrete unit labeled, screened and assigned an operational tracking record.
+              </p>
+            </div>
+            <!-- Desktop Connector Arrow -->
+            <div
+              class="hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 z-20 w-6 h-6 rounded-full bg-white border border-slate-200 items-center justify-center text-slate-400 shadow-xs pointer-events-none"
+              aria-hidden="true">
+              <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- Stage 4: INVENTORY -->
+          <div
+            class="relative bg-white rounded-2xl p-6 border border-slate-200/90 shadow-xs hover:border-red-200 hover:shadow-md hover-lift transition-all flex flex-col justify-between group">
+            <div>
+              <div
+                class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+              </div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1 reveal-text text-reveal">Stage 04</span>
+              <h3 class="text-base font-bold text-slate-900 mb-2 group-hover:text-red-600 transition-colors reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">INVENTORY
+              </h3>
+              <p class="text-xs text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+                Maintained in cold storage and discoverable for regional hospital needs.
+              </p>
+            </div>
+            <!-- Desktop Connector Arrow -->
+            <div
+              class="hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 z-20 w-6 h-6 rounded-full bg-white border border-slate-200 items-center justify-center text-slate-400 shadow-xs pointer-events-none"
+              aria-hidden="true">
+              <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- Stage 5: PATIENT / REQUEST -->
+          <div
+            class="relative bg-white rounded-2xl p-6 border border-slate-200/90 shadow-xs hover:border-red-200 hover:shadow-md hover-lift transition-all flex flex-col justify-between group">
+            <div>
+              <div
+                class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1 reveal-text text-reveal">Stage 05</span>
+              <h3 class="text-base font-bold text-slate-900 mb-2 group-hover:text-red-600 transition-colors reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">PATIENT /
+                REQUEST</h3>
+              <p class="text-xs text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+                Controlled reservation and issuing fulfilling clinical doctor orders.
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Warm CTA & Info Bar -->
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-5 text-center reveal-text text-reveal reveal-delay-3 text-reveal-delay-3">
+        <a href="/register.html"
+          class="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm shadow-md shadow-red-600/20 hover:shadow-red-600/30 hover:-translate-y-0.5 transition-all">
+          <span>Become a Donor</span>
+          <span class="text-base leading-none">→</span>
+        </a>
+        <a href="#safety"
+          class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-red-600 transition-colors py-2">
+          <span>Learn About Donation</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </a>
+      </div>
+    </section>
+
+    <!-- ======================================================================== -->
+    <!-- BUILT FOR ACCOUNTABILITY — TRUST & GOVERNANCE                             -->
+    <!-- ======================================================================== -->
+    <section id="accountability" class="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-b border-slate-200/80">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span
+          class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-red-600 mb-3 bg-red-50 px-3 py-1 rounded-full border border-red-100 reveal-text text-reveal">
+          TRUST & ACCOUNTABILITY
+        </span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+          Designed for Controlled Access and Traceable Operations
+        </h2>
+        <p class="mt-4 text-base sm:text-lg text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+          BloodLink is designed around role-based access, organization-specific workspaces and traceable operational
+          records.
+        </p>
+      </div>
+
+      <!-- 4 Feature Blocks Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+        <!-- Block 1: Role-Based Access -->
+        <div
+          class="bg-white rounded-2xl p-7 border border-slate-200/90 shadow-xs hover:border-red-200 hover:shadow-md hover-lift transition-all flex flex-col justify-between group">
+          <div>
+            <div
+              class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center mb-5 group-hover:bg-red-50 group-hover:text-red-600 transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+            </div>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1 reveal-text text-reveal">Principle 01</span>
+            <h3 class="text-base font-bold text-slate-900 mb-2 group-hover:text-red-600 transition-colors reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+              Role-Based Access
+            </h3>
+            <p class="text-xs text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+              Users receive access according to their assigned role.
+            </p>
+          </div>
+          <div class="mt-6 pt-3 border-t border-slate-100 text-[11px] font-medium text-slate-400 reveal-text text-reveal reveal-delay-3 text-reveal-delay-3">
+            Permission Scoping
+          </div>
+        </div>
+
+        <!-- Block 2: Organization Workspaces -->
+        <div
+          class="bg-white rounded-2xl p-7 border border-slate-200/90 shadow-xs hover:border-red-200 hover:shadow-md hover-lift transition-all flex flex-col justify-between group">
+          <div>
+            <div
+              class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center mb-5 group-hover:bg-red-50 group-hover:text-red-600 transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+            </div>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1 reveal-text text-reveal">Principle 02</span>
+            <h3 class="text-base font-bold text-slate-900 mb-2 group-hover:text-red-600 transition-colors reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+              Organization Workspaces
+            </h3>
+            <p class="text-xs text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+              Organizations manage their own operational data within protected workspaces.
+            </p>
+          </div>
+          <div class="mt-6 pt-3 border-t border-slate-100 text-[11px] font-medium text-slate-400 reveal-text text-reveal reveal-delay-3 text-reveal-delay-3">
+            Isolated Operations
+          </div>
+        </div>
+
+        <!-- Block 3: Unit Traceability -->
+        <div
+          class="bg-white rounded-2xl p-7 border border-slate-200/90 shadow-xs hover:border-red-200 hover:shadow-md hover-lift transition-all flex flex-col justify-between group">
+          <div>
+            <div
+              class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center mb-5 group-hover:bg-red-50 group-hover:text-red-600 transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+            </div>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1 reveal-text text-reveal">Principle 03</span>
+            <h3 class="text-base font-bold text-slate-900 mb-2 group-hover:text-red-600 transition-colors reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+              Unit Traceability
+            </h3>
+            <p class="text-xs text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+              Individual blood units can be tracked throughout their operational lifecycle.
+            </p>
+          </div>
+          <div class="mt-6 pt-3 border-t border-slate-100 text-[11px] font-medium text-slate-400 reveal-text text-reveal reveal-delay-3 text-reveal-delay-3">
+            Chain of Custody
+          </div>
+        </div>
+
+        <!-- Block 4: Audit History -->
+        <div
+          class="bg-white rounded-2xl p-7 border border-slate-200/90 shadow-xs hover:border-red-200 hover:shadow-md hover-lift transition-all flex flex-col justify-between group">
+          <div>
+            <div
+              class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center mb-5 group-hover:bg-red-50 group-hover:text-red-600 transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1 reveal-text text-reveal">Principle 04</span>
+            <h3 class="text-base font-bold text-slate-900 mb-2 group-hover:text-red-600 transition-colors reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+              Audit History
+            </h3>
+            <p class="text-xs text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+              Important operational activity can be recorded for accountability.
+            </p>
+          </div>
+          <div class="mt-6 pt-3 border-t border-slate-100 text-[11px] font-medium text-slate-400 reveal-text text-reveal reveal-delay-3 text-reveal-delay-3">
+            Traceable Records
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ======================================================================== -->
+    <!-- ORGANIZATION REGISTRATION CTA — JOIN THE NETWORK                        -->
+    <!-- ======================================================================== -->
+    <section id="register-org" class="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-b border-slate-200/80">
+      <div
+        class="relative overflow-hidden rounded-3xl bg-gradient-to-b from-slate-50 via-white to-slate-50/50 border border-slate-200/90 shadow-sm p-8 sm:p-14 text-center max-w-5xl mx-auto">
+
+        <span
+          class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-red-600 mb-4 bg-red-50 px-3.5 py-1.5 rounded-full border border-red-100 reveal-text text-reveal">
+          JOIN THE NETWORK
+        </span>
+
+        <h2 class="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight mb-4 reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+          Connect Your Organization to BloodLink
+        </h2>
+
+        <p class="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed mb-12 reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+          Bring your hospital, clinic or blood bank into a connected platform for blood availability and operational
+          coordination.
+        </p>
+
+        <!-- 3 Organization Choices Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left mb-12">
+
+          <!-- Choice 1: Hospital -->
+          <a href="/register-organization.html?type=HOSPITAL"
+            class="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-xs hover:border-red-200 hover:shadow-md hover-lift transition-all flex flex-col justify-between group cursor-pointer block">
+            <div>
+              <div
+                class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-xs">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+              <h3
+                class="text-base font-bold text-slate-900 mb-2 group-hover:text-red-600 transition-colors flex items-center justify-between reveal-text text-reveal">
+                <span>Hospital</span>
+                <span
+                  class="text-xs text-red-600 font-normal opacity-0 group-hover:opacity-100 transition-opacity">Register
+                  →</span>
+              </h3>
+              <p class="text-xs text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+                Coordinate inpatient inventory, critical blood orders, reservations and verified unit issuing from a
+                secure workspace.
+              </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 text-[11px] font-medium text-slate-400 reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+              Inpatient Care Facilities
+            </div>
+          </a>
+
+          <!-- Choice 2: Clinic -->
+          <a href="/register-organization.html?type=CLINIC"
+            class="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-xs hover:border-blue-200 hover:shadow-md hover-lift transition-all flex flex-col justify-between group cursor-pointer block">
+            <div>
+              <div
+                class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-xs">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+              </div>
+              <h3
+                class="text-base font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors flex items-center justify-between reveal-text text-reveal">
+                <span>Clinic</span>
+                <span
+                  class="text-xs text-blue-600 font-normal opacity-0 group-hover:opacity-100 transition-opacity">Register
+                  →</span>
+              </h3>
+              <p class="text-xs text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+                Discover blood availability across the regional network and route structured fulfillment requests for
+                planned clinical procedures.
+              </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 text-[11px] font-medium text-slate-400 reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+              Outpatient & Specialized Clinics
+            </div>
+          </a>
+
+          <!-- Choice 3: Blood Bank -->
+          <a href="/register-organization.html?type=BLOOD_BANK"
+            class="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-xs hover:border-red-200 hover:shadow-md hover-lift transition-all flex flex-col justify-between group cursor-pointer block">
+            <div>
+              <div
+                class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-xs">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+                </svg>
+              </div>
+              <h3
+                class="text-base font-bold text-slate-900 mb-2 group-hover:text-red-600 transition-colors flex items-center justify-between reveal-text text-reveal">
+                <span>Blood Bank</span>
+                <span
+                  class="text-xs text-red-600 font-normal opacity-0 group-hover:opacity-100 transition-opacity">Register
+                  →</span>
+              </h3>
+              <p class="text-xs text-slate-600 leading-relaxed reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+                Manage voluntary donors, donation processing, laboratory testing queues and multi-facility distribution
+                logistics.
+              </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 text-[11px] font-medium text-slate-400 reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+              Collection & Processing Centers
+            </div>
+          </a>
+
+        </div>
+
+        <!-- Action CTAs -->
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto reveal-text text-reveal reveal-delay-3 text-reveal-delay-3">
+          <a href="/register-organization.html" id="connect-org-btn"
+            class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm sm:text-base shadow-lg shadow-red-600/20 hover:shadow-red-600/35 hover:-translate-y-0.5 transition-all">
+            <span>Register Your Organization</span>
+            <span class="text-base leading-none">→</span>
+          </a>
+          <a href="#features"
+            class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-sm sm:text-base border border-slate-300 shadow-xs hover:border-slate-400 hover:-translate-y-0.5 transition-all">
+            Explore the Platform
+          </a>
+        </div>
+
+        <!-- SaaS Clarity Subtext -->
+        <div class="mt-8 text-xs text-slate-400 font-medium reveal-text text-reveal reveal-delay-4 text-reveal-delay-4">
+          Healthcare SaaS Architecture • Dedicated Organizational Workspaces • Isolated Operational Records
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ======================================================================== -->
+    <!-- MEDICAL SAFETY PRINCIPLE (SECTION 6)                                     -->
+    <!-- ======================================================================== -->
+    <section id="safety" class="py-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
+      <div class="p-6 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col sm:flex-row items-start gap-4">
+        <div class="p-2 rounded-xl bg-amber-200 text-amber-900 shrink-0">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <div class="space-y-1">
+          <h3 class="text-sm font-bold text-amber-950 reveal-text text-reveal">Medical Safety Principle (§6)</h3>
+          <p class="text-xs sm:text-sm text-amber-900 leading-relaxed reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+            This platform is an <strong>operational and inventory-management coordination system</strong>, not a
+            clinical decision engine. It does not autonomously determine donor eligibility, transfusion appropriateness,
+            or cross-matching compatibility. All clinical judgment is strictly reserved for certified healthcare
+            practitioners and accredited blood transfusion facilities.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ======================================================================== -->
+  <!-- FOOTER                                                                   -->
+  <!-- ======================================================================== -->
+  <footer class="bg-white border-t border-slate-200/90 pt-16 pb-12 px-4 sm:px-6 lg:px-8 text-slate-600">
+    <div class="max-w-7xl mx-auto">
+
+      <!-- 4-Column Main Footer Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-8 pb-12 border-b border-slate-100">
+
+        <!-- COLUMN 1: Brand & Description (lg:col-span-5) -->
+        <div class="lg:col-span-5 space-y-4">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-9 h-9 rounded-xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-white shadow-sm shadow-red-500/20">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+              </svg>
+            </div>
+            <span class="text-xl font-extrabold tracking-tight text-slate-900">
+              Blood<span class="text-red-600">Link</span>
+            </span>
+          </div>
+          <p class="text-sm text-slate-600 leading-relaxed max-w-sm reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+            Connected blood availability and traceable unit coordination for healthcare organizations.
+          </p>
+          <div class="pt-2 flex items-center gap-2 text-xs text-slate-500 reveal-text text-reveal reveal-delay-2 text-reveal-delay-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span>Coordinated Healthcare Platform</span>
+          </div>
+        </div>
+
+        <!-- COLUMN 2: Platform (lg:col-span-2) -->
+        <div class="lg:col-span-2 space-y-3">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-900 reveal-text text-reveal">Platform</h4>
+          <ul class="space-y-2.5 text-sm reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+            <li>
+              <a href="#search" class="hover:text-red-600 transition-colors">Find Blood</a>
+            </li>
+            <li>
+              <a href="#features" class="hover:text-red-600 transition-colors">Platform Capabilities</a>
+            </li>
+            <li>
+              <a href="#portals" class="hover:text-red-600 transition-colors">Role Portals</a>
+            </li>
+            <li>
+              <a href="#emergency" class="hover:text-red-600 transition-colors">Emergency Request</a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- COLUMN 3: Organizations (lg:col-span-2) -->
+        <div class="lg:col-span-2 space-y-3">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-900 reveal-text text-reveal">Organizations</h4>
+          <ul class="space-y-2.5 text-sm reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+            <li>
+              <a href="#network" class="hover:text-red-600 transition-colors">Hospitals</a>
+            </li>
+            <li>
+              <a href="#network" class="hover:text-red-600 transition-colors">Clinics</a>
+            </li>
+            <li>
+              <a href="#network" class="hover:text-red-600 transition-colors">Blood Banks</a>
+            </li>
+            <li>
+              <a href="/register-organization.html"
+                class="hover:text-red-600 transition-colors font-medium text-red-600">Register Organization</a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- COLUMN 4: Resources (lg:col-span-3) -->
+        <div class="lg:col-span-3 space-y-3">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-900 reveal-text text-reveal">Resources</h4>
+          <ul class="space-y-2.5 text-sm reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+            <li>
+              <a href="#safety" class="hover:text-red-600 transition-colors">Medical Protocol</a>
+            </li>
+            <li>
+              <a href="#network" class="hover:text-red-600 transition-colors">About</a>
+            </li>
+            <li>
+              <a href="mailto:support@bloodbank.dev" class="hover:text-red-600 transition-colors">Contact</a>
+            </li>
+            <li>
+              <a href="#workflow" class="hover:text-red-600 transition-colors">FAQ</a>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- BOTTOM: Copyright & Legal Policies -->
+      <div class="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+        <div class="reveal-text text-reveal">
+          © BloodLink. All rights reserved.
+        </div>
+        <div class="flex items-center space-x-6 reveal-text text-reveal reveal-delay-1 text-reveal-delay-1">
+          <a href="#safety" class="hover:text-slate-800 transition-colors">Privacy Policy</a>
+          <a href="#safety" class="hover:text-slate-800 transition-colors">Terms of Service</a>
+          <a href="/api/health" class="hover:text-red-600 transition-colors font-mono text-[11px]">System Status</a>
+        </div>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- ======================================================================== -->
+  <!-- CLIENT SCRIPTS & HEALTH VERIFICATION -->
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/platelets.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Mobile Navigation Menu Toggle Handler
+      const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+      const mobileMenu = document.getElementById('mobile-menu');
+      const hamburgerIcon = document.getElementById('hamburger-icon');
+      const closeIcon = document.getElementById('close-icon');
+
+      if (mobileMenuBtn && mobileMenu) {
+        const toggleMobileMenu = (forceOpen) => {
+          const isOpen = typeof forceOpen === 'boolean' 
+            ? forceOpen 
+            : mobileMenu.classList.contains('hidden');
+          
+          if (isOpen) {
+            mobileMenu.classList.remove('hidden');
+            mobileMenuBtn.setAttribute('aria-expanded', 'true');
+            if (hamburgerIcon) {
+              hamburgerIcon.classList.remove('block');
+              hamburgerIcon.classList.add('hidden');
+            }
+            if (closeIcon) {
+              closeIcon.classList.remove('hidden');
+              closeIcon.classList.add('block');
+            }
+          } else {
+            mobileMenu.classList.add('hidden');
+            mobileMenuBtn.setAttribute('aria-expanded', 'false');
+            if (hamburgerIcon) {
+              hamburgerIcon.classList.remove('hidden');
+              hamburgerIcon.classList.add('block');
+            }
+            if (closeIcon) {
+              closeIcon.classList.remove('block');
+              closeIcon.classList.add('hidden');
+            }
+          }
+        };
+
+        mobileMenuBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          toggleMobileMenu();
+        });
+
+        // Close menu when clicking any link inside the mobile drawer
+        mobileMenu.querySelectorAll('a').forEach((link) => {
+          link.addEventListener('click', () => {
+            toggleMobileMenu(false);
+          });
+        });
+
+        // Close on click outside
+        document.addEventListener('click', (e) => {
+          if (!mobileMenu.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+            toggleMobileMenu(false);
+          }
+        });
+
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && !mobileMenu.classList.contains('hidden')) {
+            toggleMobileMenu(false);
+          }
+        });
+
+        // Auto-close if resized to desktop width (>= 768px)
+        window.addEventListener('resize', () => {
+          if (window.innerWidth >= 768 && !mobileMenu.classList.contains('hidden')) {
+            toggleMobileMenu(false);
+          }
+        });
+      }
+
+      // ======================================================================
+      // CONNECTED ORGANIZATIONS — NETWORK VISUALIZATION INTERACTIVITY
+      // ======================================================================
+      const networkSection = document.getElementById('network');
+      if (networkSection) {
+        // Scroll-triggered viewport entrance observer
+        if ('IntersectionObserver' in window) {
+          const networkObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                networkSection.classList.add('network-in-view');
+                networkObserver.unobserve(networkSection);
+              }
+            });
+          }, { threshold: 0.12 });
+          networkObserver.observe(networkSection);
+        } else {
+          networkSection.classList.add('network-in-view');
+        }
+
+        // Interactive Card Hover: Illuminate corresponding SVG connection line
+        const orgNodes = networkSection.querySelectorAll('[data-org-node]');
+        orgNodes.forEach((card) => {
+          const nodeKey = card.getAttribute('data-org-node');
+          const connLine = networkSection.querySelector(`[data-conn-line="${nodeKey}"]`);
+
+          card.addEventListener('mouseenter', () => {
+            if (connLine) {
+              connLine.classList.add('active-connection');
+            }
+          });
+
+          card.addEventListener('mouseleave', () => {
+            if (connLine) {
+              connLine.classList.remove('active-connection');
+            }
+          });
+        });
+
+        // Dynamic SVG Connection Lines Docking
+        const container = networkSection.querySelector('.network-viz-container');
+        const hubEl = networkSection.querySelector('[data-network-hub]');
+
+        function updateNetworkConnectionLines() {
+          if (!container || !hubEl || container.offsetParent === null) return;
+
+          const cRect = container.getBoundingClientRect();
+          if (cRect.width === 0 || cRect.height === 0) return;
+
+          const hRect = hubEl.getBoundingClientRect();
+          const hubCenterX = (hRect.left + hRect.right) / 2 - cRect.left;
+          const hubTop = hRect.top - cRect.top;
+          const hubBottom = hRect.bottom - cRect.top;
+          const hubLeft = hRect.left - cRect.left;
+
+          const nodeKeys = ['hospital', 'clinic', 'medical-center', 'emergency-care', 'diagnostic-center'];
+
+          nodeKeys.forEach((nodeKey) => {
+            const cardEl = container.querySelector(`[data-org-node="${nodeKey}"]`);
+            if (!cardEl) return;
+
+            const nRect = cardEl.getBoundingClientRect();
+            const cardCenterX = (nRect.left + nRect.right) / 2 - cRect.left;
+            const cardTop = nRect.top - cRect.top;
+            const cardBottom = nRect.bottom - cRect.top;
+
+            let startX, startY, endX, endY, cp1X, cp1Y, cp2X, cp2Y;
+
+            switch (nodeKey) {
+              case 'hospital': {
+                startX = cardCenterX;
+                startY = cardBottom - 10;
+                endX = hubLeft + hRect.width * 0.28;
+                endY = hubTop + 14;
+                const dy = endY - startY;
+                cp1X = startX;
+                cp1Y = startY + dy * 0.55;
+                cp2X = endX;
+                cp2Y = startY + dy * 0.45;
+                break;
+              }
+              case 'clinic': {
+                startX = cardCenterX;
+                startY = cardBottom - 10;
+                endX = hubLeft + hRect.width * 0.72;
+                endY = hubTop + 14;
+                const dy = endY - startY;
+                cp1X = startX;
+                cp1Y = startY + dy * 0.55;
+                cp2X = endX;
+                cp2Y = startY + dy * 0.45;
+                break;
+              }
+              case 'medical-center': {
+                startX = cardCenterX;
+                startY = cardTop + 10;
+                endX = hubLeft + hRect.width * 0.28;
+                endY = hubBottom - 14;
+                const dy = startY - endY;
+                cp1X = startX;
+                cp1Y = startY - dy * 0.55;
+                cp2X = endX;
+                cp2Y = startY - dy * 0.45;
+                break;
+              }
+              case 'emergency-care': {
+                startX = cardCenterX;
+                startY = cardTop + 10;
+                endX = hubLeft + hRect.width * 0.72;
+                endY = hubBottom - 14;
+                const dy = startY - endY;
+                cp1X = startX;
+                cp1Y = startY - dy * 0.55;
+                cp2X = endX;
+                cp2Y = startY - dy * 0.45;
+                break;
+              }
+              case 'diagnostic-center': {
+                // Starts at Diagnostic Center and ascends upward to Central Hub (blood/data flow direction)
+                const hubX = hubCenterX;
+                const hubY = hubBottom - 14;
+                const sweep = Math.min(nRect.width * 0.22, 70);
+                const diagX = cardCenterX + sweep;
+                const diagY = cardTop + 14;
+                const dy = diagY - hubY;
+                const hubCpX = hubX;
+                const hubCpY = hubY + dy * 0.48;
+                const diagCpX = hubX + sweep * 0.82;
+                const diagCpY = hubY + dy * 0.65;
+
+                // Path originates near Diagnostic Center and travels upward toward Central Hub
+                startX = diagX;
+                startY = diagY;
+                cp1X = diagCpX;
+                cp1Y = diagCpY;
+                cp2X = hubCpX;
+                cp2Y = hubCpY;
+                endX = hubX;
+                endY = hubY;
+                break;
+              }
+            }
+
+            const pathD = `M ${startX.toFixed(1)} ${startY.toFixed(1)} C ${cp1X.toFixed(1)} ${cp1Y.toFixed(1)}, ${cp2X.toFixed(1)} ${cp2Y.toFixed(1)}, ${endX.toFixed(1)} ${endY.toFixed(1)}`;
+            const trackEl = container.querySelector(`#track-${nodeKey}`);
+            const pathEl = container.querySelector(`#path-${nodeKey}`);
+            if (trackEl) trackEl.setAttribute('d', pathD);
+            if (pathEl) pathEl.setAttribute('d', pathD);
+          });
+        }
+
+        // Run calculation once layout has settled
+        requestAnimationFrame(() => {
+          updateNetworkConnectionLines();
+          setTimeout(updateNetworkConnectionLines, 120);
+          setTimeout(updateNetworkConnectionLines, 600);
+        });
+
+        // Window resize and ResizeObserver listeners
+        let resizeTid;
+        window.addEventListener('resize', () => {
+          clearTimeout(resizeTid);
+          resizeTid = setTimeout(() => {
+            requestAnimationFrame(updateNetworkConnectionLines);
+          }, 40);
+        }, { passive: true });
+
+        if (window.ResizeObserver && container) {
+          const ro = new ResizeObserver(() => {
+            requestAnimationFrame(updateNetworkConnectionLines);
+          });
+          ro.observe(container);
+        }
+      }
+
+      const dot = document.getElementById('api-status-dot');
+      const text = document.getElementById('api-status-text');
+      const envText = document.getElementById('telemetry-env');
+      const latencyText = document.getElementById('telemetry-latency');
+
+      // Sync profile icon link to user's workspace if authenticated
+      if (window.BloodBankAuth && BloodBankAuth.isAuthenticated()) {
+        const user = BloodBankAuth.getUser();
+        const profileBtn = document.getElementById('nav-profile-btn');
+        if (user && profileBtn && typeof BloodBankAuth.getDashboardUrl === 'function') {
+          profileBtn.href = BloodBankAuth.getDashboardUrl(user);
+          profileBtn.setAttribute('title', `Profile (${user.fullName || user.email}) — Go to Workspace`);
+        }
+      }
+
+      try {
+        const result = await BloodBankAPI.checkHealth();
+        if (result.success) {
+          if (dot) dot.className = 'w-2 h-2 rounded-full bg-emerald-500 pulse-indicator';
+          if (text) text.innerHTML = '<span class="text-emerald-700 font-semibold">Backend Connected</span> (Health Check 200 OK)';
+          if (envText) envText.textContent = `${result.data.environment || 'development'}`;
+          if (latencyText) latencyText.textContent = `${result.latencyMs} ms`;
+        } else {
+          if (dot) dot.className = 'w-2 h-2 rounded-full bg-rose-500';
+          if (text) text.innerHTML = '<span class="text-rose-700 font-semibold">Backend Offline</span> (Server Not Responding)';
+          if (envText) envText.textContent = 'Disconnected';
+          if (latencyText) latencyText.textContent = `${result.latencyMs} ms`;
+        }
+      } catch (err) {
+        if (dot) dot.className = 'w-2 h-2 rounded-full bg-rose-500';
+        if (text) text.textContent = 'Connection Error';
+        if (envText) envText.textContent = 'Offline';
+      }
+
+      // Animated Smooth Scroll to Top (fluid ease-in-out curve)
+      const scrollTopBtn = document.getElementById('scroll-to-top');
+      if (scrollTopBtn) {
+        const toggleScrollBtn = () => {
+          if (window.scrollY > 180) {
+            scrollTopBtn.classList.add('visible');
+          } else {
+            scrollTopBtn.classList.remove('visible');
+          }
+        };
+
+        window.addEventListener('scroll', toggleScrollBtn, { passive: true });
+        toggleScrollBtn();
+
+        const smoothScrollToTop = (duration = 850) => {
+          const startY = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
+          if (startY <= 0) return;
+
+          let startTime = null;
+          let isCancelled = false;
+
+          const cancelOnUserInteraction = () => {
+            isCancelled = true;
+            window.removeEventListener('wheel', cancelOnUserInteraction);
+            window.removeEventListener('touchmove', cancelOnUserInteraction);
+          };
+
+          window.addEventListener('wheel', cancelOnUserInteraction, { passive: true });
+          window.addEventListener('touchmove', cancelOnUserInteraction, { passive: true });
+
+          // Easing: easeInOutCubic (gradual acceleration, soft deceleration)
+          const easeInOutCubic = (t) => {
+            return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+          };
+
+          const step = (currentTime) => {
+            if (isCancelled) return;
+            if (!startTime) startTime = currentTime;
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const ease = easeInOutCubic(progress);
+
+            window.scrollTo(0, Math.round(startY * (1 - ease)));
+
+            if (progress < 1) {
+              requestAnimationFrame(step);
+            } else {
+              window.removeEventListener('wheel', cancelOnUserInteraction);
+              window.removeEventListener('touchmove', cancelOnUserInteraction);
+            }
+          };
+
+          requestAnimationFrame(step);
+        };
+
+        scrollTopBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          smoothScrollToTop(850);
+        });
+      }
+    });
+  </script>
+
+  <!-- Scroll To Top Floating Button -->
+  <button 
+    id="scroll-to-top" 
+    type="button" 
+    class="btn-scroll-top" 
+    aria-label="Scroll to top" 
+    title="Scroll to top"
+  >
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+    </svg>
+  </button>
+
+  <!-- ======================================================================== -->
+  <!-- REUSABLE SCROLL-BASED TEXT REVEAL SYSTEM                                 -->
+  <!-- ======================================================================== -->
+  <script>
+    (function () {
+      function initScrollReveal() {
+        const textElements = document.querySelectorAll('.reveal-text, .text-reveal');
+        if (!textElements.length) return;
+
+        // Fallback: If IntersectionObserver is not supported, leave text naturally visible
+        if (!('IntersectionObserver' in window)) return;
+
+        // Activate reveal system: applies initial hidden state only now that observer is running
+        document.documentElement.classList.add('reveal-ready');
+
+        const observer = new IntersectionObserver(
+          function (entries, obs) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible', 'revealed');
+                obs.unobserve(entry.target);
+              }
+            });
+          },
+          {
+            threshold: 0.15
+          }
+        );
+
+        textElements.forEach(function (el) {
+          observer.observe(el);
+        });
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initScrollReveal);
+      } else {
+        initScrollReveal();
+      }
+    })();
+  </script>
+</body>
+
+</html>

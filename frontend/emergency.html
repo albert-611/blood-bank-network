@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Emergency Request — BloodLink Platform</title>
+  <meta name="description" content="Emergency blood request and urgent unit coordination across verified hospitals and regional blood banks.">
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="min-h-screen flex flex-col justify-between bg-slate-50 text-slate-900 antialiased relative">
+
+  <!-- Ambient Platelets Canvas Background -->
+  <canvas id="platelets-canvas" aria-hidden="true"></canvas>
+
+  <!-- ======================================================================== -->
+  <!-- HEADER / NAVIGATION                                                      -->
+  <!-- ======================================================================== -->
+  <header class="w-full bg-white/95 backdrop-blur-md border-b border-slate-200 py-3.5 px-4 sm:px-8 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <a href="/" class="flex items-center gap-3 group">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-white shadow-md shadow-red-500/20 group-hover:scale-105 transition-transform">
+          <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+          </svg>
+        </div>
+        <div class="flex items-center">
+          <span class="font-extrabold text-base tracking-tight text-slate-900 leading-none">Blood<span class="text-red-600">Link</span></span>
+          <span class="ml-2 px-2 py-0.5 text-[10px] font-bold uppercase rounded-full bg-red-100 text-red-700 border border-red-200">Emergency</span>
+        </div>
+      </a>
+
+      <div class="flex items-center gap-3">
+        <!-- Authenticated State: User & Log Out Button -->
+        <div class="hidden flex items-center gap-2" data-auth-only>
+          <span class="text-xs text-slate-600 font-medium flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span data-user-name class="font-semibold max-w-[130px] truncate">User</span>
+          </span>
+          <button 
+            type="button" 
+            data-logout-btn
+            class="px-3 py-1.5 text-xs font-semibold rounded-lg text-rose-600 hover:bg-rose-50 border border-rose-200 transition-colors flex items-center gap-1 cursor-pointer shadow-xs"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+            <span>Log Out</span>
+          </button>
+        </div>
+
+        <a href="/" class="text-xs sm:text-sm font-semibold text-slate-600 hover:text-red-600 transition-colors flex items-center gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+          <span>Back to Home</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ======================================================================== -->
+  <!-- MAIN EMERGENCY TRIAGE PANEL                                              -->
+  <!-- ======================================================================== -->
+  <main class="flex-1 py-10 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto w-full relative z-10">
+    
+    <!-- Emergency Callout Banner -->
+    <div class="bg-gradient-to-b from-red-50 via-white to-red-50/40 rounded-3xl p-6 sm:p-10 border-2 border-red-300 shadow-xl shadow-red-500/5 mb-8 text-center">
+      
+      <div class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-red-700 bg-red-100 px-3.5 py-1.5 rounded-full border border-red-200 mb-4 shadow-xs">
+        <span class="w-2.5 h-2.5 rounded-full bg-red-600 animate-pulse"></span>
+        CRITICAL EMERGENCY PROTOCOL
+      </div>
+
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-3">
+        Emergency Blood Request & Rapid Triage
+      </h1>
+      <p class="text-slate-600 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mb-6">
+        Expedited multi-facility blood allocation for surgical emergencies, trauma cases, and acute clinical shortages across connected regional healthcare organizations.
+      </p>
+
+      <!-- Action Pathways -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto text-left">
+        
+        <!-- Path 1: Clinical Order (Hospital Staff / Doctors) -->
+        <div class="bg-white rounded-2xl p-5 border border-red-200 shadow-sm hover:border-red-400 transition-all flex flex-col justify-between">
+          <div>
+            <div class="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center font-bold mb-3 shadow-sm shadow-red-600/30">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+            </div>
+            <h2 class="text-base font-bold text-slate-900 mb-1">Clinical Emergency Order</h2>
+            <p class="text-xs text-slate-500 leading-relaxed mb-4">
+              Verified clinicians and hospital staff can submit urgent unit reservation holds directly through their organization workspace.
+            </p>
+          </div>
+          <a href="/login.html" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors">
+            <span>Sign In to Hospital Portal</span>
+            <span>→</span>
+          </a>
+        </div>
+
+        <!-- Path 2: Live Regional Search -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:border-slate-300 transition-all flex flex-col justify-between">
+          <div>
+            <div class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold mb-3 shadow-sm">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+            </div>
+            <h2 class="text-base font-bold text-slate-900 mb-1">Live Availability Search</h2>
+            <p class="text-xs text-slate-500 leading-relaxed mb-4">
+              Query real-time verified blood units (Whole Blood, Packed RBC, Platelets, Plasma) currently available across all network blood banks.
+            </p>
+          </div>
+          <a href="/#search" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl transition-colors">
+            <span>Search Regional Inventory</span>
+            <span>→</span>
+          </a>
+        </div>
+
+      </div>
+
+      <!-- Hotline / Dispatcher Information -->
+      <div class="mt-8 pt-6 border-t border-red-100/90 text-xs text-slate-600 flex flex-col sm:flex-row items-center justify-center gap-6">
+        <span class="inline-flex items-center gap-2 font-medium">
+          <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+          </svg>
+          24/7 Regional Dispatch: <strong class="text-slate-900">+1 (800) 555-BLOOD</strong>
+        </span>
+        <span class="hidden sm:inline text-slate-300">•</span>
+        <span class="inline-flex items-center gap-2 font-medium">
+          <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          Universal O-Negative Emergency Reserve Monitored
+        </span>
+      </div>
+
+    </div>
+
+    <!-- Onboarding Link for Healthcare Facilities -->
+    <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div>
+        <h3 class="text-sm font-bold text-slate-900">Are you a healthcare facility not yet connected?</h3>
+        <p class="text-xs text-slate-500 mt-0.5">Register your hospital, surgical clinic, or blood bank to coordinate traceable emergency blood allocations.</p>
+      </div>
+      <a href="/register-organization.html" class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 transition-colors whitespace-nowrap">
+        <span>Connect Your Organization</span>
+        <span>→</span>
+      </a>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="py-4 text-center text-xs text-slate-400 border-t border-slate-200 bg-white">
+    Blood Bank Platform — Operational & Inventory Management (§6: Non-clinical decision engine)
+  </footer>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+</body>
+</html>

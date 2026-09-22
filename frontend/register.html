@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create an Account — Blood Bank Platform</title>
+  <meta name="description" content="Register as a blood donor or patient requester on the centralized Blood Bank Platform.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between antialiased">
+
+  <!-- Header / Navigation -->
+  <header class="w-full bg-white border-b border-slate-200 py-4 px-6 sm:px-10">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <a href="/" class="flex items-center gap-3 group">
+        <div class="w-9 h-9 rounded-xl bg-red-600 text-white flex items-center justify-center font-bold shadow-sm shadow-red-200 group-hover:scale-105 transition-transform">
+          <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+          </svg>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-bold text-base tracking-tight text-slate-900 leading-none">BloodBank</span>
+          <span class="text-[10px] text-slate-500 font-medium tracking-wider uppercase mt-0.5">Availability Platform</span>
+        </div>
+      </a>
+      <div class="flex items-center gap-3">
+        <!-- Authenticated State: User & Log Out Button -->
+        <div class="hidden flex items-center gap-2" data-auth-only>
+          <span class="text-xs text-slate-600 font-medium hidden sm:inline-flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span data-user-name class="max-w-[120px] truncate">User</span>
+          </span>
+          <button 
+            type="button" 
+            data-logout-btn
+            class="px-2.5 py-1 text-xs font-semibold rounded-lg text-rose-600 hover:bg-rose-50 border border-rose-200 transition-colors flex items-center gap-1 cursor-pointer shadow-xs"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+            <span>Log Out</span>
+          </button>
+        </div>
+        <a href="/login.html" data-guest-only class="text-xs sm:text-sm font-medium text-slate-600 hover:text-red-600 flex items-center gap-1.5 transition-colors">
+          <span>Already have an account?</span>
+          <span class="font-bold text-red-600 hover:underline">Sign In →</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="flex-1 flex items-center justify-center p-4 sm:p-8">
+    <div class="w-full max-w-lg">
+
+      <div class="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm">
+        <div class="text-center mb-6">
+          <h1 class="text-2xl font-bold tracking-tight text-slate-900">Create an Account</h1>
+          <p class="text-sm text-slate-500 mt-1">Register as a Blood Donor or Patient Requester</p>
+        </div>
+
+        <!-- Org Staff Notice Banner (§12) -->
+        <div class="mb-5 p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-start gap-2.5">
+          <svg class="w-4 h-4 flex-shrink-0 mt-0.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <div class="leading-relaxed">
+            <span class="font-semibold">Hospital & Medical Staff:</span> Medical staff, clinic admins, and blood bank technologists cannot self-register. Staff accounts are provisioned directly by organization administrators. Registering a hospital, clinic, or blood bank? <a href="/register-organization.html" class="font-bold underline text-amber-900 hover:text-red-700">Connect your organization here →</a>
+          </div>
+        </div>
+
+        <!-- Alert Notification Box -->
+        <div id="alertBox" class="hidden mb-6 p-4 rounded-xl text-sm border flex items-start gap-3">
+          <svg id="alertIcon" class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"></svg>
+          <div id="alertMessage" class="flex-1 font-medium leading-relaxed"></div>
+        </div>
+
+        <!-- Registration Form -->
+        <form id="registerForm" class="space-y-4" novalidate>
+          
+          <!-- Role Selection (Donor vs Requester) -->
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+              Account Type <span class="text-red-500">*</span>
+            </label>
+            <div class="grid grid-cols-2 gap-3">
+              <label class="relative flex flex-col p-3 border rounded-xl cursor-pointer hover:border-red-400 transition-colors border-red-500 bg-red-50/40" id="labelDonor">
+                <input type="radio" name="global_role" value="DONOR" class="sr-only" checked />
+                <span class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                  <span>🩸</span> Blood Donor
+                </span>
+                <span class="text-[11px] text-slate-500 mt-0.5 leading-snug">Donate blood & track records</span>
+              </label>
+
+              <label class="relative flex flex-col p-3 border rounded-xl cursor-pointer hover:border-red-400 transition-colors border-slate-200" id="labelRequester">
+                <input type="radio" name="global_role" value="REQUESTER" class="sr-only" />
+                <span class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                  <span>📋</span> Requester
+                </span>
+                <span class="text-[11px] text-slate-500 mt-0.5 leading-snug">Search & request blood</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Full Name -->
+          <div>
+            <label for="fullNameInput" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+              Full Legal Name <span class="text-red-500">*</span>
+            </label>
+            <input 
+              type="text" 
+              id="fullNameInput" 
+              required
+              autocomplete="name"
+              placeholder="e.g. John Doe"
+              class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+            />
+          </div>
+
+          <!-- Email & Phone Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label for="emailInput" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                Email Address <span class="text-red-500">*</span>
+              </label>
+              <input 
+                type="email" 
+                id="emailInput" 
+                required
+                autocomplete="email"
+                placeholder="john@example.com"
+                class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              />
+            </div>
+            <div>
+              <label for="phoneInput" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                Phone Number
+              </label>
+              <input 
+                type="tel" 
+                id="phoneInput" 
+                autocomplete="tel"
+                placeholder="+1-555-0199"
+                class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              />
+            </div>
+          </div>
+
+          <!-- Blood Group (Shown when Donor selected) -->
+          <div id="bloodGroupContainer">
+            <label for="bloodGroupSelect" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+              Blood Group
+            </label>
+            <select 
+              id="bloodGroupSelect"
+              class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white"
+            >
+              <option value="">Select blood group (if known)</option>
+              <option value="O+">O Positive (O+)</option>
+              <option value="O-">O Negative (O-) — Universal Donor</option>
+              <option value="A+">A Positive (A+)</option>
+              <option value="A-">A Negative (A-)</option>
+              <option value="B+">B Positive (B+)</option>
+              <option value="B-">B Negative (B-)</option>
+              <option value="AB+">AB Positive (AB+)</option>
+              <option value="AB-">AB Negative (AB-)</option>
+            </select>
+          </div>
+
+          <!-- Passwords Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label for="passwordInput" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                Password <span class="text-red-500">*</span>
+              </label>
+              <input 
+                type="password" 
+                id="passwordInput" 
+                required
+                autocomplete="new-password"
+                placeholder="Min 8 chars, letter & number"
+                class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              />
+            </div>
+            <div>
+              <label for="confirmPasswordInput" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                Confirm Password <span class="text-red-500">*</span>
+              </label>
+              <input 
+                type="password" 
+                id="confirmPasswordInput" 
+                required
+                autocomplete="new-password"
+                placeholder="Re-type password"
+                class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              />
+            </div>
+          </div>
+
+          <!-- Password Requirement Hint -->
+          <p class="text-[11px] text-slate-500">
+            Password must be at least 8 characters with at least one letter and one number.
+          </p>
+
+          <!-- Disclaimer Agreement (§6) -->
+          <div class="pt-1">
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" id="termsCheck" required class="mt-1 rounded border-slate-300 text-red-600 focus:ring-red-500" />
+              <span class="text-xs text-slate-600 leading-normal">
+                I understand this platform manages blood inventory and requests, and all clinical eligibility decisions are made by certified healthcare professionals (§6).
+              </span>
+            </label>
+          </div>
+
+          <button 
+            type="submit" 
+            id="submitBtn"
+            class="w-full mt-3 py-2.5 px-4 rounded-lg bg-red-600 hover:bg-red-700 active:bg-red-800 text-white text-sm font-semibold shadow-sm transition-all flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          >
+            <span id="btnText">Create Account</span>
+            <svg id="btnSpinner" class="hidden animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+          </button>
+        </form>
+
+        <div class="mt-6 text-center text-xs text-slate-600">
+          Already registered?
+          <a href="/login.html" class="font-semibold text-red-600 hover:text-red-700 hover:underline ml-1">
+            Sign In to your account →
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="w-full py-4 text-center text-xs text-slate-400 border-t border-slate-100">
+    Blood Bank Platform — Operational & Inventory Management
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const registerForm = document.getElementById('registerForm');
+      const fullNameInput = document.getElementById('fullNameInput');
+      const emailInput = document.getElementById('emailInput');
+      const phoneInput = document.getElementById('phoneInput');
+      const passwordInput = document.getElementById('passwordInput');
+      const confirmPasswordInput = document.getElementById('confirmPasswordInput');
+      const bloodGroupSelect = document.getElementById('bloodGroupSelect');
+      const bloodGroupContainer = document.getElementById('bloodGroupContainer');
+      const termsCheck = document.getElementById('termsCheck');
+      const submitBtn = document.getElementById('submitBtn');
+      const btnText = document.getElementById('btnText');
+      const btnSpinner = document.getElementById('btnSpinner');
+      const alertBox = document.getElementById('alertBox');
+      const alertMessage = document.getElementById('alertMessage');
+      const alertIcon = document.getElementById('alertIcon');
+
+      // Role Selection Styling
+      const labelDonor = document.getElementById('labelDonor');
+      const labelRequester = document.getElementById('labelRequester');
+      const roleRadios = document.querySelectorAll('input[name="global_role"]');
+
+      roleRadios.forEach(radio => {
+        radio.addEventListener('change', () => {
+          if (radio.value === 'DONOR') {
+            labelDonor.classList.add('border-red-500', 'bg-red-50/40');
+            labelDonor.classList.remove('border-slate-200');
+            labelRequester.classList.remove('border-red-500', 'bg-red-50/40');
+            labelRequester.classList.add('border-slate-200');
+            bloodGroupContainer.classList.remove('hidden');
+          } else {
+            labelRequester.classList.add('border-red-500', 'bg-red-50/40');
+            labelRequester.classList.remove('border-slate-200');
+            labelDonor.classList.remove('border-red-500', 'bg-red-50/40');
+            labelDonor.classList.add('border-slate-200');
+            bloodGroupContainer.classList.add('hidden');
+          }
+        });
+      });
+
+      function showAlert(type, message) {
+        alertBox.classList.remove('hidden', 'bg-red-50', 'text-red-700', 'border-red-200', 'bg-emerald-50', 'text-emerald-700', 'border-emerald-200');
+        if (type === 'error') {
+          alertBox.classList.add('bg-red-50', 'text-red-700', 'border-red-200');
+          alertIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>';
+        } else {
+          alertBox.classList.add('bg-emerald-50', 'text-emerald-700', 'border-emerald-200');
+          alertIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>';
+        }
+        alertMessage.textContent = message;
+      }
+
+      function hideAlert() {
+        alertBox.classList.add('hidden');
+      }
+
+      registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideAlert();
+
+        const full_name = fullNameInput.value.trim();
+        const email = emailInput.value.trim();
+        const phone = phoneInput.value.trim();
+        const password = passwordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
+        const selectedRoleRadio = document.querySelector('input[name="global_role"]:checked');
+        const global_role = selectedRoleRadio ? selectedRoleRadio.value : 'DONOR';
+        const blood_group = bloodGroupSelect.value || null;
+
+        if (!full_name || !email || !password) {
+          showAlert('error', 'Please fill in all required fields.');
+          return;
+        }
+
+        if (password.length < 8 || !/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+          showAlert('error', 'Password must be at least 8 characters and contain at least one letter and one number.');
+          return;
+        }
+
+        if (password !== confirmPassword) {
+          showAlert('error', 'Passwords do not match. Please re-enter.');
+          return;
+        }
+
+        if (!termsCheck.checked) {
+          showAlert('error', 'Please confirm acknowledgment of the platform disclaimer.');
+          return;
+        }
+
+        // Set Loading State
+        submitBtn.disabled = true;
+        btnText.textContent = 'Registering Account...';
+        btnSpinner.classList.remove('hidden');
+
+        try {
+          const payload = {
+            full_name,
+            email,
+            password,
+            phone: phone || null,
+            global_role,
+            blood_group: global_role === 'DONOR' ? blood_group : null
+          };
+
+          const response = await BloodBankAPI.register(payload);
+          if (response.success) {
+            showAlert('success', 'Registration successful! Redirecting to login...');
+            setTimeout(() => {
+              window.location.href = '/login.html?registered=true';
+            }, 900);
+          } else {
+            showAlert('error', response.error?.message || 'Registration failed.');
+          }
+        } catch (err) {
+          showAlert('error', err.message || 'Unable to register account.');
+        } finally {
+          submitBtn.disabled = false;
+          btnText.textContent = 'Create Account';
+          btnSpinner.classList.add('hidden');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

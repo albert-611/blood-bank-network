@@ -1,0 +1,39 @@
+{
+  "name": "blood-bank-platform",
+  "version": "1.0.0",
+  "description": "Multi-Hospital Blood Bank Management & Blood Availability Platform",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js",
+    "db:init": "node backend/scripts/init-db.js",
+    "db:seed": "node backend/scripts/init-db.js --seed-only",
+    "test": "node backend/tests/auth.test.js",
+    "test:org": "node backend/tests/orgRegistration.test.js",
+    "test:rbac": "node backend/tests/rbac.test.js",
+    "test:all": "node backend/tests/auth.test.js && node backend/tests/orgRegistration.test.js && node backend/tests/rbac.test.js"
+  },
+  "keywords": [
+    "blood-bank",
+    "healthcare",
+    "inventory",
+    "express",
+    "mysql"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^8.7.0",
+    "helmet": "^8.3.0",
+    "joi": "^18.2.9",
+    "jsonwebtoken": "^9.0.3",
+    "mysql2": "^3.24.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
