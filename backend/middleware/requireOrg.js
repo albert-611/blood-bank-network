@@ -35,14 +35,15 @@ function requireOrg(req, res, next) {
   // Super Admin is platform-wide and not strictly confined to a single organization
   if (isSuperAdmin) {
     const targetId =
-      req.query.organization_id ||
-      req.query.orgId ||
-      req.query.organizationId ||
+      req.query?.organization_id ||
+      req.query?.orgId ||
+      req.query?.organizationId ||
       req.body?.organization_id ||
       req.body?.orgId ||
       req.body?.organizationId ||
       req.params?.organization_id ||
-      req.params?.orgId;
+      req.params?.orgId ||
+      req.params?.organizationId;
 
     req.organizationId = targetId ? parseInt(targetId, 10) : null;
     return next();
@@ -95,12 +96,15 @@ function requireOrg(req, res, next) {
   // TENANT ID TAMPERING DETECTION (§25):
   // Check if client explicitly sent a different organization_id via query, body, or params
   const clientSuppliedOrgId =
-    req.query.organization_id ||
-    req.query.orgId ||
-    req.query.organizationId ||
+    req.query?.organization_id ||
+    req.query?.orgId ||
+    req.query?.organizationId ||
     req.body?.organization_id ||
     req.body?.orgId ||
-    req.body?.organizationId;
+    req.body?.organizationId ||
+    req.params?.organization_id ||
+    req.params?.orgId ||
+    req.params?.organizationId;
 
   if (clientSuppliedOrgId !== undefined && clientSuppliedOrgId !== null && clientSuppliedOrgId !== '') {
     if (String(clientSuppliedOrgId).trim() !== String(req.user.organization_id).trim()) {

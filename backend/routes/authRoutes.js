@@ -58,11 +58,18 @@ const loginLimiter = rateLimit({
   }
 });
 
+function extractBearerToken(authHeader) {
+  if (typeof authHeader !== 'string') return null;
+
+  const match = authHeader.trim().match(/^Bearer\s+(.+)$/i);
+  return match ? match[1].trim() : null;
+}
+
 // Graceful auth extractor for logout
 function optionalAuthenticate(req, res, next) {
   const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    const token = authHeader.split(' ')[1];
+  const token = extractBearerToken(authHeader);
+  if (token) {
     try {
       const decoded = verifyAccessToken(token);
       req.user = { id: decoded.userId, global_role: decoded.globalRole };

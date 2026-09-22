@@ -16,6 +16,13 @@
 const db = require('../config/db');
 const { verifyAccessToken } = require('../services/tokenService');
 
+function extractBearerToken(authHeader) {
+  if (typeof authHeader !== 'string') return null;
+
+  const match = authHeader.trim().match(/^Bearer\s+(.+)$/i);
+  return match ? match[1].trim() : null;
+}
+
 /**
  * Express middleware to authenticate requests via JWT Bearer tokens.
  *
@@ -26,25 +33,14 @@ const { verifyAccessToken } = require('../services/tokenService');
 async function authenticate(req, res, next) {
   try {
     const authHeader = req.headers.authorization;
+    const token = extractBearerToken(authHeader);
 
     // Check for presence of Authorization header
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({
-        success: false,
-        error: {
-          message: 'Access denied. No authorization token provided.',
-          code: 'UNAUTHORIZED'
-        }
-      });
-    }
-
-    // Extract token string
-    const token = authHeader.split(' ')[1];
     if (!token) {
       return res.status(401).json({
         success: false,
         error: {
-          message: 'Access denied. Malformed authorization header.',
+          message: 'Access denied. No authorization token provided.',
           code: 'UNAUTHORIZED'
         }
       });
