@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "routes": [
+    { "src": "/", "dest": "/frontend/index.html" },
+    { "src": "/index.html", "dest": "/frontend/index.html" },
+    { "src": "/login", "dest": "/frontend/login.html" },
+    { "src": "/login.html", "dest": "/frontend/login.html" },
+    { "src": "/register", "dest": "/frontend/register.html" },
+    { "src": "/register.html", "dest": "/frontend/register.html" },
+    { "src": "/register-organization", "dest": "/frontend/register-organization.html" },
+    { "src": "/register-organization.html", "dest": "/frontend/register-organization.html" },
+    { "src": "/find-blood", "dest": "/frontend/find-blood.html" },
+    { "src": "/find-blood.html", "dest": "/frontend/find-blood.html" },
+    { "src": "/donors", "dest": "/frontend/donors.html" },
+    { "src": "/donors.html", "dest": "/frontend/donors.html" },
+    { "src": "/hospitals", "dest": "/frontend/hospitals.html" },
+    { "src": "/hospitals.html", "dest": "/frontend/hospitals.html" },
+    { "src": "/emergency", "dest": "/frontend/emergency.html" },
+    { "src": "/emergency.html", "dest": "/frontend/emergency.html" },
+    { "src": "/dashboard/(.*)", "dest": "/frontend/dashboard/$1" },
+    { "src": "/css/(.*)", "dest": "/frontend/css/$1" },
+    { "src": "/js/(.*)", "dest": "/frontend/js/$1" },
+    { "src": "/(.*)", "dest": "/frontend/$1" }
+  ]
+}
