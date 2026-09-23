@@ -20,35 +20,83 @@ const { logAuditEvent } = require('../utils/auditLogger');
  */
 async function listOrganizations(req, res, next) {
   try {
-    const { status, type } = req.query;
+    const { status, type, search, page, limit } = req.query;
 
-    let query = `
-      SELECT o.id, o.name, o.type, o.email, o.phone, o.address, o.city, o.country,
-             o.license_number, o.status, o.created_at, o.updated_at,
-             COUNT(os.id) AS staff_count
+    let baseFrom = `
       FROM organizations o
       LEFT JOIN organization_staff os ON o.id = os.organization_id
     `;
     const params = [];
     const conditions = [];
 
-    if (status) {
+    if (status && status.toUpperCase() !== 'ALL') {
       conditions.push('o.status = ?');
-      params.push(status.toUpperCase());
+      params.push(status.toUpperCase().trim());
     }
 
-    if (type) {
+    if (type && type.toUpperCase() !== 'ALL') {
       conditions.push('o.type = ?');
-      params.push(type.toUpperCase());
+      params.push(type.toUpperCase().trim());
     }
 
-    if (conditions.length > 0) {
-      query += ` WHERE ${conditions.join(' AND ')}`;
+    if (search && search.trim()) {
+      const s = `%${search.trim()}%`;
+      conditions.push('(o.name LIKE ? OR o.email LIKE ? OR o.city LIKE ? OR o.license_number LIKE ?)');
+      params.push(s, s, s, s);
     }
 
-    query += ' GROUP BY o.id ORDER BY o.created_at DESC';
+    const whereClause = conditions.length > 0 ? ` WHERE ${conditions.join(' AND ')}` : '';
 
-    const [organizations] = await db.query(query, params);
+    // Check if pagination requested
+    const hasPagination = page !== undefined || limit !== undefined;
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.max(1, Math.min(100, parseInt(limit, 10) || 30));
+    const offset = (pageNum - 1) * limitNum;
+
+    let total = 0;
+    if (hasPagination) {
+      const countQuery = `SELECT COUNT(DISTINCT o.id) AS total ${baseFrom} ${whereClause}`;
+      const [countRows] = await db.query(countQuery, params);
+      total = countRows && countRows.length > 0 ? countRows[0].total : 0;
+    }
+
+    let selectQuery = `
+      SELECT o.id, o.name, o.type, o.email, o.phone, o.address, o.city, o.country,
+             o.license_number, o.status, o.created_at, o.updated_at,
+             COUNT(os.id) AS staff_count
+      ${baseFrom}
+      ${whereClause}
+      GROUP BY o.id
+      ORDER BY o.created_at DESC
+    `;
+
+    const queryParams = [...params];
+    if (hasPagination) {
+      selectQuery += ' LIMIT ? OFFSET ?';
+      queryParams.push(limitNum, offset);
+    }
+
+    const [organizations] = await db.query(selectQuery, queryParams);
+
+    if (hasPagination) {
+      const totalPages = Math.ceil(total / limitNum) || 1;
+      return res.status(200).json({
+        success: true,
+        data: {
+          total,
+          page: pageNum,
+          limit: limitNum,
+          totalPages,
+          pagination: {
+            total,
+            page: pageNum,
+            limit: limitNum,
+            totalPages
+          },
+          organizations
+        }
+      });
+    }
 
     return res.status(200).json({
       success: true,
@@ -278,8 +326,9 @@ async function updateUserRole(req, res, next) {
  */
 async function listAuditLogs(req, res, next) {
   try {
-    const limit = Math.min(parseInt(req.query.limit, 10) || 50, 100);
-    const offset = parseInt(req.query.offset, 10) || 0;
+    const limit = Math.max(1, Math.min(parseInt(req.query.limit, 10) || 30, 100));
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const offset = req.query.offset !== undefined ? parseInt(req.query.offset, 10) : (page - 1) * limit;
 
     const [logs] = await db.query(
       `SELECT al.id, al.user_id, al.action, al.resource_type, al.resource_id,
@@ -294,13 +343,22 @@ async function listAuditLogs(req, res, next) {
 
     const [countRows] = await db.query('SELECT COUNT(id) AS total FROM audit_logs');
     const total = countRows && countRows.length > 0 ? countRows[0].total : 0;
+    const totalPages = Math.ceil(total / limit) || 1;
 
     return res.status(200).json({
       success: true,
       data: {
         total,
+        page,
         limit,
+        totalPages,
         offset,
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages
+        },
         logs
       }
     });

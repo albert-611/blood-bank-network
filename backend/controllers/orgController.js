@@ -686,14 +686,9 @@ async function createOrganization(req, res, next) {
 async function listOrganizations(req, res, next) {
   try {
     const isSuperAdmin = req.user && (req.user.role === 'SUPER_ADMIN' || req.user.global_role === 'SUPER_ADMIN');
-    const { status, type, city } = req.query;
+    const { status, type, city, search, page, limit } = req.query;
 
-    let query = `
-      SELECT o.id, o.name, o.type, o.email, o.phone, o.address, o.city, o.country,
-             o.license_number, o.status, o.created_at, o.updated_at,
-             h.bed_count,
-             bb.storage_capacity_units,
-             COUNT(os.id) AS staff_count
+    let baseFrom = `
       FROM organizations o
       LEFT JOIN hospitals h ON o.id = h.organization_id
       LEFT JOIN clinics c ON o.id = c.organization_id
@@ -704,18 +699,23 @@ async function listOrganizations(req, res, next) {
     const conditions = [];
 
     if (isSuperAdmin) {
-      // Super Admin can filter by status, type, city
-      if (status) {
+      // Super Admin can filter by status, type, city, and search query
+      if (status && status.toUpperCase() !== 'ALL') {
         conditions.push('o.status = ?');
         params.push(status.toUpperCase().trim());
       }
-      if (type) {
+      if (type && type.toUpperCase() !== 'ALL') {
         conditions.push('o.type = ?');
         params.push(type.toUpperCase().trim());
       }
       if (city) {
         conditions.push('o.city LIKE ?');
         params.push(`%${city.trim()}%`);
+      }
+      if (search && search.trim()) {
+        const s = `%${search.trim()}%`;
+        conditions.push('(o.name LIKE ? OR o.email LIKE ? OR o.city LIKE ? OR o.license_number LIKE ?)');
+        params.push(s, s, s, s);
       }
     } else {
       // Tenant Isolation: Non-super-admins only see their own organization
@@ -733,13 +733,60 @@ async function listOrganizations(req, res, next) {
       params.push(userOrgId);
     }
 
-    if (conditions.length > 0) {
-      query += ` WHERE ${conditions.join(' AND ')}`;
+    const whereClause = conditions.length > 0 ? ` WHERE ${conditions.join(' AND ')}` : '';
+
+    // Check if pagination was requested
+    const hasPagination = page !== undefined || limit !== undefined;
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.max(1, Math.min(100, parseInt(limit, 10) || 30));
+    const offset = (pageNum - 1) * limitNum;
+
+    let total = 0;
+    if (hasPagination) {
+      const countQuery = `SELECT COUNT(DISTINCT o.id) AS total ${baseFrom} ${whereClause}`;
+      const [countRows] = await db.query(countQuery, params);
+      total = countRows && countRows.length > 0 ? countRows[0].total : 0;
     }
 
-    query += ' GROUP BY o.id ORDER BY o.created_at DESC';
+    let selectQuery = `
+      SELECT o.id, o.name, o.type, o.email, o.phone, o.address, o.city, o.country,
+             o.license_number, o.status, o.created_at, o.updated_at,
+             h.bed_count,
+             bb.storage_capacity_units,
+             COUNT(os.id) AS staff_count
+      ${baseFrom}
+      ${whereClause}
+      GROUP BY o.id
+      ORDER BY o.created_at DESC
+    `;
 
-    const [organizations] = await db.query(query, params);
+    const queryParams = [...params];
+    if (hasPagination) {
+      selectQuery += ' LIMIT ? OFFSET ?';
+      queryParams.push(limitNum, offset);
+    }
+
+    const [organizations] = await db.query(selectQuery, queryParams);
+
+    if (hasPagination) {
+      const totalPages = Math.ceil(total / limitNum) || 1;
+      return res.status(200).json({
+        success: true,
+        data: {
+          total,
+          page: pageNum,
+          limit: limitNum,
+          totalPages,
+          pagination: {
+            total,
+            page: pageNum,
+            limit: limitNum,
+            totalPages
+          },
+          organizations
+        }
+      });
+    }
 
     return res.status(200).json({
       success: true,
