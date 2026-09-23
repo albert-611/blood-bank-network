@@ -18,11 +18,8 @@ const dotenv = require('dotenv');
 // Load environment variables from repository root .env
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
-const DB_HOST = process.env.DB_HOST || 'localhost';
-const DB_USER = process.env.DB_USER || 'root';
-const DB_PASSWORD = process.env.DB_PASSWORD || '';
-const DB_NAME = process.env.DB_NAME || 'blood_bank_db';
-const DB_PORT = parseInt(process.env.DB_PORT, 10) || 3306;
+const { getDatabaseConfig } = require('../config/db');
+const dbConfig = getDatabaseConfig();
 
 const SCHEMA_PATH = path.join(__dirname, '../../database/schema.sql');
 const SEED_PATH = path.join(__dirname, '../../database/seed.sql');
@@ -30,6 +27,7 @@ const SEED_PATH = path.join(__dirname, '../../database/seed.sql');
 // Parse command line arguments
 const args = process.argv.slice(2);
 const isSeedOnly = args.includes('--seed-only');
+const isForce = args.includes('--force');
 const isHelp = args.includes('--help') || args.includes('-h');
 
 if (isHelp) {
@@ -37,16 +35,17 @@ if (isHelp) {
 🩸 Blood Bank Platform — Database CLI Tool
 
 Usage:
-  npm run db:init           Full initialization: drops existing tables, rebuilds schema, loads seed data.
-  npm run db:seed           Seed only: inserts or refreshes seed records without dropping schema.
+  npm run db:init           Full initialization: builds schema and loads seed data.
+  npm run db:seed           Seed only: inserts or refreshes seed records without touching schema.
   node backend/scripts/init-db.js --help  Display this help message.
 
-Environment Configuration (.env):
-  DB_HOST:     ${DB_HOST}
-  DB_PORT:     ${DB_PORT}
-  DB_USER:     ${DB_USER}
-  DB_NAME:     ${DB_NAME}
-  DB_PASSWORD: ${DB_PASSWORD ? '********' : '(empty)'}
+Environment Configuration:
+  DB_HOST:     ${dbConfig.host}
+  DB_PORT:     ${dbConfig.port}
+  DB_USER:     ${dbConfig.user}
+  DB_NAME:     ${dbConfig.database}
+  DB_SSL:      ${dbConfig.ssl ? 'Enabled' : 'Disabled'}
+  DB_PASSWORD: ${dbConfig.password ? '********' : '(empty)'}
 `);
   process.exit(0);
 }
@@ -55,35 +54,67 @@ async function run() {
   console.log(`\n================================================================`);
   console.log(`🩸 BLOOD BANK PLATFORM — DATABASE INITIALIZER`);
   console.log(`================================================================`);
-  console.log(`Connecting to: ${DB_USER}@${DB_HOST}:${DB_PORT}`);
-  console.log(`Target Database: ${DB_NAME}`);
-  console.log(`Execution Mode: ${isSeedOnly ? 'SEED ONLY (preserve schema)' : 'FULL INIT (rebuild schema + seed)'}`);
+  console.log(`Connecting to: ${dbConfig.user}@${dbConfig.host}:${dbConfig.port}`);
+  console.log(`Target Database: ${dbConfig.database}`);
+  console.log(`SSL Mode: ${dbConfig.ssl ? 'Enabled' : 'Disabled'}`);
+  console.log(`Execution Mode: ${isSeedOnly ? 'SEED ONLY (preserve schema)' : 'FULL INIT (schema + seed)'}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`----------------------------------------------------------------`);
 
   let connection;
 
   try {
-    // Step 1: Connect to server without database to ensure DB exists
-    const rootConnection = await mysql.createConnection({
-      host: DB_HOST,
-      port: DB_PORT,
-      user: DB_USER,
-      password: DB_PASSWORD
-    });
+    // Step 1: Ensure database exists and is accessible
+    let databaseReady = false;
+    try {
+      const probeConn = await mysql.createConnection({
+        host: dbConfig.host,
+        port: dbConfig.port,
+        user: dbConfig.user,
+        password: dbConfig.password,
+        database: dbConfig.database,
+        ssl: dbConfig.ssl
+      });
+      await probeConn.query('SELECT 1 AS probe');
+      await probeConn.end();
+      databaseReady = true;
+      console.log(`✅ Step 1: Target database '${dbConfig.database}' is verified and ready.`);
+    } catch (probeErr) {
+      if (probeErr.code !== 'ER_BAD_DB_ERROR') {
+        // May be access-related or remote host without database probe rights
+        // We'll proceed and let direct connection provide diagnostic if failed
+      }
+    }
 
-    await rootConnection.query(
-      `CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`
-    );
-    await rootConnection.end();
-    console.log(`✅ Step 1: Database '${DB_NAME}' verified/created.`);
+    if (!databaseReady) {
+      try {
+        const rootConnection = await mysql.createConnection({
+          host: dbConfig.host,
+          port: dbConfig.port,
+          user: dbConfig.user,
+          password: dbConfig.password,
+          ssl: dbConfig.ssl
+        });
+
+        await rootConnection.query(
+          `CREATE DATABASE IF NOT EXISTS \`${dbConfig.database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`
+        );
+        await rootConnection.end();
+        console.log(`✅ Step 1: Database '${dbConfig.database}' verified/created.`);
+      } catch (rootErr) {
+        // In cloud environments like AWS RDS, Railway, PlanetScale, CREATE DATABASE is often restricted
+        console.warn(`ℹ️ Step 1 Note: Direct server database creation skipped (${rootErr.message}).`);
+      }
+    }
 
     // Step 2: Connect directly to the database with multipleStatements enabled
     connection = await mysql.createConnection({
-      host: DB_HOST,
-      port: DB_PORT,
-      user: DB_USER,
-      password: DB_PASSWORD,
-      database: DB_NAME,
+      host: dbConfig.host,
+      port: dbConfig.port,
+      user: dbConfig.user,
+      password: dbConfig.password,
+      database: dbConfig.database,
+      ssl: dbConfig.ssl,
       multipleStatements: true
     });
 
@@ -92,10 +123,20 @@ async function run() {
       if (!fs.existsSync(SCHEMA_PATH)) {
         throw new Error(`Schema file not found at: ${SCHEMA_PATH}`);
       }
-      console.log(`⏳ Step 2: Executing schema definitions from database/schema.sql...`);
-      const schemaSql = fs.readFileSync(SCHEMA_PATH, 'utf8');
-      await connection.query(schemaSql);
-      console.log(`✅ Step 2: Schema created successfully (all 19 tables initialized).`);
+
+      // Production Protection: check if tables already exist (§14)
+      const [existingTables] = await connection.query(`SHOW TABLES LIKE 'users'`);
+      const isProduction = process.env.NODE_ENV === 'production';
+
+      if (isProduction && existingTables.length > 0 && !isForce) {
+        console.warn(`🛡️ Step 2 (Production Protection): Database '${dbConfig.database}' already has initialized tables.`);
+        console.warn(`   Preserving existing production tables and data. Pass '--force' to explicitly rebuild schema.`);
+      } else {
+        console.log(`⏳ Step 2: Executing schema definitions from database/schema.sql...`);
+        const schemaSql = fs.readFileSync(SCHEMA_PATH, 'utf8');
+        await connection.query(schemaSql);
+        console.log(`✅ Step 2: Schema created successfully (all 19 tables initialized).`);
+      }
     } else {
       console.log(`⏩ Step 2: Skipped schema rebuild (--seed-only flag provided).`);
     }
@@ -104,10 +145,10 @@ async function run() {
     if (!fs.existsSync(SEED_PATH)) {
       throw new Error(`Seed file not found at: ${SEED_PATH}`);
     }
-    console.log(`⏳ Step 3: Inserting seed records from database/seed.sql...`);
+    console.log(`⏳ Step 3: Inserting/updating seed records from database/seed.sql...`);
     const seedSql = fs.readFileSync(SEED_PATH, 'utf8');
     await connection.query(seedSql);
-    console.log(`✅ Step 3: Seed data inserted successfully.`);
+    console.log(`✅ Step 3: Seed data processed safely and idempotently.`);
 
     // Step 5: Verification & Record Counts
     console.log(`\n📊 Data Verification Summary:`);
@@ -149,14 +190,17 @@ async function run() {
 
     if (error.code === 'ECONNREFUSED') {
       console.error(`\n💡 Troubleshooting ECONNREFUSED:`);
-      console.error(`  1. Make sure your local MySQL server is currently running.`);
-      console.error(`  2. If using MySQL Community Server, start the MySQL service in Windows Services.`);
-      console.error(`  3. If using XAMPP, open the XAMPP Control Panel and click 'Start' next to MySQL.`);
-      console.error(`  4. Verify that MySQL is listening on port ${DB_PORT}.`);
+      console.error(`  1. Make sure your database host (${dbConfig.host}:${dbConfig.port}) is accessible.`);
+      console.error(`  2. For local MySQL/XAMPP, ensure the service is currently started.`);
+      console.error(`  3. For cloud databases (Railway, Render, AWS), verify host and port in environment variables.`);
     } else if (error.code === 'ER_ACCESS_DENIED_ERROR') {
       console.error(`\n💡 Troubleshooting ER_ACCESS_DENIED_ERROR:`);
-      console.error(`  1. Check the DB_USER ('${DB_USER}') and DB_PASSWORD in your .env file.`);
-      console.error(`  2. Ensure the user has permissions to create databases and tables.`);
+      console.error(`  1. Check DB_USER ('${dbConfig.user}') and DB_PASSWORD in your environment variables.`);
+      console.error(`  2. Ensure the user has permissions on database '${dbConfig.database}'.`);
+    } else if (error.code === 'HANDSHAKE_SSL_ERROR' || error.message.includes('SSL')) {
+      console.error(`\n💡 Troubleshooting SSL:`);
+      console.error(`  1. Verify if your cloud database requires SSL (set DB_SSL=true).`);
+      console.error(`  2. If using self-signed certs, set DB_SSL_REJECT_UNAUTHORIZED=false.`);
     }
 
     console.error(`================================================================\n`);
@@ -169,3 +213,4 @@ async function run() {
 }
 
 run();
+

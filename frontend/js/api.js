@@ -8,15 +8,66 @@
  * Automatically attaches Authorization header if JWT token is stored.
  */
 
-const API_BASE_URL = window.location.origin;
+/**
+ * Configurable API Base URL (§18)
+ * Resolves in order of priority:
+ * 1. window.__API_URL__ (runtime global)
+ * 2. window.ENV?.API_URL (environment config)
+ * 3. <meta name="api-base-url" content="..."> in document head
+ * 4. localStorage 'bloodbank_api_url' (dynamic debug/override)
+ * 5. window.location.origin (default for co-located deployment)
+ */
+function resolveApiBaseUrl() {
+  if (typeof window !== 'undefined') {
+    if (window.__API_URL__ && typeof window.__API_URL__ === 'string') {
+      return window.__API_URL__.replace(/\/+$/, '');
+    }
+    if (window.ENV?.API_URL && typeof window.ENV.API_URL === 'string') {
+      return window.ENV.API_URL.replace(/\/+$/, '');
+    }
+    if (typeof document !== 'undefined') {
+      const meta = document.querySelector('meta[name="api-base-url"]');
+      if (meta && meta.content && !meta.content.startsWith('%')) {
+        return meta.content.replace(/\/+$/, '');
+      }
+    }
+    const stored = localStorage.getItem('bloodbank_api_url');
+    if (stored && typeof stored === 'string') {
+      return stored.replace(/\/+$/, '');
+    }
+    return window.location.origin;
+  }
+  return 'http://localhost:5000';
+}
 
 const BloodBankAPI = {
+  /**
+   * Retrieve active API base URL
+   * @returns {string}
+   */
+  getBaseUrl() {
+    return resolveApiBaseUrl();
+  },
+
+  /**
+   * Manually override API base URL at runtime
+   * @param {string} url
+   */
+  setBaseUrl(url) {
+    if (url && typeof url === 'string') {
+      const cleanUrl = url.replace(/\/+$/, '');
+      window.__API_URL__ = cleanUrl;
+      localStorage.setItem('bloodbank_api_url', cleanUrl);
+    }
+  },
+
   /**
    * Internal generic fetch wrapper
    * @private
    */
   async _request(endpoint, options = {}) {
-    const url = `${API_BASE_URL}${endpoint}`;
+    const baseUrl = this.getBaseUrl();
+    const url = `${baseUrl}${endpoint}`;
     const headers = {
       'Accept': 'application/json',
       ...options.headers
@@ -82,7 +133,7 @@ const BloodBankAPI = {
   async checkHealth() {
     const startTime = performance.now();
     try {
-      const response = await fetch(`${API_BASE_URL}/api/health`);
+      const response = await fetch(`${this.getBaseUrl()}/api/health`);
       const latencyMs = Math.round(performance.now() - startTime);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();

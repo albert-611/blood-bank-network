@@ -18,26 +18,74 @@ const dotenv = require('dotenv');
 // Ensure environment variables are loaded from the project root .env
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
-const dbConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'blood_bank_db',
-  port: parseInt(process.env.DB_PORT, 10) || 3306,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  enableKeepAlive: true,
-  keepAliveInitialDelay: 0
-};
+/**
+ * Resolves database configuration from environment variables.
+ * Supports individual variables (DB_HOST, DB_USER, etc.) and connection strings (DATABASE_URL / MYSQL_URL).
+ * Also configures SSL if DB_SSL is enabled or required by the cloud provider.
+ */
+function getDatabaseConfig() {
+  const connectionUri = process.env.DATABASE_URL || process.env.MYSQL_URL;
+
+  let host = process.env.DB_HOST || 'localhost';
+  let user = process.env.DB_USER || 'root';
+  let password = process.env.DB_PASSWORD || '';
+  let database = process.env.DB_NAME || 'blood_bank_db';
+  let port = parseInt(process.env.DB_PORT, 10) || 3306;
+  let isSsl = process.env.DB_SSL === 'true';
+
+  if (connectionUri) {
+    try {
+      const parsed = new URL(connectionUri);
+      host = parsed.hostname || host;
+      port = parseInt(parsed.port, 10) || port;
+      user = decodeURIComponent(parsed.username || user);
+      password = decodeURIComponent(parsed.password || password);
+      const parsedDb = parsed.pathname.replace(/^\//, '');
+      if (parsedDb) {
+        database = parsedDb;
+      }
+      if (parsed.searchParams.get('ssl') === 'true' || parsed.searchParams.get('sslmode') === 'require') {
+        isSsl = true;
+      }
+    } catch (parseErr) {
+      console.warn('⚠️ Unable to parse DATABASE_URL as URL, falling back to individual parameters:', parseErr.message);
+    }
+  }
+
+  const sslConfig = isSsl
+    ? {
+        rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED === 'true'
+      }
+    : undefined;
+
+  return {
+    host,
+    user,
+    password,
+    database,
+    port,
+    ssl: sslConfig,
+    waitForConnections: true,
+    connectionLimit: parseInt(process.env.DB_CONNECTION_LIMIT, 10) || 10,
+    queueLimit: 0,
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 0
+  };
+}
+
+const dbConfig = getDatabaseConfig();
 
 // Create connection pool with sensible production-ready defaults
 const pool = mysql.createPool(dbConfig);
 
 /**
  * Check if local MySQL daemon can be started automatically if offline.
+ * Strictly disabled in production or when connecting to remote databases.
  */
 function tryStartLocalMysqlDaemon() {
+  const isProduction = process.env.NODE_ENV === 'production';
+  if (isProduction) return false;
+
   const isWindows = process.platform === 'win32';
   if (!isWindows) return false;
 
@@ -79,12 +127,14 @@ function tryStartLocalMysqlDaemon() {
 
 /**
  * Test connectivity against the database.
- * If connection is refused and running locally, attempts auto-launch of the local server daemon.
+ * If connection is refused and running locally in development, attempts auto-launch of the local server daemon.
  *
  * @returns {Promise<{ host: string, port: number, database: string }>}
  */
 async function ensureDatabaseConnection() {
-  const isLocalHost = dbConfig.host === 'localhost' || dbConfig.host === '127.0.0.1';
+  const currentConfig = getDatabaseConfig();
+  const isLocalHost = currentConfig.host === 'localhost' || currentConfig.host === '127.0.0.1';
+  const isProduction = process.env.NODE_ENV === 'production';
 
   let lastError = null;
 
@@ -92,27 +142,27 @@ async function ensureDatabaseConnection() {
   try {
     await pool.query('SELECT 1 AS connection_test');
     return {
-      host: dbConfig.host,
-      port: dbConfig.port,
-      database: dbConfig.database
+      host: currentConfig.host,
+      port: currentConfig.port,
+      database: currentConfig.database
     };
   } catch (err) {
     lastError = err;
   }
 
-  // If connection refused and host is local, attempt recovery
-  if (lastError && lastError.code === 'ECONNREFUSED' && isLocalHost) {
+  // If connection refused, host is local, and NOT in production, attempt recovery
+  if (lastError && lastError.code === 'ECONNREFUSED' && isLocalHost && !isProduction) {
     const started = tryStartLocalMysqlDaemon();
     if (started) {
-      // Poll until port 3306 responds
+      // Poll until port responds
       for (let attempt = 1; attempt <= 15; attempt++) {
         await new Promise((resolve) => setTimeout(resolve, 600));
         try {
           await pool.query('SELECT 1 AS connection_test');
           return {
-            host: dbConfig.host,
-            port: dbConfig.port,
-            database: dbConfig.database
+            host: currentConfig.host,
+            port: currentConfig.port,
+            database: currentConfig.database
           };
         } catch (pollErr) {
           lastError = pollErr;
@@ -121,14 +171,14 @@ async function ensureDatabaseConnection() {
     }
   }
 
-  // If still failed, format clean error message without exposing credentials
+  // Format clean error message without exposing credentials
   let safeReason = lastError ? lastError.message : 'Unknown connection failure';
   if (lastError && lastError.code === 'ECONNREFUSED') {
-    safeReason = `Connection refused at ${dbConfig.host}:${dbConfig.port}. MySQL server is not running.`;
+    safeReason = `Connection refused at ${currentConfig.host}:${currentConfig.port}. MySQL server is not reachable.`;
   } else if (lastError && lastError.code === 'ER_BAD_DB_ERROR') {
-    safeReason = `Database '${dbConfig.database}' does not exist. Run 'npm run db:init' first.`;
+    safeReason = `Database '${currentConfig.database}' does not exist. Run 'npm run db:init' first.`;
   } else if (lastError && lastError.code === 'ER_ACCESS_DENIED_ERROR') {
-    safeReason = `Access denied for user '${dbConfig.user}' at ${dbConfig.host}:${dbConfig.port}.`;
+    safeReason = `Access denied for database user at ${currentConfig.host}:${currentConfig.port}. Check credentials.`;
   }
 
   const err = new Error(safeReason);
@@ -138,4 +188,6 @@ async function ensureDatabaseConnection() {
 
 module.exports = pool;
 module.exports.ensureDatabaseConnection = ensureDatabaseConnection;
+module.exports.getDatabaseConfig = getDatabaseConfig;
+
 

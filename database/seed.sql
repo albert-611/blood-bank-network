@@ -54,10 +54,10 @@ ON DUPLICATE KEY UPDATE description = VALUES(description);
 -- ----------------------------------------------------------------------------
 -- 3. ROLE_PERMISSIONS MAPPINGS (§13 Matrix)
 -- ----------------------------------------------------------------------------
-DELETE FROM role_permissions;
+-- Safe & Idempotent: INSERT IGNORE preserves existing mappings without destructive DELETE
 
 -- Super Admin: Full system-wide capabilities
-INSERT INTO role_permissions (role_id, permission_id) VALUES
+INSERT IGNORE INTO role_permissions (role_id, permission_id) VALUES
   (1, 1),  -- organizations.approve
   (1, 2),  -- organizations.manage_staff
   (1, 3),  -- inventory.manage
@@ -73,7 +73,7 @@ INSERT INTO role_permissions (role_id, permission_id) VALUES
   (1, 13); -- settings.manage
 
 -- Hospital Admin:
-INSERT INTO role_permissions (role_id, permission_id) VALUES
+INSERT IGNORE INTO role_permissions (role_id, permission_id) VALUES
   (2, 2),  -- organizations.manage_staff
   (2, 3),  -- inventory.manage
   (2, 4),  -- inventory.view
@@ -85,7 +85,7 @@ INSERT INTO role_permissions (role_id, permission_id) VALUES
   (2, 12); -- audit.view
 
 -- Clinic Admin:
-INSERT INTO role_permissions (role_id, permission_id) VALUES
+INSERT IGNORE INTO role_permissions (role_id, permission_id) VALUES
   (3, 2),  -- organizations.manage_staff
   (3, 4),  -- inventory.view
   (3, 7),  -- requests.create
@@ -93,7 +93,7 @@ INSERT INTO role_permissions (role_id, permission_id) VALUES
   (3, 12); -- audit.view
 
 -- Blood Bank Staff:
-INSERT INTO role_permissions (role_id, permission_id) VALUES
+INSERT IGNORE INTO role_permissions (role_id, permission_id) VALUES
   (4, 2),  -- organizations.manage_staff
   (4, 3),  -- inventory.manage
   (4, 4),  -- inventory.view
@@ -103,23 +103,23 @@ INSERT INTO role_permissions (role_id, permission_id) VALUES
   (4, 12); -- audit.view
 
 -- Doctor:
-INSERT INTO role_permissions (role_id, permission_id) VALUES
+INSERT IGNORE INTO role_permissions (role_id, permission_id) VALUES
   (5, 4),  -- inventory.view
   (5, 7),  -- requests.create
   (5, 9);  -- requests.emergency
 
 -- Donor:
-INSERT INTO role_permissions (role_id, permission_id) VALUES
+INSERT IGNORE INTO role_permissions (role_id, permission_id) VALUES
   (6, 4),  -- inventory.view
   (6, 6);  -- donations.view_own
 
 -- Requester:
-INSERT INTO role_permissions (role_id, permission_id) VALUES
+INSERT IGNORE INTO role_permissions (role_id, permission_id) VALUES
   (7, 4),  -- inventory.view
   (7, 7);  -- requests.create
 
 -- Organization Admin:
-INSERT INTO role_permissions (role_id, permission_id) VALUES
+INSERT IGNORE INTO role_permissions (role_id, permission_id) VALUES
   (8, 2),  -- organizations.manage_staff
   (8, 3),  -- inventory.manage
   (8, 4),  -- inventory.view

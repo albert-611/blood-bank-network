@@ -39,6 +39,7 @@ const PORT = parseInt(process.env.PORT, 10) || 5000;
 /**
  * Validates presence of critical environment variables.
  * Fails fast with safe error messages without leaking secret values.
+ * Supports both discrete DB_* variables and DATABASE_URL / MYSQL_URL.
  */
 function validateEnvironment() {
   if (!process.env.JWT_SECRET) {
@@ -47,15 +48,17 @@ function validateEnvironment() {
     process.exit(1);
   }
 
-  const requiredVars = ['PORT', 'DB_HOST', 'DB_USER', 'DB_NAME'];
-  for (const varName of requiredVars) {
-    if (!process.env[varName]) {
-      console.error(`Required environment variable missing: ${varName}`);
-      process.exit(1);
+  const hasDbUrl = Boolean(process.env.DATABASE_URL || process.env.MYSQL_URL);
+  if (!hasDbUrl) {
+    const requiredVars = ['DB_HOST', 'DB_USER', 'DB_NAME'];
+    for (const varName of requiredVars) {
+      if (!process.env[varName]) {
+        console.error(`Required environment variable missing: ${varName}`);
+        process.exit(1);
+      }
     }
   }
 }
-
 
 // ============================================================================
 // SECURITY & FOUNDATIONAL MIDDLEWARE (§25)
@@ -69,20 +72,41 @@ app.use(
   })
 );
 
-// Restrict Cross-Origin Resource Sharing to known frontend origins (§25)
-const configuredOrigin = process.env.CORS_ORIGIN || `http://localhost:${PORT}`;
-const allowedOrigins = [
-  configuredOrigin,
-  `http://localhost:${PORT}`,
-  `http://127.0.0.1:${PORT}`,
-  'http://localhost:3000'
-];
+// Restrict Cross-Origin Resource Sharing to configured origins (§17 & §25)
+// Supports CORS_ORIGIN, FRONTEND_URL, CLIENT_URL, and comma-separated multi-origins.
+function getAllowedOrigins() {
+  const origins = new Set([
+    `http://localhost:${PORT}`,
+    `http://127.0.0.1:${PORT}`,
+    'http://localhost:3000'
+  ]);
+
+  const envOrigins = [
+    process.env.CORS_ORIGIN,
+    process.env.FRONTEND_URL,
+    process.env.CLIENT_URL
+  ];
+
+  for (const raw of envOrigins) {
+    if (raw && typeof raw === 'string') {
+      raw.split(',').forEach((o) => {
+        const trimmed = o.trim().replace(/\/+$/, '');
+        if (trimmed) origins.add(trimmed);
+      });
+    }
+  }
+
+  return Array.from(origins);
+}
 
 app.use(
   cors({
     origin: (origin, callback) => {
       // Allow requests with no origin (such as mobile apps, curl, Postman, or local scripts)
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin) return callback(null, true);
+      const allowed = getAllowedOrigins();
+      const normalizedOrigin = origin.replace(/\/+$/, '');
+      if (allowed.includes(normalizedOrigin)) {
         return callback(null, true);
       }
       return callback(new Error(`CORS blocked: Origin ${origin} not permitted`));

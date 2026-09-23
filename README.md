@@ -51,20 +51,74 @@ npm start
 
 ---
 
-## Dev-Only Seed Accounts
+## Deployment & Production Database Setup
 
-Pre-configured development credentials for local testing:
+### Production Architecture
+```text
+GitHub repository
+        ↓
+Cloud Deployment (Render / Railway / Heroku / AWS)
+        ↓
+Production Backend (Node / Express)
+        ↓
+Production MySQL Database (AWS RDS / Railway / Aiven / PlanetScale)
+        ↓
+Database schema initialized (npm run db:init)
+        ↓
+Idempotent seed data applied (npm run db:seed)
+        ↓
+Configured users authenticate via live database
+```
 
-| Role | Email | Password | Details |
-|---|---|---|---|
-| **SUPER_ADMIN** | `admin@bloodbank.dev` | `AdminDev123!` | System Super Administrator |
-| **HOSPITAL_ADMIN** | `hospital.admin@bloodbank.dev` | `UserDev123!` | City General Hospital |
-| **DOCTOR** | `doctor.smith@bloodbank.dev` | `UserDev123!` | City General Hospital |
-| **CLINIC_ADMIN** | `clinic.admin@bloodbank.dev` | `UserDev123!` | Metro Community Clinic |
-| **BLOOD_BANK_STAFF** | `bloodbank.staff@bloodbank.dev` | `UserDev123!` | Central Red Cross Blood Bank |
-| **DONOR** | `donor.john@bloodbank.dev` | `UserDev123!` | Active Donor (O+) |
-| **DONOR** | `donor.sarah@bloodbank.dev` | `UserDev123!` | Universal Donor (O-) |
-| **REQUESTER** | `requester.jane@bloodbank.dev` | `UserDev123!` | Patient Representative |
+### 1. Production Environment Variables
+Configure your deployment hosting provider with the appropriate environment variables:
+- `NODE_ENV=production`
+- `PORT=5000`
+- `DB_HOST=your-cloud-mysql-host.com`
+- `DB_USER=your_db_username`
+- `DB_PASSWORD=your_db_password`
+- `DB_NAME=blood_bank_db`
+- `DB_PORT=3306`
+- `DB_SSL=true` (if required by your cloud provider)
+- `JWT_SECRET=your_secure_random_64_char_jwt_secret`
+- `FRONTEND_URL=https://your-frontend-domain.com`
+
+*Alternatively, you can supply a single `DATABASE_URL` connection string:*
+```env
+DATABASE_URL=mysql://username:password@host:port/database_name?sslmode=require
+```
+
+### 2. Database Initialization in Production
+Once deployed and connected to the production database:
+```bash
+# First-time initial schema setup and seed:
+npm run db:init
+
+# To safely re-run or refresh seed records without affecting schema:
+npm run db:seed
+```
+> [!NOTE]
+> In production (`NODE_ENV=production`), `npm run db:init` automatically detects existing tables and prevents accidental drops/truncations. The seeding process (`npm run db:seed`) is strictly non-destructive and idempotent.
+
+---
+
+## Seed Accounts (Testing & Demonstration)
+
+> [!WARNING]
+> The seeded accounts below are intended for development, demonstration, and staging environments. Do not use these standard demo credentials for privileged real-world operations in high-security production environments.
+
+The seed system initializes the following baseline accounts with pre-hashed credentials:
+
+| Role | Email | Password | Assigned Organization | Dashboard |
+|---|---|---|---|---|
+| **SUPER_ADMIN** | `admin@bloodbank.dev` | `AdminDev123!` | System Super Administrator | `/dashboard/super-admin/index.html` |
+| **HOSPITAL_ADMIN** | `hospital.admin@bloodbank.dev` | `UserDev123!` | City General Hospital | `/dashboard/hospital-admin/index.html` |
+| **DOCTOR** | `doctor.smith@bloodbank.dev` | `UserDev123!` | City General Hospital | `/dashboard/doctor/index.html` |
+| **CLINIC_ADMIN** | `clinic.admin@bloodbank.dev` | `UserDev123!` | Metro Community Clinic | `/dashboard/clinic-admin/index.html` |
+| **BLOOD_BANK_STAFF** | `bloodbank.staff@bloodbank.dev` | `UserDev123!` | Central Red Cross Blood Bank | `/dashboard/blood-bank-staff/index.html` |
+| **DONOR** | `donor.john@bloodbank.dev` | `UserDev123!` | Walk-in / Independent (O+) | `/dashboard/donor/index.html` |
+| **DONOR** | `donor.sarah@bloodbank.dev` | `UserDev123!` | Universal Donor (O-) | `/dashboard/donor/index.html` |
+| **REQUESTER** | `requester.jane@bloodbank.dev` | `UserDev123!` | Patient Representative | `/dashboard/donor/index.html` |
 
 ---
 
