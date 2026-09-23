@@ -42,7 +42,7 @@ async function request(endpoint, options = {}) {
   };
   const res = await fetch(url, config);
   const json = await res.json().catch(() => null);
-  return { status: res.status, body: json };
+  return { status: res.status, headers: res.headers, body: json };
 }
 
 async function runSeededAuthSuite() {
@@ -240,6 +240,109 @@ async function runSeededAuthSuite() {
     } finally {
       process.env = origEnv;
     }
+
+    // ------------------------------------------------------------------------
+    // Group 5: CORS Policy & Production Vercel Origin Verification
+    // ------------------------------------------------------------------------
+    console.log('\n▶ Test Group 5: CORS Policy & Production Vercel Origin Verification');
+
+    // 1. Preflight OPTIONS request from production Vercel frontend
+    const preflightVercel = await request('/api/auth/login', {
+      method: 'OPTIONS',
+      headers: {
+        'Origin': 'https://blood-bank-network.vercel.app',
+        'Access-Control-Request-Method': 'POST',
+        'Access-Control-Request-Headers': 'Content-Type,Authorization'
+      }
+    });
+    assert(preflightVercel.status === 204, 'OPTIONS /api/auth/login from Vercel returns 204 No Content');
+    assert(
+      preflightVercel.headers.get('access-control-allow-origin') === 'https://blood-bank-network.vercel.app',
+      'Vercel preflight returns exact Access-Control-Allow-Origin header'
+    );
+    assert(
+      preflightVercel.headers.get('access-control-allow-credentials') === 'true',
+      'Vercel preflight returns Access-Control-Allow-Credentials: true'
+    );
+
+    // 2. Actual POST /api/auth/login request from production Vercel frontend
+    const postVercel = await request('/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Origin': 'https://blood-bank-network.vercel.app'
+      },
+      body: {
+        email: 'admin@bloodbank.dev',
+        password: 'AdminDev123!'
+      }
+    });
+    assert(postVercel.status === 200, 'POST /api/auth/login from Vercel succeeds (200 OK)');
+    assert(
+      postVercel.headers.get('access-control-allow-origin') === 'https://blood-bank-network.vercel.app',
+      'Vercel POST login returns exact Access-Control-Allow-Origin header'
+    );
+    assert(
+      postVercel.body?.data?.user?.email === 'admin@bloodbank.dev',
+      'Vercel POST login returns authenticated user data'
+    );
+
+    // 3. Local development origin (http://localhost:5173)
+    const preflightVite = await request('/api/auth/login', {
+      method: 'OPTIONS',
+      headers: {
+        'Origin': 'http://localhost:5173',
+        'Access-Control-Request-Method': 'POST',
+        'Access-Control-Request-Headers': 'Content-Type,Authorization'
+      }
+    });
+    assert(preflightVite.status === 204, 'OPTIONS from http://localhost:5173 returns 204 No Content');
+    assert(
+      preflightVite.headers.get('access-control-allow-origin') === 'http://localhost:5173',
+      'Vite dev origin allowed in Access-Control-Allow-Origin'
+    );
+
+    // 4. Local development origin (http://localhost:3000)
+    const preflightLocal3000 = await request('/api/auth/login', {
+      method: 'OPTIONS',
+      headers: {
+        'Origin': 'http://localhost:3000',
+        'Access-Control-Request-Method': 'POST',
+        'Access-Control-Request-Headers': 'Content-Type,Authorization'
+      }
+    });
+    assert(preflightLocal3000.status === 204, 'OPTIONS from http://localhost:3000 returns 204 No Content');
+    assert(
+      preflightLocal3000.headers.get('access-control-allow-origin') === 'http://localhost:3000',
+      'Port 3000 dev origin allowed in Access-Control-Allow-Origin'
+    );
+
+    // 5. Unauthorized origin rejected
+    const unauthorizedPreflight = await request('/api/auth/login', {
+      method: 'OPTIONS',
+      headers: {
+        'Origin': 'https://unauthorized-attacker.site',
+        'Access-Control-Request-Method': 'POST'
+      }
+    });
+    assert(
+      unauthorizedPreflight.status === 403 && unauthorizedPreflight.body?.error?.code === 'CORS_ERROR',
+      'Preflight from unauthorized origin rejected with 403 CORS_ERROR'
+    );
+
+    const unauthorizedPost = await request('/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Origin': 'https://unauthorized-attacker.site'
+      },
+      body: {
+        email: 'admin@bloodbank.dev',
+        password: 'AdminDev123!'
+      }
+    });
+    assert(
+      unauthorizedPost.status === 403 && unauthorizedPost.body?.error?.code === 'CORS_ERROR',
+      'POST login from unauthorized origin rejected with 403 CORS_ERROR'
+    );
 
     // ------------------------------------------------------------------------
     // Summary

@@ -72,20 +72,40 @@ app.use(
   })
 );
 
-// Restrict Cross-Origin Resource Sharing to configured origins (§17 & §25)
-// Supports CORS_ORIGIN, FRONTEND_URL, CLIENT_URL, and comma-separated multi-origins.
+// ============================================================================
+// CORS CONFIGURATION (§17 & §25)
+// ============================================================================
+// Allowed origins include the production Vercel frontend, local development hosts,
+// and any origins dynamically configured via FRONTEND_URL, CORS_ORIGIN, CLIENT_URL,
+// or FRONTEND_ORIGIN environment variables.
 function getAllowedOrigins() {
   const origins = new Set([
+    // Production Deployed Vercel Frontend (exact origin, no trailing slash)
+    'https://blood-bank-network.vercel.app',
+
+    // Local Development Origins
     `http://localhost:${PORT}`,
     `http://127.0.0.1:${PORT}`,
-    'http://localhost:3000'
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://localhost:5000',
+    'http://127.0.0.1:5000',
+    'http://localhost:5500',
+    'http://127.0.0.1:5500'
   ]);
 
   const envOrigins = [
-    process.env.CORS_ORIGIN,
     process.env.FRONTEND_URL,
-    process.env.CLIENT_URL
+    process.env.CORS_ORIGIN,
+    process.env.CLIENT_URL,
+    process.env.FRONTEND_ORIGIN
   ];
+
+  if (process.env.VERCEL_URL) {
+    envOrigins.push(`https://${process.env.VERCEL_URL}`);
+  }
 
   for (const raw of envOrigins) {
     if (raw && typeof raw === 'string') {
@@ -99,23 +119,27 @@ function getAllowedOrigins() {
   return Array.from(origins);
 }
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (such as mobile apps, curl, Postman, or local scripts)
-      if (!origin) return callback(null, true);
-      const allowed = getAllowedOrigins();
-      const normalizedOrigin = origin.replace(/\/+$/, '');
-      if (allowed.includes(normalizedOrigin)) {
-        return callback(null, true);
-      }
-      return callback(new Error(`CORS blocked: Origin ${origin} not permitted`));
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-  })
-);
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (such as mobile apps, curl, Postman, or server-to-server)
+    if (!origin) return callback(null, true);
+    const allowed = getAllowedOrigins();
+    const normalizedOrigin = origin.replace(/\/+$/, '');
+    if (allowed.includes(normalizedOrigin)) {
+      return callback(null, true);
+    }
+    return callback(new Error(`CORS blocked: Origin ${origin} not permitted`));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'Origin'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  maxAge: 86400 // Cache preflight response for 24 hours (86400 seconds)
+};
+
+// Mount CORS middleware for all incoming requests and preflight OPTIONS
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 // Parse incoming requests with JSON payloads (capped at 1mb for safety)
 app.use(express.json({ limit: '1mb' }));
@@ -212,9 +236,7 @@ app.use('/api', (req, res) => {
 
 // Centralized Error Handler (Never leak stack traces or raw SQL queries to clients)
 app.use((err, req, res, next) => {
-  console.error('Unhandled server error:', err);
-
-  // Handle CORS errors
+  // Handle CORS errors cleanly without noisy unhandled logs
   if (err.message && err.message.includes('CORS blocked')) {
     return res.status(403).json({
       success: false,
@@ -224,6 +246,8 @@ app.use((err, req, res, next) => {
       }
     });
   }
+
+  console.error('Unhandled server error:', err);
 
   // Handle database connection drops or offline state gracefully
   if (err.code === 'ECONNREFUSED' || err.code === 'PROTOCOL_CONNECTION_LOST') {
