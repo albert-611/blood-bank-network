@@ -58,7 +58,9 @@ const organizationRegisterSchema = Joi.object({
       'string.min': 'Country must be at least 2 characters',
       'string.max': 'Country cannot exceed 100 characters'
     }),
-    license_number: Joi.string().trim().max(100).allow('', null).optional()
+    license_number: Joi.string().trim().max(100).allow('', null).optional(),
+    bed_count: Joi.number().integer().min(0).allow(null).optional(),
+    storage_capacity_units: Joi.number().integer().min(0).allow(null).optional()
   }).required().messages({
     'any.required': 'Organization details are required'
   }),
@@ -113,7 +115,9 @@ function normalizeOrgPayload(req, res, next) {
         address: req.body.address,
         city: req.body.city,
         country: req.body.country || 'USA',
-        license_number: req.body.license_number || null
+        license_number: req.body.license_number || null,
+        bed_count: req.body.bed_count !== undefined ? req.body.bed_count : undefined,
+        storage_capacity_units: req.body.storage_capacity_units !== undefined ? req.body.storage_capacity_units : undefined
       },
       admin: {
         name: req.body.admin_name || req.body.full_name,
@@ -161,8 +165,185 @@ function validateOrgRegistration(req, res, next) {
   next();
 }
 
+/**
+ * Validation schema for authenticated organization onboarding (POST /api/organizations)
+ */
+const organizationCreationSchema = Joi.object({
+  name: Joi.string().trim().min(2).max(150).required().messages({
+    'string.empty': 'Organization name is required',
+    'string.min': 'Organization name must be at least 2 characters',
+    'string.max': 'Organization name cannot exceed 150 characters',
+    'any.required': 'Organization name is required'
+  }),
+  type: Joi.string()
+    .valid('HOSPITAL', 'CLINIC', 'BLOOD_BANK')
+    .required()
+    .messages({
+      'any.only': 'Organization type must be HOSPITAL, CLINIC, or BLOOD_BANK',
+      'any.required': 'Organization type is required'
+    }),
+  email: Joi.string().trim().lowercase().email().max(190).allow('', null).optional().messages({
+    'string.email': 'Please provide a valid organization email address'
+  }),
+  phone: Joi.string().trim().min(5).max(30).required().messages({
+    'string.empty': 'Organization phone number is required',
+    'string.min': 'Organization phone must be at least 5 digits',
+    'string.max': 'Organization phone cannot exceed 30 characters',
+    'any.required': 'Organization phone number is required'
+  }),
+  address: Joi.string().trim().min(3).max(255).required().messages({
+    'string.empty': 'Organization address is required',
+    'string.min': 'Address must be at least 3 characters',
+    'string.max': 'Address cannot exceed 255 characters',
+    'any.required': 'Organization address is required'
+  }),
+  city: Joi.string().trim().min(2).max(100).required().messages({
+    'string.empty': 'City is required',
+    'string.min': 'City must be at least 2 characters',
+    'string.max': 'City cannot exceed 100 characters',
+    'any.required': 'City is required'
+  }),
+  country: Joi.string().trim().min(2).max(100).default('USA').optional(),
+  license_number: Joi.string().trim().max(100).allow('', null).optional(),
+  bed_count: Joi.number().integer().min(0).max(100000).allow(null).optional().messages({
+    'number.base': 'Bed count must be a valid numeric integer',
+    'number.integer': 'Bed count must be an integer',
+    'number.min': 'Bed count cannot be negative'
+  }),
+  storage_capacity_units: Joi.number().integer().min(0).max(1000000).allow(null).optional().messages({
+    'number.base': 'Storage capacity units must be a valid numeric integer',
+    'number.integer': 'Storage capacity units must be an integer',
+    'number.min': 'Storage capacity units cannot be negative'
+  })
+});
+
+/**
+ * Middleware to validate POST /api/organizations
+ */
+function validateOrgCreation(req, res, next) {
+  // Support both direct payload and payload nested inside { organization: ... }
+  const payload = req.body && req.body.organization ? req.body.organization : req.body || {};
+
+  const { error, value } = organizationCreationSchema.validate(payload, {
+    abortEarly: false,
+    stripUnknown: true
+  });
+
+  if (error) {
+    const errorDetails = error.details.map((d) => ({
+      field: d.path.join('.'),
+      message: d.message
+    }));
+
+    return res.status(400).json({
+      success: false,
+      error: {
+        message: error.details[0].message,
+        code: 'VALIDATION_ERROR',
+        details: errorDetails
+      }
+    });
+  }
+
+  req.validatedOrg = value;
+  next();
+}
+
+/**
+ * Validation schema for updating organization profile (PATCH /api/organizations/:id)
+ * Disallows status changes via generic update per §20.
+ */
+const organizationUpdateSchema = Joi.object({
+  name: Joi.string().trim().min(2).max(150).optional(),
+  phone: Joi.string().trim().min(5).max(30).allow('', null).optional(),
+  address: Joi.string().trim().min(3).max(255).allow('', null).optional(),
+  city: Joi.string().trim().min(2).max(100).allow('', null).optional(),
+  country: Joi.string().trim().min(2).max(100).allow('', null).optional(),
+  license_number: Joi.string().trim().max(100).allow('', null).optional(),
+  email: Joi.string().trim().lowercase().email().max(190).allow('', null).optional(),
+  bed_count: Joi.number().integer().min(0).max(100000).allow(null).optional(),
+  storage_capacity_units: Joi.number().integer().min(0).max(1000000).allow(null).optional(),
+  status: Joi.any().forbidden().messages({
+    'any.unknown': 'Status cannot be updated through generic PATCH /api/organizations/:id. Use /approve or /reject.'
+  })
+}).min(1).messages({
+  'object.min': 'At least one field must be provided for update'
+});
+
+/**
+ * Middleware to validate PATCH /api/organizations/:id
+ */
+function validateOrgUpdate(req, res, next) {
+  if (req.body && req.body.status !== undefined) {
+    return res.status(400).json({
+      success: false,
+      error: {
+        message: 'Status cannot be updated through generic organization update endpoint. Status changes must use dedicated lifecycle actions (/approve or /reject).',
+        code: 'STATUS_MUTATION_FORBIDDEN'
+      }
+    });
+  }
+
+  const { error, value } = organizationUpdateSchema.validate(req.body, {
+    abortEarly: false,
+    stripUnknown: true
+  });
+
+  if (error) {
+    const errorDetails = error.details.map((d) => ({
+      field: d.path.join('.'),
+      message: d.message
+    }));
+
+    return res.status(400).json({
+      success: false,
+      error: {
+        message: error.details[0].message,
+        code: 'VALIDATION_ERROR',
+        details: errorDetails
+      }
+    });
+  }
+
+  req.validatedUpdate = value;
+  next();
+}
+
+/**
+ * Validation schema for rejecting an organization (PATCH /api/organizations/:id/reject)
+ */
+const organizationRejectSchema = Joi.object({
+  reason: Joi.string().trim().max(500).allow('', null).optional()
+});
+
+function validateOrgReject(req, res, next) {
+  const { error, value } = organizationRejectSchema.validate(req.body || {}, {
+    abortEarly: false,
+    stripUnknown: true
+  });
+
+  if (error) {
+    return res.status(400).json({
+      success: false,
+      error: {
+        message: error.details[0].message,
+        code: 'VALIDATION_ERROR'
+      }
+    });
+  }
+
+  req.validatedReject = value;
+  next();
+}
+
 module.exports = {
   organizationRegisterSchema,
   normalizeOrgPayload,
-  validateOrgRegistration
+  validateOrgRegistration,
+  organizationCreationSchema,
+  validateOrgCreation,
+  organizationUpdateSchema,
+  validateOrgUpdate,
+  validateOrgReject
 };
+

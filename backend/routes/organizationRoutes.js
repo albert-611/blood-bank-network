@@ -12,7 +12,10 @@ const rateLimit = require('express-rate-limit');
 const orgController = require('../controllers/orgController');
 const {
   normalizeOrgPayload,
-  validateOrgRegistration
+  validateOrgRegistration,
+  validateOrgCreation,
+  validateOrgUpdate,
+  validateOrgReject
 } = require('../validators/orgValidators');
 
 const router = express.Router();
@@ -57,6 +60,29 @@ router.post(
 );
 
 /**
+ * @route   GET /api/organizations
+ * @desc    List organizations (Super Admin: all; Org User: own organization)
+ * @access  Protected
+ */
+router.get(
+  '/',
+  authenticate,
+  orgController.listOrganizations
+);
+
+/**
+ * @route   POST /api/organizations
+ * @desc    Authenticated user submits a new organization for review (status PENDING)
+ * @access  Protected
+ */
+router.post(
+  '/',
+  authenticate,
+  validateOrgCreation,
+  orgController.createOrganization
+);
+
+/**
  * @route   GET /api/organizations/me
  * @desc    Get authenticated user's organization profile
  * @access  Protected
@@ -81,6 +107,31 @@ router.patch(
 );
 
 /**
+ * @route   PATCH /api/organizations/:id/approve
+ * @desc    Super Admin approves a pending organization
+ * @access  Protected (SUPER_ADMIN)
+ */
+router.patch(
+  '/:id/approve',
+  authenticate,
+  requireRole('SUPER_ADMIN'),
+  orgController.approveOrganization
+);
+
+/**
+ * @route   PATCH /api/organizations/:id/reject
+ * @desc    Super Admin rejects a pending organization
+ * @access  Protected (SUPER_ADMIN)
+ */
+router.patch(
+  '/:id/reject',
+  authenticate,
+  requireRole('SUPER_ADMIN'),
+  validateOrgReject,
+  orgController.rejectOrganization
+);
+
+/**
  * @route   GET /api/organizations/:id
  * @desc    Get organization details by ID
  * @access  Protected (Super Admin or Own Organization)
@@ -91,5 +142,18 @@ router.get(
   orgController.getOrganizationById
 );
 
+/**
+ * @route   PATCH /api/organizations/:id
+ * @desc    Update organization details
+ * @access  Protected (Super Admin or Own Organization Admin)
+ */
+router.patch(
+  '/:id',
+  authenticate,
+  validateOrgUpdate,
+  orgController.updateOrganization
+);
+
 module.exports = router;
+
 

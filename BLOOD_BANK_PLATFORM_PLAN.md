@@ -1,6 +1,6 @@
 # 🩸 BLOOD BANK PLATFORM — MASTER PLAN
 
-**Status:** Phase 3 (Authentication Architecture) Completed — Phase 4 Ready
+**Status:** Phase 4 (Multi-Tenant SaaS Foundation & Organization Management) Completed — Phase 5 Ready
 **Single Source of Truth for this project.** Update this file whenever an architectural decision is made or a phase is completed.
 
 ---
@@ -830,7 +830,7 @@ None of these are added to the MVP unless a concrete need arises.
 | 1 | Project Setup | Repo, folder structure, `.env.example`, base Express server, Tailwind-linked static pages | ✅ **Completed** — Express running on port 5000, GET /api/health returns 200 OK, static frontend live |
 | 2 | Database | `schema.sql`, `seed.sql`, MySQL connection pool | ✅ **Completed** — All 19 tables in InnoDB, full seed data, mysql2 pool, GET /api/health/db route |
 | 3 | Authentication | Register/login/logout, JWT middleware, bcrypt | ✅ **Completed** — Can register, log in, access protected routes with signed JWT, rate limiting, helmet, audit logging |
-| 4 | Organization Management | CRUD + Super Admin approval flow | Org created as PENDING, approvable/rejectable by Super Admin only |
+| 4 | Organization Management | Multi-Tenant SaaS Foundation & CRUD + Super Admin approval flow | ✅ **Completed** — Multi-tenant isolation verified, PENDING lifecycle enforced, Super Admin approve/reject, 71 tests passing |
 | 5 | User Roles & Authorization | `organization_staff`, `checkPermission`, `requireOrg` middleware | Cross-org write attempt returns 403 in a test |
 | 6 | Blood Inventory | `blood_units` CRUD + status transitions, derived inventory query | Inventory query returns correct counts after unit status changes |
 | 7 | Blood Requests | Request + request_items + full status workflow | A request can be created, verified, reserved, issued, completed |
@@ -1007,7 +1007,42 @@ Implementation Status: **Phase 1, Phase 2, & Phase 3 Completed.**
   - Stateless logout: Client discards token; server-side token blocklist (Redis) scheduled for Version 2.
   - Stubbed email delivery: Password reset tokens logged to server console rather than transactional SMTP/SES.
 
-Implementation Status: **Phase 3 Completed.**
-Waiting for: **START PHASE 4** (Organization Management: CRUD + Super Admin approval flow)
+Implementation Status: **Phase 1, Phase 2, Phase 3, & Phase 4 Completed.**
+
+---
+
+### Phase 4 Completion Notes
+
+- **Date Completed:** 2026-09-23
+- **Architectural Scope:** Established strict Multi-Tenant SaaS Foundation where organizations are tenants (`HOSPITAL`, `CLINIC`, `BLOOD_BANK`). `organization_id` acts as the inviolable tenant boundary.
+- **Tenant Context & Server-Side Derivation:**
+  - Authenticated user's organization context is derived server-side via `organization_staff`, never trusting client-supplied parameters.
+  - Multi-tenant data isolation verified: users in Tenant A are strictly prevented from reading or mutating Tenant B's data (returning HTTP 403 `CROSS_ORGANIZATION_ACCESS_DENIED`).
+- **Super Admin Platform Scope:**
+  - Operates outside tenant isolation with global platform authority.
+  - Exclusively authorized to approve or reject applicant organizations (`PATCH /api/organizations/:id/approve` and `PATCH /api/organizations/:id/reject`).
+  - Non-super-admin users attempting approval or rejection are rejected with HTTP 403 `FORBIDDEN_ROLE`.
+- **Endpoints Implemented & Mounted:**
+  - `POST /api/organizations`: Submits new organization in strict `PENDING` status. Subtype table records (`hospitals`, `clinics`, `blood_banks`) and applicant staff link created within an atomic database transaction.
+  - `GET /api/organizations`: Scoped to all platform organizations for `SUPER_ADMIN`; strictly filtered to own tenant for tenant users.
+  - `GET /api/organizations/:id`: Accessible by `SUPER_ADMIN` or staff belonging to that specific organization. Blocked for cross-tenant access.
+  - `PATCH /api/organizations/:id`: Disallows status modification (`STATUS_MUTATION_FORBIDDEN`); updates tenant metadata and subtype attributes.
+  - `PATCH /api/organizations/:id/approve`: Transitions status from `PENDING` to `APPROVED`, activates pending initial admin user, records `ORGANIZATION_APPROVED` audit log.
+  - `PATCH /api/organizations/:id/reject`: Transitions status from `PENDING` to `REJECTED`, records optional rejection reason in audit log (`ORGANIZATION_REJECTED`).
+  - `GET /api/hospitals`, `GET /api/hospitals/:id`: Filtered and subtype-enriched views for hospitals.
+  - `GET /api/clinics`, `GET /api/clinics/:id`: Filtered views for clinics.
+  - `GET /api/blood-banks`, `GET /api/blood-banks/:id`: Filtered and subtype-enriched views for blood banks.
+- **Frontend Implementations:**
+  - `frontend/register-organization.html` & `frontend/js/org-register.js`: Clean type switcher (Hospital, Clinic, Blood Bank), dynamic subtype inputs (`bed_count`, `storage_capacity_units`), strict client/server validation, loading state indicators, and feedback screen ("Organization submitted successfully. Status: PENDING. Your organization is waiting for platform approval.").
+  - `frontend/dashboard/super-admin/index.html` & `frontend/dashboard/super-admin/super-admin.js`: Full SaaS tenant management dashboard with KPI cards, status filter pills (`ALL`, `PENDING`, `APPROVED`, `REJECTED`, `SUSPENDED`), search filter, dynamic tenant table, View modal with subtype details, Reject modal with reason prompt, and one-click Approval with real-time UI updates without page reload.
+  - `frontend/js/api.js`: Extended `BloodBankAPI` with `getOrganizations`, `getOrganizationById`, `approveOrganization`, and `rejectOrganization`.
+- **Automated Test Suite:**
+  - Created `backend/tests/phase4_tenant_saas.test.js` containing 71 test cases covering tenant boundary enforcement, cross-org 403 denials, transactional rollbacks, subtype constraints, Super Admin approval/rejection lifecycle, non-super-admin 403 restrictions, status tampering defense, specialized endpoints, and audit logging.
+  - Verified full test regression: 143 passed, 0 failed (`auth.test.js`: 14, `orgRegistration.test.js`: 29, `rbac.test.js`: 29, `phase4_tenant_saas.test.js`: 71).
+- **Database Statement:** No database schema alterations or migrations were required. The existing relational schema (`organizations`, `hospitals`, `clinics`, `blood_banks`, `organization_staff`, `audit_logs`) fully satisfied all multi-tenant SaaS requirements.
+- **Deviations:** None.
+
+Waiting for: **START PHASE 5** (User Roles & Authorization / RBAC enforcement)
+
 
 

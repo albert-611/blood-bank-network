@@ -36,6 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // --------------------------------------------------------------------------
   const typeCards = document.querySelectorAll('.org-type-card');
   const typeRadios = document.querySelectorAll('input[name="org_type"]');
+  const hospitalFields = document.getElementById('hospitalFields');
+  const bloodBankFields = document.getElementById('bloodBankFields');
 
   function selectOrgType(typeValue) {
     typeRadios.forEach((radio) => {
@@ -52,6 +54,23 @@ document.addEventListener('DOMContentLoaded', () => {
         card.classList.remove('org-card-active');
       }
     });
+
+    // Toggle dynamic subtype fields (§13, §14, §15, §28)
+    if (hospitalFields) {
+      if (typeValue === 'HOSPITAL') {
+        hospitalFields.classList.remove('hidden');
+      } else {
+        hospitalFields.classList.add('hidden');
+      }
+    }
+
+    if (bloodBankFields) {
+      if (typeValue === 'BLOOD_BANK') {
+        bloodBankFields.classList.remove('hidden');
+      } else {
+        bloodBankFields.classList.add('hidden');
+      }
+    }
   }
 
   // Bind click event to each card
@@ -183,6 +202,25 @@ document.addEventListener('DOMContentLoaded', () => {
       firstErrorField = firstErrorField || 'orgCountryInput';
     }
 
+    // Dynamic Subtype Validation (§13, §14, §15, §28)
+    if (data.organization.type === 'HOSPITAL') {
+      const beds = data.organization.bed_count;
+      if (beds === undefined || beds === null || isNaN(beds) || beds < 0 || !Number.isInteger(beds)) {
+        setFieldError('bedCountInput', 'bedCountError', 'Valid hospital bed count is required (0 or greater).');
+        isValid = false;
+        firstErrorField = firstErrorField || 'bedCountInput';
+      }
+    }
+
+    if (data.organization.type === 'BLOOD_BANK') {
+      const cap = data.organization.storage_capacity_units;
+      if (cap === undefined || cap === null || isNaN(cap) || cap < 0 || !Number.isInteger(cap)) {
+        setFieldError('storageCapacityInput', 'storageCapacityError', 'Valid storage capacity in units is required (0 or greater).');
+        isValid = false;
+        firstErrorField = firstErrorField || 'storageCapacityInput';
+      }
+    }
+
     // Admin Full Name
     if (!data.admin.name || data.admin.name.trim().length < 2) {
       setFieldError('adminNameInput', 'adminNameError', 'Administrator full name is required (min 2 characters).');
@@ -233,6 +271,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Collect Form Values
     const selectedOrgType = form.querySelector('input[name="org_type"]:checked')?.value || 'HOSPITAL';
+    const bedCountRaw = document.getElementById('bedCountInput')?.value.trim();
+    const storageCapRaw = document.getElementById('storageCapacityInput')?.value.trim();
 
     const payload = {
       organization: {
@@ -243,7 +283,9 @@ document.addEventListener('DOMContentLoaded', () => {
         address: document.getElementById('orgAddressInput').value.trim(),
         city: document.getElementById('orgCityInput').value.trim(),
         country: document.getElementById('orgCountryInput').value.trim(),
-        license_number: document.getElementById('orgLicenseInput').value.trim() || null
+        license_number: document.getElementById('orgLicenseInput').value.trim() || null,
+        bed_count: selectedOrgType === 'HOSPITAL' && bedCountRaw !== '' ? Number(bedCountRaw) : undefined,
+        storage_capacity_units: selectedOrgType === 'BLOOD_BANK' && storageCapRaw !== '' ? Number(storageCapRaw) : undefined
       },
       admin: {
         name: document.getElementById('adminNameInput').value.trim(),
@@ -323,6 +365,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (d.field.includes('organization.phone')) setFieldError('orgPhoneInput', 'orgPhoneError', d.message);
             if (d.field.includes('organization.address')) setFieldError('orgAddressInput', 'orgAddressError', d.message);
             if (d.field.includes('organization.city')) setFieldError('orgCityInput', 'orgCityError', d.message);
+            if (d.field.includes('bed_count')) setFieldError('bedCountInput', 'bedCountError', d.message);
+            if (d.field.includes('storage_capacity_units')) setFieldError('storageCapacityInput', 'storageCapacityError', d.message);
             if (d.field.includes('admin.name')) setFieldError('adminNameInput', 'adminNameError', d.message);
             if (d.field.includes('admin.email')) setFieldError('adminEmailInput', 'adminEmailError', d.message);
             if (d.field.includes('password')) setFieldError('adminPasswordInput', 'passwordError', d.message);

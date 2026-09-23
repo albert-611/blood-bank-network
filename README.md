@@ -8,7 +8,8 @@
 ## Current Status: Phase 2 Completed (Database Setup & Seed Data)
 
 - **Phase 1 (Project Setup):** Express server, static frontend, health check endpoints (`/api/health`).
-- **Phase 2 (Database):** MySQL relational database schema (19 tables in InnoDB with foreign keys and indexes), expanded seed data (all 7 roles, permissions, dev accounts, sample organizations including clinic and pending hospital, organization staff mappings, donor profiles, donations, 14 blood units across lifecycle states), automated setup CLI (`npm run db:init`), `mysql2` connection pool, and `/api/health/db` endpoint.
+- **Phase 2 (Database):** MySQL relational database schema (19 tables in InnoDB with foreign keys and indexes), expanded seed data (all 7 roles, permissions, dev accounts, sample organizations including clinic and pending hospital, organization staff mappings, donor profiles, donations, 14 blood units across lifecycle states), automated setup CLI (`npm run db:init`), `mysql2` connection pool, and `/api/health/db` 
+endpoint.
 
 ---
 

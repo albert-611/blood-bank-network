@@ -25,6 +25,7 @@ const { ensureDatabaseConnection } = require('./config/db');
 // Import route handlers
 const authRoutes = require('./routes/authRoutes');
 const organizationRoutes = require('./routes/organizationRoutes');
+const { hospitalRouter, clinicRouter, bloodBankRouter } = require('./routes/specializedRoutes');
 const staffRoutes = require('./routes/staffRoutes');
 const inventoryRoutes = require('./routes/inventoryRoutes');
 const publicRoutes = require('./routes/publicRoutes');
@@ -154,6 +155,11 @@ app.use('/api/users', userRoutes);
 app.use('/api/organizations', organizationRoutes);
 app.use('/api/organization/staff', staffRoutes);
 app.use('/api/organization', organizationRoutes);
+
+// Mount Specialized Organization Routes (§16 & §18)
+app.use('/api/hospitals', hospitalRouter);
+app.use('/api/clinics', clinicRouter);
+app.use('/api/blood-banks', bloodBankRouter);
 
 // Mount Inventory & Blood Units Routes (§9 & §11)
 app.use('/api/inventory', inventoryRoutes);

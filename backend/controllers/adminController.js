@@ -337,11 +337,112 @@ async function listPlatformInventory(req, res, next) {
   }
 }
 
+/**
+ * Retrieve Comprehensive Super Admin Dashboard Statistics
+ * GET /api/admin/stats
+ */
+async function getDashboardStats(req, res, next) {
+  try {
+    // 1. Organization aggregates
+    const [orgAggRows] = await db.query(`
+      SELECT 
+        COUNT(*) AS total_organizations,
+        COALESCE(SUM(CASE WHEN status = 'PENDING' THEN 1 ELSE 0 END), 0) AS pending_approvals,
+        COALESCE(SUM(CASE WHEN status = 'APPROVED' THEN 1 ELSE 0 END), 0) AS active_organizations,
+        COALESCE(SUM(CASE WHEN status = 'REJECTED' THEN 1 ELSE 0 END), 0) AS rejected_organizations,
+        COALESCE(SUM(CASE WHEN status = 'SUSPENDED' THEN 1 ELSE 0 END), 0) AS suspended_organizations,
+        COALESCE(SUM(CASE WHEN type = 'HOSPITAL' THEN 1 ELSE 0 END), 0) AS hospital_count,
+        COALESCE(SUM(CASE WHEN type = 'CLINIC' THEN 1 ELSE 0 END), 0) AS clinic_count,
+        COALESCE(SUM(CASE WHEN type = 'BLOOD_BANK' THEN 1 ELSE 0 END), 0) AS blood_bank_count,
+        COALESCE(SUM(CASE WHEN created_at >= DATE_FORMAT(NOW(), '%Y-%m-01') THEN 1 ELSE 0 END), 0) AS orgs_this_month
+      FROM organizations
+    `);
+
+    const orgAgg = (orgAggRows && orgAggRows[0]) || {};
+
+    // 2. User aggregates
+    const [userAggRows] = await db.query(`
+      SELECT 
+        COUNT(*) AS total_users,
+        COALESCE(SUM(CASE WHEN status = 'ACTIVE' THEN 1 ELSE 0 END), 0) AS active_users
+      FROM users
+    `);
+    const userAgg = (userAggRows && userAggRows[0]) || {};
+
+    // 3. Blood units in network
+    const [unitRows] = await db.query(`
+      SELECT COUNT(*) AS total_units FROM blood_units
+    `);
+    const totalUnits = (unitRows && unitRows[0]) ? unitRows[0].total_units : 0;
+
+    // 4. Reports count (from audit_logs or 0)
+    let reportsCount = 0;
+    try {
+      const [reportRows] = await db.query(`
+        SELECT COUNT(*) AS report_count FROM audit_logs WHERE action LIKE '%REPORT%'
+      `);
+      reportsCount = (reportRows && reportRows[0]) ? reportRows[0].report_count : 0;
+    } catch {
+      reportsCount = 0;
+    }
+
+    // 5. Growth timeline (monthly breakdown by type)
+    const [growthRows] = await db.query(`
+      SELECT 
+        DATE_FORMAT(created_at, '%Y-%m') AS month,
+        type,
+        COUNT(*) AS count
+      FROM organizations
+      GROUP BY month, type
+      ORDER BY month ASC
+    `);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        kpis: {
+          total_organizations: Number(orgAgg.total_organizations || 0),
+          pending_approvals: Number(orgAgg.pending_approvals || 0),
+          active_organizations: Number(orgAgg.active_organizations || 0),
+          total_users: Number(userAgg.total_users || 0),
+          active_users: Number(userAgg.active_users || 0),
+          orgs_this_month: Number(orgAgg.orgs_this_month || 0),
+          total_units: Number(totalUnits || 0),
+          reports_generated: Number(reportsCount || 0)
+        },
+        organization_breakdown: {
+          by_type: {
+            hospitals: Number(orgAgg.hospital_count || 0),
+            clinics: Number(orgAgg.clinic_count || 0),
+            blood_banks: Number(orgAgg.blood_bank_count || 0)
+          },
+          by_status: {
+            approved: Number(orgAgg.active_organizations || 0),
+            pending: Number(orgAgg.pending_approvals || 0),
+            rejected: Number(orgAgg.rejected_organizations || 0),
+            suspended: Number(orgAgg.suspended_organizations || 0)
+          }
+        },
+        growth_timeline: growthRows || [],
+        system_status: {
+          status: 'OPERATIONAL',
+          database: 'CONNECTED',
+          uptime_seconds: Math.round(process.uptime()),
+          timestamp: new Date().toISOString()
+        }
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   listOrganizations,
   updateOrganizationStatus,
   listPlatformUsers,
   updateUserRole,
   listAuditLogs,
-  listPlatformInventory
+  listPlatformInventory,
+  getDashboardStats
 };

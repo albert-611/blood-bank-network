@@ -1,0 +1,1036 @@
+=====================HOSPITAL==================================
+
+# IMPLEMENT HOSPITAL ADMIN DASHBOARD
+
+Read `BLOOD_BANK_PLATFORM_PLAN.md` completely before making changes.
+
+Implement the **Hospital Admin Dashboard** for the existing multi-tenant Blood Bank SaaS platform.
+
+## IMPORTANT
+
+This dashboard belongs to ONE hospital tenant.
+
+The Hospital Admin must only see data belonging to their organization.
+
+Do not redesign the landing page or unrelated pages.
+
+Reuse the existing authentication, organization context, API utilities, database structure, CSS/design system, and frontend architecture.
+
+Do not create React/Next.js.
+
+---
+
+# DESIGN
+
+Use the same professional SaaS design language:
+
+* White / light gray background
+* `#DC2626` primary red
+* `#111827` dark text
+* `#16A34A` success
+* `#D97706` warning
+* `#2563EB` information
+* Inter-style typography
+* Rounded cards
+* Subtle borders
+* Soft shadows
+* Professional tables
+* Clean charts
+* Consistent spacing
+* Accessible contrast
+
+All stakeholder dashboards must visually belong to the same platform.
+
+---
+
+# SIDEBAR
+
+Create:
+
+* Dashboard
+* Staff
+* Donors
+* Donations
+* Blood Inventory
+* Blood Requests
+* Emergency Requests
+* Reservations
+* Reports
+* Notifications
+* Organization Settings
+
+---
+
+# HEADER
+
+Show:
+
+```text
+[Hospital Name]
+Hospital Admin
+```
+
+Also:
+
+* Search
+* Notifications
+* User profile
+* Organization indicator
+
+---
+
+# WELCOME
+
+```text
+Good morning, [Name]
+Here's an overview of your hospital's blood bank operations.
+```
+
+---
+
+# KPI CARDS
+
+Show:
+
+* Available Blood Units
+* Active Blood Requests
+* Emergency Requests
+* Registered Donors
+
+Use real backend data whenever available.
+
+---
+
+# BLOOD INVENTORY OVERVIEW
+
+Create a professional blood-group inventory section:
+
+```text
+A+
+A-
+B+
+B-
+O+
+O-
+AB+
+AB-
+```
+
+Each blood group should display:
+
+* Available units
+* Status
+* Low-stock indicator
+
+Use:
+
+```text
+Available
+Low Stock
+Critical
+```
+
+Do not make medical recommendations.
+
+---
+
+# BLOOD REQUESTS
+
+Create:
+
+```text
+Recent Blood Requests
+```
+
+Columns:
+
+```text
+Request ID
+Blood Group
+Units
+Priority
+Date
+Status
+```
+
+Use clear status badges.
+
+---
+
+# EMERGENCY REQUESTS
+
+Create a dedicated emergency-request panel.
+
+Show:
+
+* Request ID
+* Blood group
+* Required units
+* Organization
+* Time
+* Status
+
+Use a professional warning treatment.
+
+Do not use alarming animations.
+
+---
+
+# INVENTORY TREND
+
+Create a clean chart showing blood inventory trends over time.
+
+---
+
+# RECENT ACTIVITY
+
+Show organization-level activities:
+
+* Blood request submitted
+* Blood units received
+* Donation recorded
+* Reservation created
+* Request fulfilled
+
+Use existing data where available.
+
+---
+
+# TENANT ISOLATION
+
+This is critical.
+
+The Hospital Admin must only access:
+
+```text
+their hospital organization
+```
+
+Never display another organization's private data.
+
+Do not trust a frontend-supplied organization ID.
+
+Use the existing backend organization context.
+
+---
+
+# RESPONSIVE
+
+Desktop, tablet, and mobile.
+
+Mobile should use hamburger navigation and stacked cards.
+
+No horizontal page overflow.
+
+---
+
+# FINAL CHECK
+
+Verify:
+
+* Hospital Admin login
+* Correct organization displayed
+* Organization isolation
+* Dashboard data
+* Navigation
+* Responsive layout
+* No console errors
+* Existing application remains functional
+
+Report modified/created files when complete.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+=========================CLINIC====================================
+
+# IMPLEMENT CLINIC ADMIN DASHBOARD
+
+Read `BLOOD_BANK_PLATFORM_PLAN.md` first.
+
+Implement a professional **Clinic Admin Dashboard** for the existing multi-tenant Blood Bank SaaS platform.
+
+The dashboard must belong to ONE clinic tenant and must never expose another organization's protected data.
+
+Reuse the existing architecture.
+
+Do not redesign unrelated pages.
+
+---
+
+# DESIGN
+
+Match the existing SaaS dashboard design:
+
+* White/light gray background
+* Red `#DC2626`
+* Dark `#111827`
+* Green `#16A34A`
+* Orange `#D97706`
+* Blue `#2563EB`
+* Inter-style typography
+* Rounded cards
+* Soft shadows
+* Subtle borders
+* Professional healthcare UI
+* Clean charts
+* Clear tables
+* Minimal visual noise
+
+---
+
+# SIDEBAR
+
+Create:
+
+* Dashboard
+* Staff
+* Donors
+* Blood Requests
+* Emergency Requests
+* Reservations
+* Reports
+* Notifications
+* Organization Settings
+
+---
+
+# KPI CARDS
+
+Show:
+
+* Active Blood Requests
+* Emergency Requests
+* Registered Donors
+* Pending Reservations
+
+---
+
+# BLOOD REQUEST STATUS
+
+Create a visual overview:
+
+```text
+Pending
+Approved
+Reserved
+Fulfilled
+Cancelled
+```
+
+Use a clean chart.
+
+---
+
+# CONNECTED BLOOD BANKS
+
+Create a section showing connected/available blood-bank organizations.
+
+Display:
+
+```text
+Blood Bank
+Location
+Available Blood Groups
+Availability
+```
+
+Provide a request action where supported by the existing API.
+
+Do not expose private information from organizations the clinic is not authorized to access.
+
+---
+
+# RECENT REQUESTS
+
+Table:
+
+```text
+Request ID
+Blood Group
+Units
+Priority
+Date
+Status
+```
+
+---
+
+# EMERGENCY REQUESTS
+
+Create a professional emergency request section.
+
+Show:
+
+* Request ID
+* Blood Group
+* Units
+* Status
+* Created time
+
+Use warning styling without excessive animation.
+
+---
+
+# ORGANIZATION HEADER
+
+Always clearly show:
+
+```text
+[Clinic Name]
+Clinic Admin
+```
+
+This reinforces the tenant workspace.
+
+---
+
+# RESPONSIVE
+
+Desktop + tablet + mobile.
+
+Mobile:
+
+* Hamburger menu
+* Stacked KPI cards
+* Scrollable tables
+* No horizontal page overflow
+
+---
+
+# SECURITY
+
+Enforce tenant isolation through the backend.
+
+Do not rely on frontend filtering.
+
+---
+
+# FINAL CHECK
+
+Verify:
+
+* Clinic Admin access
+* Correct clinic organization
+* Tenant isolation
+* Requests
+* Emergency requests
+* Connected blood-bank UI
+* Responsive design
+* No console errors
+
+Report all files modified/created.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+==========================Blood Bank Staff Dashboard=======================
+
+
+# IMPLEMENT BLOOD BANK STAFF DASHBOARD
+
+Read `BLOOD_BANK_PLATFORM_PLAN.md` completely.
+
+Implement the **Blood Bank Staff Dashboard** for the existing multi-tenant SaaS platform.
+
+This is an operational dashboard for a blood-bank organization.
+
+Do not redesign unrelated parts of the application.
+
+---
+
+# DESIGN
+
+Use the same platform-wide design system:
+
+* White/light gray
+* Red `#DC2626`
+* Dark `#111827`
+* Green `#16A34A`
+* Orange `#D97706`
+* Blue `#2563EB`
+* Inter typography
+* Rounded cards
+* Subtle borders
+* Soft shadows
+* Professional healthcare SaaS appearance
+* Clear status badges
+* Clean tables and charts
+
+---
+
+# SIDEBAR
+
+Create:
+
+* Dashboard
+* Blood Inventory
+* Donations
+* Blood Units
+* Blood Requests
+* Reservations
+* Blood Issuing
+* Donors
+* Expiring Units
+* Reports
+* Notifications
+
+---
+
+# KPI CARDS
+
+Show:
+
+* Total Blood Units
+* Available Units
+* Reserved Units
+* Expiring Soon
+
+---
+
+# BLOOD INVENTORY
+
+Create a highly usable inventory overview.
+
+Blood groups:
+
+```text
+A+
+A-
+B+
+B-
+O+
+O-
+AB+
+AB-
+```
+
+Each card should show:
+
+```text
+Available
+Reserved
+Critical Threshold
+Status
+```
+
+---
+
+# INVENTORY TABLE
+
+Create:
+
+```text
+Unit ID
+Blood Group
+Collection Date
+Expiry Date
+Status
+Location
+Actions
+```
+
+Use realistic but clearly sample data only when backend data is unavailable.
+
+---
+
+# EXPIRING UNITS
+
+Create an operational panel:
+
+```text
+Blood Unit
+Blood Group
+Expiry Date
+Days Remaining
+Status
+```
+
+Use warning styling for approaching expiry.
+
+Do not make clinical decisions.
+
+---
+
+# RECENT REQUESTS
+
+Show:
+
+```text
+Request ID
+Blood Group
+Units
+Organization
+Priority
+Status
+```
+
+---
+
+# INVENTORY TREND
+
+Create a clean chart for inventory levels over time.
+
+---
+
+# ORGANIZATION ISOLATION
+
+Staff must only see inventory and operational data belonging to their own blood-bank organization.
+
+Never expose another blood bank's private inventory.
+
+---
+
+# RESPONSIVE
+
+Desktop, tablet, mobile.
+
+Tables must remain usable on small screens.
+
+---
+
+# FINAL CHECK
+
+Verify:
+
+* Blood Bank Staff authentication
+* Correct blood-bank organization
+* Inventory UI
+* Request UI
+* Expiry UI
+* Tenant isolation
+* Responsive design
+* No console errors
+
+Report modified/created files.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+===================DONOR DASHBOARD==============================
+
+
+# IMPLEMENT DONOR DASHBOARD
+
+Read `BLOOD_BANK_PLATFORM_PLAN.md`.
+
+Implement a professional, friendly **Donor Dashboard** for the existing Blood Bank SaaS platform.
+
+The donor experience should be simpler than administrative dashboards while maintaining the same overall design system.
+
+---
+
+# DESIGN
+
+Use:
+
+* White/light gray background
+* Red `#DC2626`
+* Dark `#111827`
+* Green `#16A34A`
+* Blue `#2563EB`
+* Inter-style typography
+* Rounded cards
+* Subtle shadows
+* Clean spacing
+* Friendly but professional healthcare style
+
+Avoid excessive decoration.
+
+---
+
+# SIDEBAR
+
+Create:
+
+* Dashboard
+* My Profile
+* Donation History
+* Upcoming Donation
+* Notifications
+* Settings
+
+---
+
+# WELCOME
+
+Show:
+
+```text
+Welcome back, [Donor Name]
+```
+
+Then a simple summary.
+
+---
+
+# DONOR SUMMARY
+
+Display:
+
+```text
+Blood Group
+Total Donations
+Last Donation
+Upcoming Donation
+```
+
+Use actual authenticated donor data when available.
+
+---
+
+# DONATION IMPACT
+
+Create a professional card:
+
+```text
+Your donation history
+```
+
+Show:
+
+* Total donations
+* Donation dates
+* Organizations where donations were recorded
+* Donation history
+
+Avoid making unsupported medical claims.
+
+---
+
+# UPCOMING DONATION
+
+Create:
+
+```text
+Upcoming Donation
+Organization
+Date
+Status
+```
+
+---
+
+# DONATION HISTORY
+
+Table:
+
+```text
+Date
+Organization
+Donation ID
+Blood Group
+Status
+```
+
+Keep the design clean.
+
+---
+
+# PROFILE
+
+Allow the donor to view/update permitted profile information using existing APIs.
+
+Do not expose sensitive internal information.
+
+---
+
+# RESPONSIVE
+
+Make it excellent on:
+
+* Desktop
+* Tablet
+* Mobile
+
+Mobile should use hamburger navigation.
+
+---
+
+# SECURITY
+
+A donor can only see their own permitted donor information.
+
+Never expose another donor's information.
+
+---
+
+# FINAL CHECK
+
+Verify:
+
+* Donor authentication
+* Donor-specific data
+* Donation history
+* Upcoming donation
+* Profile
+* Responsive design
+* No console errors
+
+Report modified/created files.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+============================= REQUESTER===============================
+
+
+# IMPLEMENT REQUESTER DASHBOARD
+
+Read `BLOOD_BANK_PLATFORM_PLAN.md`.
+
+Implement a professional **Requester Dashboard** for the existing multi-tenant Blood Bank SaaS platform.
+
+The requester should be able to submit and track operational blood requests according to the existing backend architecture.
+
+Do not redesign unrelated pages.
+
+---
+
+# DESIGN
+
+Use the same platform-wide design:
+
+* White/light gray
+* Red `#DC2626`
+* Dark `#111827`
+* Green `#16A34A`
+* Orange `#D97706`
+* Blue `#2563EB`
+* Inter-style typography
+* Rounded cards
+* Soft shadows
+* Professional tables
+* Clear status badges
+* Excellent spacing
+
+---
+
+# SIDEBAR
+
+Create:
+
+* Dashboard
+* Create Request
+* My Requests
+* Emergency Requests
+* Reservations
+* Notifications
+* Profile
+
+---
+
+# KPI CARDS
+
+Show:
+
+* Active Requests
+* Pending Requests
+* Fulfilled Requests
+* Emergency Requests
+
+---
+
+# CREATE BLOOD REQUEST
+
+Create a clear request form:
+
+```text
+Blood Group
+Required Units
+Preferred Location
+Priority
+Required Date
+Additional Information
+```
+
+Primary button:
+
+```text
+Submit Request
+```
+
+Validate using the existing backend validation architecture.
+
+---
+
+# REQUEST TRACKING
+
+Create a visual request-progress component:
+
+```text
+Submitted
+   ↓
+Under Review
+   ↓
+Reserved
+   ↓
+Fulfilled
+```
+
+The actual status must come from backend data.
+
+Do not fabricate workflow states.
+
+---
+
+# RECENT REQUESTS
+
+Table:
+
+```text
+Request ID
+Blood Group
+Units
+Date
+Priority
+Status
+Action
+```
+
+---
+
+# EMERGENCY REQUESTS
+
+Create a dedicated emergency-request area.
+
+Use professional warning styling.
+
+Do not use excessive animation.
+
+---
+
+# RESERVATIONS
+
+If existing reservation functionality is available, display:
+
+```text
+Request
+Blood Group
+Units
+Organization
+Reservation Status
+Date
+```
+
+If the backend functionality is not yet implemented, create only the UI foundation and do not invent APIs.
+
+---
+
+# SECURITY
+
+Requester data must remain properly scoped according to the existing authorization architecture.
+
+Do not trust frontend organization IDs.
+
+Do not expose private information from other organizations/users.
+
+---
+
+# RESPONSIVE
+
+Desktop, tablet, mobile.
+
+Forms should become single-column on mobile.
+
+Tables should remain usable without page overflow.
+
+---
+
+# FINAL CHECK
+
+Verify:
+
+* Requester authentication
+* Create request
+* Request tracking
+* Request history
+* Emergency section
+* Responsive UI
+* Existing API compatibility
+* No console errors
+
+Report all modified/created files.
+
+
+
+

@@ -3,147 +3,1098 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Super Admin Dashboard — BloodLink Platform</title>
+  <title>Super Admin Dashboard — BloodLink Multi-Tenant SaaS Platform</title>
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js CDN for clean SaaS visualizations -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <link rel="stylesheet" href="/css/style.css">
-  <style>body { font-family: 'Inter', sans-serif; }</style>
-</head>
-<body class="min-h-screen bg-slate-50 text-slate-900 flex flex-col antialiased" data-auth-required="true" data-allowed-roles="SUPER_ADMIN">
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #F9FAFB;
+      color: #111827;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .shadow-2xs { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04); }
+    .shadow-card { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05); }
+    .scrollbar-none::-webkit-scrollbar { display: none; }
+    .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+    [data-lucide] { display: inline-block; vertical-align: middle; }
 
-  <!-- Navigation Bar -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
+    /* Layout expansion & responsive spacing correction */
+    .top-nav-container {
+      width: 100% !important;
+      max-width: none !important;
+      margin: 0 !important;
+      padding-left: 16px !important;
+      padding-right: 16px !important;
+    }
+
+    .dashboard-layout {
+      width: 100% !important;
+      max-width: none !important;
+      margin: 0 !important;
+      padding-left: 16px !important;
+      padding-right: 16px !important;
+    }
+
+    .dashboard-body {
+      display: flex;
+      width: 100%;
+      min-width: 0;
+      gap: 20px;
+    }
+
+    @media (min-width: 768px) {
+      .sidebar {
+        flex: 0 0 170px !important;
+        width: 170px !important;
+        min-width: 170px !important;
+        max-width: 170px !important;
+      }
+    }
+
+    @media (max-width: 767px) {
+      .sidebar {
+        width: 260px;
+      }
+    }
+
+    .main-content {
+      flex: 1 1 0% !important;
+      min-width: 0 !important;
+      width: auto !important;
+    }
+
+    .main-content,
+    .dashboard-content,
+    .card,
+    .organization-overview {
+      min-width: 0;
+    }
+
+    .organization-overview {
+      width: 100% !important;
+      min-width: 0 !important;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      width: 100%;
+      min-width: 0;
+    }
+    @media (min-width: 640px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (min-width: 1024px) {
+      .stats-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-900 flex flex-col antialiased" data-auth-required="true" data-allowed-roles="SUPER_ADMIN">
+
+  <!-- Mobile Sidebar Overlay Backdrop -->
+  <div id="mobileSidebarBackdrop" class="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-xs hidden md:hidden transition-opacity"></div>
+
+  <!-- ======================================================================== -->
+  <!-- TOP HEADER / NAVIGATION BAR                                              -->
+  <!-- ======================================================================== -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-2xs w-full">
+    <div class="top-nav-container w-full h-16 flex items-center justify-between gap-3 sm:gap-4 px-4">
+        
+        <!-- Left: Mobile Menu Toggle & Brand Logo -->
         <div class="flex items-center gap-3">
-          <a href="/" class="flex items-center gap-3 group">
-            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-white shadow-md shadow-red-500/20">
+          <!-- Mobile Hamburger Toggle Button -->
+          <button 
+            id="mobileMenuToggleBtn" 
+            type="button" 
+            class="md:hidden p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
+            aria-label="Toggle navigation menu"
+          >
+            <i data-lucide="menu" class="w-5 h-5"></i>
+          </button>
+
+          <!-- Brand Logo -->
+          <a href="/" class="flex items-center gap-2.5 group">
+            <div class="w-9 h-9 rounded-xl bg-red-600 flex items-center justify-center text-white shadow-md shadow-red-600/20 flex-shrink-0">
               <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
             </div>
             <div>
               <span class="font-extrabold text-base tracking-tight text-slate-900">Blood<span class="text-red-600">Link</span></span>
-              <span class="ml-2 px-2 py-0.5 text-[10px] font-bold uppercase rounded-md bg-purple-100 text-purple-800 border border-purple-200">Super Admin</span>
+              <span class="ml-2 px-2 py-0.5 text-[10px] font-bold uppercase rounded-md bg-purple-50 text-purple-700 border border-purple-200 hidden sm:inline-block">
+                Super Admin
+              </span>
             </div>
           </a>
         </div>
 
-        <!-- User Info & Logout Button -->
-        <div class="flex items-center gap-2.5">
-          <a href="/" title="Go to Main Landing Page" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-200 transition-colors shadow-xs cursor-pointer">
-            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-            </svg>
-            <span>Main Page</span>
-          </a>
+        <!-- Center: Global Platform Search -->
+        <div class="hidden md:flex flex-1 max-w-md mx-4">
+          <div class="relative w-full">
+            <input 
+              type="text" 
+              id="globalSearchInput" 
+              placeholder="Search organizations, users, or reports..." 
+              class="w-full pl-9 pr-10 py-1.5 text-xs rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 placeholder-slate-400 transition-colors"
+            />
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2"></i>
+            <span class="absolute right-2.5 top-1.5 text-[10px] font-mono text-slate-400 border border-slate-200 rounded px-1 bg-white">⌘K</span>
+          </div>
+        </div>
 
-          <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs">
-            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span data-user-name class="font-semibold text-slate-800">Admin User</span>
-            <span class="text-slate-400">|</span>
-            <span class="text-slate-500 font-medium">Platform Super Admin</span>
+        <!-- Right: Notifications, Current Date, User Profile & Actions -->
+        <div class="flex items-center gap-2 sm:gap-3">
+          
+          <!-- Current Date Display -->
+          <div class="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-medium text-slate-500 bg-slate-50 border border-slate-200">
+            <i data-lucide="calendar" class="w-3.5 h-3.5 text-slate-400"></i>
+            <span id="currentDateDisplay">--</span>
           </div>
 
-          <!-- Logout Button -->
-          <button 
-            type="button" 
-            data-logout-btn 
-            title="Log out of Super Admin" 
-            class="logout-btn inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-xl bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 transition-all shadow-xs hover:border-rose-300 cursor-pointer"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
-            </svg>
-            <span>Log Out</span>
-          </button>
+          <!-- Notification Bell with Dropdown -->
+          <div class="relative">
+            <button 
+              id="notificationBellBtn" 
+              type="button" 
+              class="p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer relative"
+              title="Notifications"
+              aria-label="View notifications"
+            >
+              <i data-lucide="bell" class="w-4 h-4 text-slate-600"></i>
+              <span id="notifCountBadge" class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-600 ring-2 ring-white"></span>
+            </button>
+
+            <!-- Notifications Dropdown Menu -->
+            <div id="notificationDropdown" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-2xl border border-slate-200 shadow-xl py-3 z-50 animate-in fade-in zoom-in-95">
+              <div class="px-4 pb-2 border-b border-slate-100 flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-800">Platform Alerts</span>
+                <span id="pendingAlertsBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">0 pending</span>
+              </div>
+              <div id="notificationList" class="divide-y divide-slate-100 max-h-64 overflow-y-auto text-xs">
+                <div class="px-4 py-3 hover:bg-slate-50 transition-colors">
+                  <div class="flex items-center gap-2 text-amber-700 font-semibold mb-0.5">
+                    <i data-lucide="clock-3" class="w-3.5 h-3.5 text-amber-600"></i>
+                    <span>Pending Organizations</span>
+                  </div>
+                  <p class="text-slate-500 text-[11px]">New tenant applications awaiting credential verification.</p>
+                </div>
+                <div class="px-4 py-3 hover:bg-slate-50 transition-colors">
+                  <div class="flex items-center gap-2 text-emerald-700 font-semibold mb-0.5">
+                    <i data-lucide="circle-check" class="w-3.5 h-3.5 text-emerald-600"></i>
+                    <span>System Operational</span>
+                  </div>
+                  <p class="text-slate-500 text-[11px]">All platform API endpoints and MySQL services are operational.</p>
+                </div>
+              </div>
+              <div class="px-4 pt-2 border-t border-slate-100 text-center">
+                <a href="#pendingSection" class="text-[11px] font-semibold text-red-600 hover:text-red-700">Review Pending Approvals →</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- User Profile Dropdown Toggle -->
+          <div class="relative">
+            <button 
+              id="profileDropdownBtn" 
+              type="button" 
+              class="flex items-center gap-2 p-1 sm:px-2.5 sm:py-1 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer border border-transparent hover:border-slate-200"
+            >
+              <div id="userAvatar" class="w-8 h-8 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center justify-center shadow-xs">
+                SJ
+              </div>
+              <div class="hidden sm:block text-left">
+                <div id="adminUserName" class="text-xs font-bold text-slate-800 leading-tight">Sarah Johnson</div>
+                <div class="text-[10px] font-semibold text-purple-700">Super Admin</div>
+              </div>
+              <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 hidden sm:block"></i>
+            </button>
+
+            <!-- Profile Dropdown Menu -->
+            <div id="profileDropdownMenu" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-2xl border border-slate-200 shadow-xl py-2 z-50">
+              <div class="px-4 py-2.5 border-b border-slate-100">
+                <p class="text-xs font-bold text-slate-900" id="dropdownUserFullName">Sarah Johnson</p>
+                <p class="text-[11px] text-slate-500 truncate" id="dropdownUserEmail">admin@bloodbank.dev</p>
+                <span class="inline-block mt-1 px-2 py-0.5 text-[10px] font-bold rounded-md bg-purple-50 text-purple-700 border border-purple-200">
+                  Global Role: SUPER_ADMIN
+                </span>
+              </div>
+
+              <div class="py-1 text-xs">
+                <a href="/" class="flex items-center gap-2.5 px-4 py-2 text-slate-700 hover:bg-slate-50 transition-colors">
+                  <i data-lucide="layout-dashboard" class="w-3.5 h-3.5 text-slate-400"></i>
+                  <span>Public Landing Page</span>
+                </a>
+                <a href="#quickStatsSection" class="flex items-center gap-2.5 px-4 py-2 text-slate-700 hover:bg-slate-50 transition-colors">
+                  <i data-lucide="activity" class="w-3.5 h-3.5 text-slate-400"></i>
+                  <span>System Diagnostics</span>
+                </a>
+              </div>
+
+              <div class="pt-1 border-t border-slate-100">
+                <button 
+                  type="button" 
+                  data-logout-btn 
+                  class="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer text-left"
+                >
+                  <i data-lucide="x" class="w-3.5 h-3.5 text-rose-600"></i>
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
         </div>
+
       </div>
-    </div>
   </header>
 
-  <!-- Workspace Container -->
-  <div class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
-    <div class="flex flex-col md:flex-row gap-6">
+  <!-- ======================================================================== -->
+  <!-- MAIN WORKSPACE                                                           -->
+  <!-- ======================================================================== -->
+  <div class="dashboard-layout flex-1 w-full py-5 sm:py-6 px-4">
+    <div class="dashboard-body flex flex-col md:flex-row gap-5 w-full min-w-0">
 
-      <!-- Sidebar -->
-      <aside class="w-full md:w-64 bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-1 h-fit">
-        <a href="#" class="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-xl bg-red-50 text-red-700 border border-red-100">
-          <span>📊</span> Overview
-        </a>
-        <a href="#" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-          <span>🏥</span> Pending Organizations
-        </a>
-        <a href="#" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-          <span>👥</span> User Accounts
-        </a>
-        <a href="#" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-          <span>📜</span> System Audit Logs
-        </a>
-        <a href="#" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-          <span>⚙️</span> Platform Settings
-        </a>
+      <!-- ==================================================================== -->
+      <!-- LEFT SIDEBAR                                                         -->
+      <!-- ==================================================================== -->
+      <aside 
+        id="sidebarNav" 
+        class="sidebar fixed md:static inset-y-0 left-0 z-50 bg-white rounded-none md:rounded-2xl p-2.5 sm:p-3 border-r md:border border-slate-200 shadow-xl md:shadow-card space-y-1 transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out h-full md:h-fit flex flex-col justify-between flex-shrink-0"
+      >
+        <div class="space-y-1">
+          <!-- Sidebar Brand Header -->
+          <div class="pb-3 mb-2 border-b border-slate-100 flex items-center justify-between">
+            <div>
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-lg bg-red-600 flex items-center justify-center text-white flex-shrink-0">
+                  <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                </div>
+                <span class="font-extrabold text-sm text-slate-900 tracking-tight">BloodLink</span>
+              </div>
+              <span class="text-[10px] font-semibold text-slate-400 block mt-0.5 truncate">Blood Bank Platform</span>
+            </div>
+            <button id="closeMobileSidebarBtn" class="md:hidden p-1 rounded-lg text-slate-400 hover:text-slate-600">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
 
-        <div class="pt-4 mt-4 border-t border-slate-100">
+          <!-- Navigation Links with Strict Lucide Icons Mapping -->
+          <!-- 1. Overview (Active) -->
+          <a 
+            href="#overview" 
+            data-nav-target="overview"
+            class="flex items-center gap-2 px-2.5 py-2 text-xs font-semibold rounded-xl bg-red-50 text-red-700 border border-red-100 shadow-2xs transition-colors"
+          >
+            <i data-lucide="layout-dashboard" class="w-4 h-4 text-red-600 flex-shrink-0"></i>
+            <span class="truncate">Overview</span>
+          </a>
+
+          <!-- 2. Organizations -->
+          <a 
+            href="#allOrgsSection" 
+            data-nav-target="organizations"
+            class="flex items-center justify-between px-2.5 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+          >
+            <div class="flex items-center gap-2 min-w-0">
+              <i data-lucide="building-2" class="w-4 h-4 text-slate-500 flex-shrink-0"></i>
+              <span class="truncate">Organizations</span>
+            </div>
+            <span id="sidebarTotalOrgsBadge" class="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-600 flex-shrink-0">--</span>
+          </a>
+
+          <!-- 3. Pending Approvals -->
+          <a 
+            href="#pendingSection" 
+            data-nav-target="pending"
+            class="flex items-center justify-between px-2.5 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+          >
+            <div class="flex items-center gap-2 min-w-0">
+              <i data-lucide="clock-3" class="w-4 h-4 text-slate-500 flex-shrink-0"></i>
+              <span class="truncate">Pending Approvals</span>
+            </div>
+            <span id="sidebarPendingBadge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500 text-white animate-pulse flex-shrink-0">0</span>
+          </a>
+
+          <!-- 4. Users -->
+          <a 
+            href="#users" 
+            data-nav-target="users"
+            class="flex items-center justify-between px-2.5 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+          >
+            <div class="flex items-center gap-2 min-w-0">
+              <i data-lucide="users" class="w-4 h-4 text-slate-500 flex-shrink-0"></i>
+              <span class="truncate">Users</span>
+            </div>
+            <span id="sidebarUsersBadge" class="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-600 flex-shrink-0">--</span>
+          </a>
+
+          <!-- 5. Platform Activity -->
+          <a 
+            href="#activitySection" 
+            data-nav-target="activity"
+            class="flex items-center gap-2 px-2.5 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+          >
+            <i data-lucide="activity" class="w-4 h-4 text-slate-500 flex-shrink-0"></i>
+            <span class="truncate">Platform Activity</span>
+          </a>
+
+          <!-- 6. Notifications -->
+          <a 
+            href="#notifications" 
+            data-nav-target="notifications"
+            class="flex items-center gap-2 px-2.5 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+          >
+            <i data-lucide="bell" class="w-4 h-4 text-slate-500 flex-shrink-0"></i>
+            <span class="truncate">Notifications</span>
+          </a>
+
+          <!-- 7. Reports -->
+          <a 
+            href="#reports" 
+            data-nav-target="reports"
+            class="flex items-center gap-2 px-2.5 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+          >
+            <i data-lucide="bar-chart-3" class="w-4 h-4 text-slate-500 flex-shrink-0"></i>
+            <span class="truncate">Reports</span>
+          </a>
+
+          <!-- 8. Audit Logs -->
+          <a 
+            href="#activitySection" 
+            data-nav-target="audit"
+            class="flex items-center gap-2 px-2.5 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+          >
+            <i data-lucide="shield-check" class="w-4 h-4 text-slate-500 flex-shrink-0"></i>
+            <span class="truncate">Audit Logs</span>
+          </a>
+
+          <!-- 9. System Settings -->
+          <a 
+            href="#quickStatsSection" 
+            data-nav-target="settings"
+            class="flex items-center gap-2 px-2.5 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+          >
+            <i data-lucide="settings" class="w-4 h-4 text-slate-500 flex-shrink-0"></i>
+            <span class="truncate">System Settings</span>
+          </a>
+        </div>
+
+        <!-- Sidebar Footer Card -->
+        <div class="pt-3 mt-3 border-t border-slate-100 space-y-2.5">
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+            <div class="flex items-center gap-1.5 text-red-600 font-bold text-xs mb-1 min-w-0">
+              <i data-lucide="heart-pulse" class="w-3.5 h-3.5 text-red-600 flex-shrink-0"></i>
+              <span class="truncate">Safer Communities</span>
+            </div>
+            <p class="text-[10px] text-slate-500 leading-snug">
+              One platform. Multiple organizations.
+            </p>
+          </div>
+
           <button 
             type="button" 
             data-logout-btn 
-            class="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold rounded-xl text-rose-600 hover:bg-rose-50 border border-rose-200 transition-colors cursor-pointer"
+            class="w-full flex items-center justify-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-xl text-rose-600 hover:bg-rose-50 border border-rose-200 transition-colors cursor-pointer"
           >
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+            <i data-lucide="x" class="w-3.5 h-3.5 flex-shrink-0"></i>
             <span>Sign Out</span>
           </button>
         </div>
       </aside>
 
-      <!-- Main Dashboard Content -->
-      <main class="flex-1 space-y-6">
-        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <!-- ==================================================================== -->
+      <!-- MAIN DASHBOARD CONTENT                                               -->
+      <!-- ==================================================================== -->
+      <main class="main-content flex-1 space-y-6 min-w-0 w-auto">
+
+        <!-- ================================================================== -->
+        <!-- PAGE HEADER / WELCOME SECTION                                      -->
+        <!-- ================================================================== -->
+        <div class="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200 shadow-card flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <div class="text-xs font-bold uppercase tracking-wider text-purple-700 bg-purple-50 px-3 py-1 rounded-full border border-purple-200 inline-block mb-2">
-              Super Admin Workspace
-            </div>
-            <h1 class="text-2xl font-extrabold text-slate-900">
-              Platform Administration
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+              Welcome back, <span id="welcomeAdminName">Sarah Johnson</span>
             </h1>
             <p class="text-sm text-slate-500 mt-1">
-              Manage connected organizations, user accounts, and platform compliance.
+              Here's what's happening across the BloodLink platform today.
             </p>
           </div>
-          <button 
-            type="button" 
-            data-logout-btn 
-            class="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold text-xs border border-rose-200 transition-colors flex items-center gap-1.5 cursor-pointer"
-          >
-            <span>Log Out</span>
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
-          </button>
+
+          <div class="flex items-center gap-2.5">
+            <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-600">
+              <i data-lucide="calendar" class="w-3.5 h-3.5 text-slate-400"></i>
+              <span id="pageHeaderDate">--</span>
+            </div>
+
+            <button 
+              id="refreshDashboardBtn" 
+              type="button" 
+              title="Refresh platform data" 
+              class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold transition-colors cursor-pointer shadow-2xs"
+            >
+              <i data-lucide="refresh-cw" id="refreshSpinner" class="w-3.5 h-3.5 text-slate-500"></i>
+              <span>Refresh</span>
+            </button>
+          </div>
         </div>
 
-        <!-- Quick Summary Metrics -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-            <span class="text-xs font-medium text-slate-500 block">Pending Organizations</span>
-            <span class="text-2xl font-extrabold text-amber-600 mt-1 block">1 Pending</span>
-            <span class="text-[11px] text-slate-400 mt-0.5 block">Awaiting admin review</span>
+        <!-- ================================================================== -->
+        <!-- FOUR KPI CARDS                                                     -->
+        <!-- ================================================================== -->
+        <div class="stats-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 w-full min-w-0">
+          
+          <!-- KPI 1: Total Organizations -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-card flex items-start justify-between">
+            <div>
+              <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 block">Total Organizations</span>
+              <span id="kpiTotalOrgs" class="text-3xl font-extrabold text-slate-900 mt-1 block">--</span>
+              <span id="kpiTotalOrgsSubtitle" class="text-xs font-medium text-slate-500 mt-1 block">
+                +12% from last month
+              </span>
+            </div>
+            <div class="w-11 h-11 rounded-xl bg-slate-50 text-slate-700 flex items-center justify-center flex-shrink-0 border border-slate-200">
+              <i data-lucide="building-2" class="w-5 h-5 text-slate-700"></i>
+            </div>
           </div>
-          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-            <span class="text-xs font-medium text-slate-500 block">Active Hospitals</span>
-            <span class="text-2xl font-extrabold text-slate-900 mt-1 block">2 Connected</span>
-            <span class="text-[11px] text-slate-400 mt-0.5 block">Approved workspaces</span>
+
+          <!-- KPI 2: Pending Approvals -->
+          <div class="bg-white p-5 rounded-2xl border border-amber-200 shadow-card bg-amber-50/20 flex items-start justify-between">
+            <div>
+              <span class="text-xs font-semibold uppercase tracking-wider text-amber-700 block flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                Pending Approvals
+              </span>
+              <span id="kpiPendingApprovals" class="text-3xl font-extrabold text-amber-600 mt-1 block">--</span>
+              <span class="text-xs font-medium text-amber-800/80 mt-1 block">
+                Requires attention
+              </span>
+            </div>
+            <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0 border border-amber-200">
+              <i data-lucide="clock-3" class="w-5 h-5 text-amber-600"></i>
+            </div>
           </div>
-          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-            <span class="text-xs font-medium text-slate-500 block">Blood Units In Network</span>
-            <span class="text-2xl font-extrabold text-red-600 mt-1 block">14 Units</span>
-            <span class="text-[11px] text-slate-400 mt-0.5 block">Tracked across network</span>
+
+          <!-- KPI 3: Active Organizations -->
+          <div class="bg-white p-5 rounded-2xl border border-emerald-200 shadow-card bg-emerald-50/20 flex items-start justify-between">
+            <div>
+              <span class="text-xs font-semibold uppercase tracking-wider text-emerald-700 block">Active Organizations</span>
+              <span id="kpiActiveOrgs" class="text-3xl font-extrabold text-emerald-600 mt-1 block">--</span>
+              <span class="text-xs font-medium text-emerald-800/80 mt-1 block">
+                +10% from last month
+              </span>
+            </div>
+            <div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0 border border-emerald-200">
+              <i data-lucide="circle-check" class="w-5 h-5 text-emerald-600"></i>
+            </div>
+          </div>
+
+          <!-- KPI 4: Total Platform Users -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-card flex items-start justify-between">
+            <div>
+              <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 block">Total Platform Users</span>
+              <span id="kpiTotalUsers" class="text-3xl font-extrabold text-slate-900 mt-1 block">--</span>
+              <span id="kpiActiveUsersSubtitle" class="text-xs font-medium text-slate-500 mt-1 block">
+                +18% from last month
+              </span>
+            </div>
+            <div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0 border border-blue-200">
+              <i data-lucide="users" class="w-5 h-5 text-blue-600"></i>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ================================================================== -->
+        <!-- ORGANIZATION OVERVIEW (DONUT CHART & BREAKDOWN)                    -->
+        <!-- ================================================================== -->
+        <div class="organization-overview bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-card w-full min-w-0">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div>
+              <h2 class="text-base font-extrabold text-slate-900">Organization Overview</h2>
+              <p class="text-xs text-slate-500">Total organizations by type and status across the platform.</p>
+            </div>
+            <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
+              Tenant Mix
+            </span>
+          </div>
+
+          <div class="mt-4 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+            
+            <!-- Left: Donut Chart with Center Total Organizations -->
+            <div class="lg:col-span-5 flex items-center justify-center min-h-[220px]">
+              <canvas id="orgOverviewChart" class="max-w-[210px] max-h-[210px]"></canvas>
+            </div>
+
+            <!-- Right: Subtypes & Status Breakdown -->
+            <div class="lg:col-span-7 space-y-4">
+              
+              <!-- Subtype Counters with Lucide Icons -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                <div class="p-3 rounded-xl bg-blue-50/50 border border-blue-100">
+                  <div class="flex items-center gap-1.5 text-blue-700 font-semibold mb-1">
+                    <i data-lucide="hospital" class="w-4 h-4 text-blue-600"></i>
+                    <span>Hospitals</span>
+                  </div>
+                  <strong id="overviewHospitalsCount" class="text-xl font-extrabold text-blue-900 block">0</strong>
+                  <div class="w-full bg-blue-100 rounded-full h-1.5 mt-2">
+                    <div id="overviewHospitalsBar" class="bg-blue-600 h-1.5 rounded-full" style="width: 0%"></div>
+                  </div>
+                </div>
+
+                <div class="p-3 rounded-xl bg-purple-50/50 border border-purple-100">
+                  <div class="flex items-center gap-1.5 text-purple-700 font-semibold mb-1">
+                    <i data-lucide="stethoscope" class="w-4 h-4 text-purple-600"></i>
+                    <span>Clinics</span>
+                  </div>
+                  <strong id="overviewClinicsCount" class="text-xl font-extrabold text-purple-900 block">0</strong>
+                  <div class="w-full bg-purple-100 rounded-full h-1.5 mt-2">
+                    <div id="overviewClinicsBar" class="bg-purple-600 h-1.5 rounded-full" style="width: 0%"></div>
+                  </div>
+                </div>
+
+                <div class="p-3 rounded-xl bg-red-50/50 border border-red-100">
+                  <div class="flex items-center gap-1.5 text-red-700 font-semibold mb-1">
+                    <i data-lucide="droplets" class="w-4 h-4 text-red-600"></i>
+                    <span>Blood Banks</span>
+                  </div>
+                  <strong id="overviewBloodBanksCount" class="text-xl font-extrabold text-red-900 block">0</strong>
+                  <div class="w-full bg-red-100 rounded-full h-1.5 mt-2">
+                    <div id="overviewBloodBanksBar" class="bg-red-600 h-1.5 rounded-full" style="width: 0%"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Status Breakdown Pills with Lucide Icons -->
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs pt-1">
+                <div class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
+                  <div class="flex items-center justify-center gap-1 text-[10px] uppercase font-bold text-emerald-700 mb-0.5">
+                    <i data-lucide="circle-check" class="w-3.5 h-3.5 text-emerald-600"></i>
+                    <span>Approved</span>
+                  </div>
+                  <strong id="statusApprovedCount" class="text-base font-extrabold text-emerald-900">0</strong>
+                </div>
+
+                <div class="p-2.5 rounded-xl bg-amber-50 border border-amber-200">
+                  <div class="flex items-center justify-center gap-1 text-[10px] uppercase font-bold text-amber-700 mb-0.5">
+                    <i data-lucide="clock-3" class="w-3.5 h-3.5 text-amber-600"></i>
+                    <span>Pending</span>
+                  </div>
+                  <strong id="statusPendingCount" class="text-base font-extrabold text-amber-900">0</strong>
+                </div>
+
+                <div class="p-2.5 rounded-xl bg-rose-50 border border-rose-200">
+                  <div class="flex items-center justify-center gap-1 text-[10px] uppercase font-bold text-rose-700 mb-0.5">
+                    <i data-lucide="circle-x" class="w-3.5 h-3.5 text-rose-600"></i>
+                    <span>Rejected</span>
+                  </div>
+                  <strong id="statusRejectedCount" class="text-base font-extrabold text-rose-900">0</strong>
+                </div>
+
+                <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <div class="flex items-center justify-center gap-1 text-[10px] uppercase font-bold text-slate-600 mb-0.5">
+                    <i data-lucide="ban" class="w-3.5 h-3.5 text-slate-500"></i>
+                    <span>Suspended</span>
+                  </div>
+                  <strong id="statusSuspendedCount" class="text-base font-extrabold text-slate-800">0</strong>
+                </div>
+              </div>
+
+            </div>
+
           </div>
         </div>
+
+        <!-- ================================================================== -->
+        <!-- ROW: PENDING APPROVALS TABLE + PLATFORM ACTIVITY TIMELINE          -->
+        <!-- ================================================================== -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+          <!-- Left: Pending Organization Approvals Table -->
+          <div id="pendingSection" class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden flex flex-col justify-between">
+            <div>
+              <div class="p-5 border-b border-slate-100 flex items-start sm:items-center justify-between gap-3">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h2 class="text-base font-extrabold text-slate-900">Pending Organization Approvals</h2>
+                    <span id="pendingTableCountBadge" class="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                      0 Pending
+                    </span>
+                  </div>
+                  <p class="text-xs text-slate-500 mt-0.5">
+                    Review and approve new organization registrations.
+                  </p>
+                </div>
+
+                <a href="#allOrgsSection" class="text-xs font-bold text-red-600 hover:text-red-700 whitespace-nowrap">
+                  View All Organizations →
+                </a>
+              </div>
+
+              <!-- Pending Approvals Table -->
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                  <thead>
+                    <tr class="bg-slate-50/70 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                      <th scope="col" class="px-5 py-3">Organization</th>
+                      <th scope="col" class="px-4 py-3">Type</th>
+                      <th scope="col" class="px-4 py-3">Location</th>
+                      <th scope="col" class="px-4 py-3">Submitted</th>
+                      <th scope="col" class="px-4 py-3">Status</th>
+                      <th scope="col" class="px-5 py-3 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="pendingTableBody" class="divide-y divide-slate-100 text-xs">
+                    <!-- Populated dynamically -->
+                    <tr>
+                      <td colspan="6" class="px-6 py-10 text-center text-slate-400">
+                        <div class="flex flex-col items-center justify-center gap-2">
+                          <i data-lucide="refresh-cw" class="w-5 h-5 text-red-500 animate-spin"></i>
+                          <span>Loading pending organizations...</span>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="p-3 bg-slate-50/50 border-t border-slate-100 text-[11px] text-slate-400 text-center">
+              Click Review to inspect full credentials, bed capacity, and facility licensing before approving.
+            </div>
+          </div>
+
+          <!-- Right: Platform Activity Timeline -->
+          <div id="activitySection" class="lg:col-span-5 bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-card flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div>
+                  <h2 class="text-base font-extrabold text-slate-900">Platform Activity</h2>
+                  <p class="text-xs text-slate-500">Real-time audit log of platform operations and registrations</p>
+                </div>
+                <button 
+                  id="refreshActivityBtn" 
+                  type="button" 
+                  class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                  title="Refresh activity feed"
+                >
+                  <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+
+              <!-- Activity Items Container -->
+              <div id="platformActivityTimeline" class="mt-4 space-y-3.5 max-h-96 overflow-y-auto pr-1">
+                <div class="p-4 text-center text-xs text-slate-400">Loading audit activity...</div>
+              </div>
+            </div>
+
+            <div class="pt-3 mt-2 border-t border-slate-100 text-[11px] text-slate-400 flex items-center justify-between">
+              <span>Immutable audit trail</span>
+              <a href="#allOrgsSection" class="text-red-600 font-semibold hover:text-red-700">Audit Logs →</a>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ================================================================== -->
+        <!-- ROW: ORGANIZATION GROWTH (LINE CHART) + QUICK STATS CARD           -->
+        <!-- ================================================================== -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+          <!-- Left: Organization Growth Line Chart -->
+          <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200 shadow-card flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div>
+                  <h2 class="text-base font-extrabold text-slate-900">Organization Growth</h2>
+                  <p class="text-xs text-slate-500">Total organizations by type over time.</p>
+                </div>
+                <div class="flex items-center gap-2 text-xs font-semibold">
+                  <span class="inline-flex items-center gap-1 text-[11px] text-slate-600">
+                    <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span> Hospitals
+                  </span>
+                  <span class="inline-flex items-center gap-1 text-[11px] text-slate-600">
+                    <span class="w-2.5 h-2.5 rounded-full bg-purple-600"></span> Clinics
+                  </span>
+                  <span class="inline-flex items-center gap-1 text-[11px] text-slate-600">
+                    <span class="w-2.5 h-2.5 rounded-full bg-red-600"></span> Blood Banks
+                  </span>
+                </div>
+              </div>
+
+              <!-- Growth Line Chart Canvas -->
+              <div class="mt-4 relative min-h-[220px]">
+                <canvas id="orgGrowthChart" class="w-full max-h-[220px]"></canvas>
+              </div>
+            </div>
+
+            <div class="pt-3 mt-2 border-t border-slate-100 text-xs text-slate-500 flex items-center justify-between">
+              <span>Historical tenant onboarding velocity</span>
+              <span id="growthSummaryText" class="font-semibold text-slate-800">Across all platform tenants</span>
+            </div>
+          </div>
+
+          <!-- Right: Quick Platform Stats Card -->
+          <div id="quickStatsSection" class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200 shadow-card flex flex-col justify-between">
+            <div>
+              <div class="pb-3 border-b border-slate-100 flex items-center justify-between">
+                <div>
+                  <h2 class="text-base font-extrabold text-slate-900">Quick Platform Stats</h2>
+                  <p class="text-xs text-slate-500">System health and network coordination metrics</p>
+                </div>
+                <i data-lucide="activity" class="w-4 h-4 text-emerald-600"></i>
+              </div>
+
+              <div class="mt-4 space-y-3 text-xs">
+                <!-- Stat 1: Active Users Online -->
+                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+                      <i data-lucide="users" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                      <span class="font-bold text-slate-800 block">Active Users Online</span>
+                      <span class="text-[11px] text-slate-400 block">Verified user accounts</span>
+                    </div>
+                  </div>
+                  <strong id="quickActiveUsers" class="text-base font-extrabold text-slate-900">--</strong>
+                </div>
+
+                <!-- Stat 2: Organizations This Month -->
+                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
+                      <i data-lucide="building-2" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                      <span class="font-bold text-slate-800 block">Organizations This Month</span>
+                      <span class="text-[11px] text-slate-400 block">New applications & onboarded</span>
+                    </div>
+                  </div>
+                  <strong id="quickOrgsThisMonth" class="text-base font-extrabold text-slate-900">--</strong>
+                </div>
+
+                <!-- Stat 3: Reports Generated -->
+                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center border border-purple-100">
+                      <i data-lucide="file-text" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                      <span class="font-bold text-slate-800 block">Reports Generated</span>
+                      <span class="text-[11px] text-slate-400 block">Platform compliance reports</span>
+                    </div>
+                  </div>
+                  <strong id="quickReportsGenerated" class="text-base font-extrabold text-purple-700">12</strong>
+                </div>
+
+                <!-- Stat 4: System Uptime -->
+                <div class="p-3.5 rounded-xl bg-emerald-50/50 border border-emerald-200 flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                      <i data-lucide="activity" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                      <span class="font-bold text-emerald-950 block">System Uptime</span>
+                      <span class="text-[11px] text-emerald-700 block">Express API & MySQL Engine</span>
+                    </div>
+                  </div>
+                  <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-600 text-white">99.98% OPERATIONAL</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Operational Notice -->
+            <div class="pt-4 mt-4 border-t border-slate-100 flex items-start gap-2.5 text-[11px] text-slate-500">
+              <i data-lucide="info" class="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5"></i>
+              <p class="leading-relaxed">
+                Super Admin governance operates platform-wide across all tenants while preserving strict data isolation.
+              </p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ================================================================== -->
+        <!-- ALL ORGANIZATIONS DIRECTORY & MANAGEMENT TABLE                     -->
+        <!-- ================================================================== -->
+        <div id="allOrgsSection" class="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden">
+          
+          <!-- Filters & Search Toolbar -->
+          <div class="p-5 border-b border-slate-100 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+            <div>
+              <h2 class="text-base font-extrabold text-slate-900">All Platform Organizations</h2>
+              <p class="text-xs text-slate-500">Inspect, search, and manage all multi-tenant workspaces</p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              <!-- Status Filter Pills -->
+              <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+                <button 
+                  type="button" 
+                  data-status-filter="ALL"
+                  class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer bg-red-600 text-white shadow-red-600/20"
+                >
+                  All
+                </button>
+                <button 
+                  type="button" 
+                  data-status-filter="PENDING"
+                  class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer bg-white hover:bg-slate-100 text-slate-600 border border-slate-200"
+                >
+                  Pending
+                </button>
+                <button 
+                  type="button" 
+                  data-status-filter="APPROVED"
+                  class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer bg-white hover:bg-slate-100 text-slate-600 border border-slate-200"
+                >
+                  Approved
+                </button>
+                <button 
+                  type="button" 
+                  data-status-filter="REJECTED"
+                  class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer bg-white hover:bg-slate-100 text-slate-600 border border-slate-200"
+                >
+                  Rejected
+                </button>
+                <button 
+                  type="button" 
+                  data-status-filter="SUSPENDED"
+                  class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer bg-white hover:bg-slate-100 text-slate-600 border border-slate-200"
+                >
+                  Suspended
+                </button>
+              </div>
+
+              <!-- Search Input -->
+              <div class="relative w-full sm:w-56">
+                <input 
+                  type="text" 
+                  id="orgSearchInput" 
+                  placeholder="Filter table..."
+                  class="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 placeholder-slate-400 transition-colors"
+                />
+                <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Table Container -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50/70 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                  <th scope="col" class="px-5 py-3">Organization</th>
+                  <th scope="col" class="px-4 py-3">Type</th>
+                  <th scope="col" class="px-4 py-3">Location</th>
+                  <th scope="col" class="px-4 py-3">Status</th>
+                  <th scope="col" class="px-4 py-3">Created Date</th>
+                  <th scope="col" class="px-5 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="orgTableBody" class="divide-y divide-slate-100 text-xs">
+                <tr>
+                  <td colspan="6" class="px-6 py-12 text-center text-slate-400">
+                    <div class="flex flex-col items-center justify-center gap-2">
+                      <i data-lucide="refresh-cw" class="w-5 h-5 text-red-500 animate-spin"></i>
+                      <span>Loading organizations...</span>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+
       </main>
 
     </div>
   </div>
 
+  <!-- ======================================================================== -->
+  <!-- MODAL: REVIEW ORGANIZATION DETAILS                                       -->
+  <!-- ======================================================================== -->
+  <div id="viewOrgModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-xl w-full border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div>
+          <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400 block">Organization Verification</span>
+          <h3 id="viewModalOrgName" class="text-lg font-extrabold text-slate-900">Organization Name</h3>
+        </div>
+        <button id="closeViewModalBtn" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+        <!-- Badges & ID -->
+        <div class="flex flex-wrap items-center gap-2 pb-3 border-b border-slate-100">
+          <div id="viewModalStatusBadge"></div>
+          <div id="viewModalTypeBadge"></div>
+          <span class="text-xs text-slate-400 font-mono ml-auto">Tenant ID: #<span id="viewModalId">--</span></span>
+        </div>
+
+        <!-- Detail Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          <div>
+            <span class="text-slate-400 block mb-0.5">Organization Type</span>
+            <span id="viewModalType" class="font-semibold text-slate-800">--</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block mb-0.5">Healthcare License Number</span>
+            <span id="viewModalLicense" class="font-semibold text-slate-800 font-mono">--</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block mb-0.5">Email</span>
+            <span id="viewModalEmail" class="font-semibold text-slate-800">--</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block mb-0.5">Phone</span>
+            <span id="viewModalPhone" class="font-semibold text-slate-800">--</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block mb-0.5">Street Address</span>
+            <span id="viewModalAddress" class="font-semibold text-slate-800">--</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block mb-0.5">City & Country</span>
+            <span id="viewModalCityCountry" class="font-semibold text-slate-800">--</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block mb-0.5">Submitted Date</span>
+            <span id="viewModalCreated" class="font-semibold text-slate-800">--</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block mb-0.5">Current Status</span>
+            <span id="viewModalStatus" class="font-semibold text-slate-800">--</span>
+          </div>
+        </div>
+
+        <!-- Subtype Specifics Box -->
+        <div id="viewModalSubtypeContainer" class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5">Subtype Specifications</span>
+          <div id="viewModalSubtypeContent">
+            <!-- Dynamic subtype info -->
+          </div>
+        </div>
+
+        <!-- Modal Actions for Pending Organization -->
+        <div id="viewModalPendingActions" class="hidden pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+          <button 
+            id="viewModalRejectBtn" 
+            type="button" 
+            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 transition-colors cursor-pointer"
+          >
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            <span>Reject Organization</span>
+          </button>
+          <button 
+            id="viewModalApproveBtn" 
+            type="button" 
+            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-colors cursor-pointer"
+          >
+            <i data-lucide="check" class="w-3.5 h-3.5"></i>
+            <span>Approve Organization</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ======================================================================== -->
+  <!-- MODAL: REJECT ORGANIZATION WITH AUDITED REASON                            -->
+  <!-- ======================================================================== -->
+  <div id="rejectOrgModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div class="flex items-center gap-2 text-rose-600">
+          <i data-lucide="triangle-alert" class="w-5 h-5 text-rose-600"></i>
+          <h3 class="text-base font-extrabold text-slate-900">Reject Organization</h3>
+        </div>
+        <button id="closeRejectModalBtn" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4">
+        <p class="text-xs text-slate-600 leading-relaxed">
+          You are rejecting the registration for <strong id="rejectOrgName" class="text-slate-900 font-bold">--</strong>. The application will be marked as REJECTED and the audit log will preserve your reason.
+        </p>
+
+        <div>
+          <label for="rejectReasonInput" class="block text-xs font-semibold text-slate-700 mb-1.5">
+            Reason for Rejection <span class="text-slate-400 font-normal">(Optional)</span>
+          </label>
+          <textarea 
+            id="rejectReasonInput" 
+            rows="3" 
+            placeholder="e.g. Healthcare facility license could not be verified in state registry..."
+            class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition-colors"
+          ></textarea>
+        </div>
+
+        <div class="pt-3 flex items-center justify-end gap-2.5">
+          <button 
+            id="cancelRejectBtn" 
+            type="button" 
+            class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button 
+            id="confirmRejectBtn" 
+            type="button" 
+            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-xs transition-colors cursor-pointer"
+          >
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            <span>Confirm Rejection</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ======================================================================== -->
+  <!-- FLOATING TOAST NOTIFICATION                                              -->
+  <!-- ======================================================================== -->
+  <div 
+    id="adminToast" 
+    class="fixed bottom-5 right-5 z-50 flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-slate-900 text-white shadow-xl backdrop-blur-md border border-slate-700 transition-all duration-300 translate-y-12 opacity-0 pointer-events-none"
+  >
+    <span id="toastIcon"></span>
+    <span id="toastMessage" class="text-xs font-medium">Notification message</span>
+  </div>
+
+  <!-- Scripts -->
   <script src="/js/api.js"></script>
   <script src="/js/auth.js"></script>
+  <script src="/dashboard/super-admin/super-admin.js"></script>
 </body>
 </html>

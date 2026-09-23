@@ -60,4 +60,11 @@ router.get('/audit-logs', adminController.listAuditLogs);
  */
 router.get('/inventory', adminController.listPlatformInventory);
 
+/**
+ * @route   GET /api/admin/stats
+ * @desc    Retrieve comprehensive Super Admin dashboard analytics
+ * @access  Protected (SUPER_ADMIN)
+ */
+router.get('/stats', adminController.getDashboardStats);
+
 module.exports = router;

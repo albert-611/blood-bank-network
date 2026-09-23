@@ -240,19 +240,92 @@ const BloodBankAPI = {
   },
 
   // ==========================================================================
-  // SUPER ADMIN PLATFORM ENDPOINTS (§5, §11, §13)
+  // SUPER ADMIN PLATFORM & SAAS TENANT ENDPOINTS (§5, §11, §13, §18)
   // ==========================================================================
 
   /**
-   * List all platform organizations (Super Admin)
+   * List platform organizations (Super Admin: all; Org Staff: own tenant)
    */
-  async getAdminOrganizations(params = {}) {
+  async getOrganizations(params = {}) {
     const query = new URLSearchParams(params).toString();
-    return this._request(`/api/admin/organizations${query ? `?${query}` : ''}`, { method: 'GET' });
+    try {
+      return await this._request(`/api/organizations${query ? `?${query}` : ''}`, { method: 'GET' });
+    } catch (err) {
+      if (err.status === 404) {
+        const adminRes = await this._request(`/api/admin/organizations${query ? `?${query}` : ''}`, { method: 'GET' });
+        if (adminRes && adminRes.success && adminRes.data?.organizations) {
+          return { success: true, data: adminRes.data.organizations };
+        }
+        return adminRes;
+      }
+      throw err;
+    }
   },
 
   /**
-   * Approve, reject, or suspend organization
+   * Get specific organization by ID
+   */
+  async getOrganizationById(orgId) {
+    try {
+      return await this._request(`/api/organizations/${orgId}`, { method: 'GET' });
+    } catch (err) {
+      if (err.status === 404) {
+        const orgs = await this.getOrganizations();
+        const found = Array.isArray(orgs.data) ? orgs.data.find((o) => String(o.id) === String(orgId)) : null;
+        if (found) return { success: true, data: { organization: found } };
+      }
+      throw err;
+    }
+  },
+
+  /**
+   * Approve organization (Super Admin only)
+   */
+  async approveOrganization(orgId) {
+    try {
+      return await this._request(`/api/organizations/${orgId}/approve`, {
+        method: 'PATCH'
+      });
+    } catch (err) {
+      if (err.status === 404) {
+        return await this._request(`/api/admin/organizations/${orgId}/status`, {
+          method: 'PATCH',
+          body: { status: 'APPROVED' }
+        });
+      }
+      throw err;
+    }
+  },
+
+  /**
+   * Reject organization (Super Admin only)
+   */
+  async rejectOrganization(orgId, reason = '') {
+    try {
+      return await this._request(`/api/organizations/${orgId}/reject`, {
+        method: 'PATCH',
+        body: reason ? { reason } : {}
+      });
+    } catch (err) {
+      if (err.status === 404) {
+        return await this._request(`/api/admin/organizations/${orgId}/status`, {
+          method: 'PATCH',
+          body: { status: 'REJECTED', reason }
+        });
+      }
+      throw err;
+    }
+  },
+
+  /**
+   * List all platform organizations (Super Admin legacy alias)
+   */
+  async getAdminOrganizations(params = {}) {
+    return this.getOrganizations(params);
+  },
+
+  /**
+   * Approve, reject, or suspend organization (legacy endpoint alias)
    */
   async updateOrganizationStatus(orgId, status, reason = '') {
     return this._request(`/api/admin/organizations/${orgId}/status`, {
@@ -275,6 +348,13 @@ const BloodBankAPI = {
   async getAdminAuditLogs(params = {}) {
     const query = new URLSearchParams(params).toString();
     return this._request(`/api/admin/audit-logs${query ? `?${query}` : ''}`, { method: 'GET' });
+  },
+
+  /**
+   * Get Super Admin dashboard aggregated metrics and telemetry
+   */
+  async getDashboardStats() {
+    return this._request('/api/admin/stats', { method: 'GET' });
   }
 };
 
