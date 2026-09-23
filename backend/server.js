@@ -183,13 +183,13 @@ app.get('/api/health/db', async (req, res) => {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    console.error('Database health check failure:', error.message);
+    console.error('[Health Check] Database connectivity check failure:', error.code || 'UNKNOWN', error.message);
     res.status(503).json({
       success: false,
       db: 'disconnected',
       error: {
-        message: 'Unable to connect to the MySQL database',
-        details: error.message
+        message: 'Database connection failed.',
+        code: error.code || 'DATABASE_UNAVAILABLE'
       }
     });
   }
@@ -247,10 +247,21 @@ app.use((err, req, res, next) => {
     });
   }
 
-  console.error('Unhandled server error:', err);
+  // Handle database connection drops or offline state gracefully (§18 & §25)
+  const isDbConnectionError = [
+    'ECONNREFUSED',
+    'PROTOCOL_CONNECTION_LOST',
+    'ETIMEDOUT',
+    'ENOTFOUND',
+    'EHOSTUNREACH',
+    'ER_ACCESS_DENIED_ERROR',
+    'ER_BAD_DB_ERROR',
+    'HANDSHAKE_SSL_ERROR',
+    'DB_CONNECTION_FAILED'
+  ].includes(err.code);
 
-  // Handle database connection drops or offline state gracefully
-  if (err.code === 'ECONNREFUSED' || err.code === 'PROTOCOL_CONNECTION_LOST') {
+  if (isDbConnectionError) {
+    console.error(`[Database Error] Connection failed (${err.code}):`, err.message);
     return res.status(503).json({
       success: false,
       message: 'Database service is currently unavailable. Please verify the database server is running.',
@@ -260,6 +271,8 @@ app.use((err, req, res, next) => {
       }
     });
   }
+
+  console.error('Unhandled server error:', err);
 
   // Handle MySQL duplicate key collisions gracefully
   if (err.code === 'ER_DUP_ENTRY') {

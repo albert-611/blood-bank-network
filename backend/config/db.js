@@ -52,11 +52,26 @@ function getDatabaseConfig() {
     }
   }
 
+  const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+  const isProduction = process.env.NODE_ENV === 'production' || isServerless;
+
+  if (isProduction && (host === 'localhost' || host === '127.0.0.1')) {
+    console.warn(
+      '⚠️ [Database Config] Production deployment detected with DB_HOST="localhost". ' +
+      'Vercel serverless functions cannot connect to a local computer/XAMPP. ' +
+      'A hosted cloud MySQL database (DB_HOST / DB_USER / DB_PASSWORD / DB_NAME) is required.'
+    );
+  }
+
   const sslConfig = isSsl
     ? {
         rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED === 'true'
       }
     : undefined;
+
+  const defaultLimit = isServerless ? 3 : 10;
+  const connectionLimit = parseInt(process.env.DB_CONNECTION_LIMIT, 10) || defaultLimit;
+  const connectTimeout = parseInt(process.env.DB_CONNECT_TIMEOUT, 10) || 15000;
 
   return {
     host,
@@ -66,8 +81,9 @@ function getDatabaseConfig() {
     port,
     ssl: sslConfig,
     waitForConnections: true,
-    connectionLimit: parseInt(process.env.DB_CONNECTION_LIMIT, 10) || 10,
+    connectionLimit,
     queueLimit: 0,
+    connectTimeout,
     enableKeepAlive: true,
     keepAliveInitialDelay: 0
   };
@@ -174,11 +190,15 @@ async function ensureDatabaseConnection() {
   // Format clean error message without exposing credentials
   let safeReason = lastError ? lastError.message : 'Unknown connection failure';
   if (lastError && lastError.code === 'ECONNREFUSED') {
-    safeReason = `Connection refused at ${currentConfig.host}:${currentConfig.port}. MySQL server is not reachable.`;
+    safeReason = `Connection refused at ${currentConfig.host}:${currentConfig.port}. MySQL server is not reachable. (Note: Local XAMPP MySQL cannot be reached from Vercel).`;
+  } else if (lastError && (lastError.code === 'ETIMEDOUT' || lastError.code === 'EHOSTUNREACH')) {
+    safeReason = `Connection timed out connecting to ${currentConfig.host}:${currentConfig.port}. Verify network routing and cloud firewall rules.`;
+  } else if (lastError && lastError.code === 'ENOTFOUND') {
+    safeReason = `Database host '${currentConfig.host}' could not be resolved (DNS lookup failed). Verify DB_HOST value.`;
   } else if (lastError && lastError.code === 'ER_BAD_DB_ERROR') {
-    safeReason = `Database '${currentConfig.database}' does not exist. Run 'npm run db:init' first.`;
+    safeReason = `Database '${currentConfig.database}' does not exist on ${currentConfig.host}. Run 'npm run db:init' to initialize schema.`;
   } else if (lastError && lastError.code === 'ER_ACCESS_DENIED_ERROR') {
-    safeReason = `Access denied for database user at ${currentConfig.host}:${currentConfig.port}. Check credentials.`;
+    safeReason = `Access denied for database user at ${currentConfig.host}:${currentConfig.port}. Verify DB_USER and DB_PASSWORD.`;
   }
 
   const err = new Error(safeReason);
