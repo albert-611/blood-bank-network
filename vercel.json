@@ -1,25 +1,39 @@
 {
   "version": 2,
   "routes": [
-    { "src": "/", "dest": "/frontend/index.html" },
-    { "src": "/index.html", "dest": "/frontend/index.html" },
-    { "src": "/login", "dest": "/frontend/login.html" },
-    { "src": "/login.html", "dest": "/frontend/login.html" },
-    { "src": "/register", "dest": "/frontend/register.html" },
-    { "src": "/register.html", "dest": "/frontend/register.html" },
-    { "src": "/register-organization", "dest": "/frontend/register-organization.html" },
-    { "src": "/register-organization.html", "dest": "/frontend/register-organization.html" },
-    { "src": "/find-blood", "dest": "/frontend/find-blood.html" },
-    { "src": "/find-blood.html", "dest": "/frontend/find-blood.html" },
-    { "src": "/donors", "dest": "/frontend/donors.html" },
-    { "src": "/donors.html", "dest": "/frontend/donors.html" },
-    { "src": "/hospitals", "dest": "/frontend/hospitals.html" },
-    { "src": "/hospitals.html", "dest": "/frontend/hospitals.html" },
-    { "src": "/emergency", "dest": "/frontend/emergency.html" },
-    { "src": "/emergency.html", "dest": "/frontend/emergency.html" },
-    { "src": "/dashboard/(.*)", "dest": "/frontend/dashboard/$1" },
+    { "src": "/api/(.*)", "dest": "/api/index.js" },
+    { "src": "/api", "dest": "/api/index.js" },
+
     { "src": "/css/(.*)", "dest": "/frontend/css/$1" },
     { "src": "/js/(.*)", "dest": "/frontend/js/$1" },
+
+    { "src": "/super-admin(/dashboard)?/?$", "dest": "/frontend/dashboard/super-admin/index.html" },
+    { "src": "/hospital-admin(/dashboard)?/?$", "dest": "/frontend/dashboard/hospital-admin/index.html" },
+    { "src": "/doctor(/dashboard)?/?$", "dest": "/frontend/dashboard/doctor/index.html" },
+    { "src": "/clinic-admin(/dashboard)?/?$", "dest": "/frontend/dashboard/clinic-admin/index.html" },
+    { "src": "/blood-bank(-staff)?(/dashboard)?/?$", "dest": "/frontend/dashboard/blood-bank-staff/index.html" },
+    { "src": "/donor(/dashboard)?/?$", "dest": "/frontend/dashboard/donor/index.html" },
+    { "src": "/requester(/dashboard)?/?$", "dest": "/frontend/dashboard/donor/index.html" },
+
+    { "src": "/dashboard/super-admin(/index\\.html)?/?$", "dest": "/frontend/dashboard/super-admin/index.html" },
+    { "src": "/dashboard/hospital-admin(/index\\.html)?/?$", "dest": "/frontend/dashboard/hospital-admin/index.html" },
+    { "src": "/dashboard/doctor(/index\\.html)?/?$", "dest": "/frontend/dashboard/doctor/index.html" },
+    { "src": "/dashboard/clinic-admin(/index\\.html)?/?$", "dest": "/frontend/dashboard/clinic-admin/index.html" },
+    { "src": "/dashboard/blood-bank-staff(/index\\.html)?/?$", "dest": "/frontend/dashboard/blood-bank-staff/index.html" },
+    { "src": "/dashboard/donor(/index\\.html)?/?$", "dest": "/frontend/dashboard/donor/index.html" },
+    { "src": "/dashboard/(.*)/(.*)", "dest": "/frontend/dashboard/$1/$2" },
+    { "src": "/dashboard/(.*)/?$", "dest": "/frontend/dashboard/$1/index.html" },
+
+    { "src": "/login(\\.html)?/?$", "dest": "/frontend/login.html" },
+    { "src": "/register(\\.html)?/?$", "dest": "/frontend/register.html" },
+    { "src": "/register-organization(\\.html)?/?$", "dest": "/frontend/register-organization.html" },
+    { "src": "/find-blood(\\.html)?/?$", "dest": "/frontend/find-blood.html" },
+    { "src": "/donors(\\.html)?/?$", "dest": "/frontend/donors.html" },
+    { "src": "/hospitals(\\.html)?/?$", "dest": "/frontend/hospitals.html" },
+    { "src": "/emergency(\\.html)?/?$", "dest": "/frontend/emergency.html" },
+
+    { "src": "/frontend/(.*)", "dest": "/frontend/$1" },
+    { "src": "/(index\\.html)?$", "dest": "/frontend/index.html" },
     { "src": "/(.*)", "dest": "/frontend/$1" }
   ]
 }

@@ -305,7 +305,9 @@ async function startServer() {
   });
 }
 
-if (process.env.NODE_ENV !== 'test') {
+// Start HTTP listener only when executed directly (node backend/server.js)
+// When imported as a module (e.g. Vercel Serverless Function or test runner), export app without listening
+if (require.main === module && process.env.NODE_ENV !== 'test') {
   startServer();
 }
 
