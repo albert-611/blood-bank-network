@@ -9,6 +9,7 @@
     "db:init": "node backend/scripts/init-db.js",
     "db:seed": "node backend/scripts/init-db.js --seed-only",
     "test": "node backend/tests/auth.test.js",
+    "test:demo": "node backend/tests/demoAuth.test.js",
     "test:seeded": "node backend/tests/seededAuthProduction.test.js",
     "test:org": "node backend/tests/orgRegistration.test.js",
     "test:rbac": "node backend/tests/rbac.test.js",

@@ -149,6 +149,7 @@ app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 // Serve static frontend assets from the frontend directory
 app.use(express.static(path.join(__dirname, '../frontend')));
+app.use('/demo', express.static(path.join(__dirname, '../demo')));
 
 // ============================================================================
 // API ROUTES

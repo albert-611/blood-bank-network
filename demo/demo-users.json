@@ -1,0 +1,60 @@
+{
+  "demoUsers": [
+    {
+      "email": "admin@bloodbank.dev",
+      "password": "AdminDev123!",
+      "role": "SUPER_ADMIN",
+      "organization": "System Super Administrator",
+      "dashboard": "/dashboard/super-admin/index.html"
+    },
+    {
+      "email": "hospital.admin@bloodbank.dev",
+      "password": "UserDev123!",
+      "role": "HOSPITAL_ADMIN",
+      "organization": "City General Hospital",
+      "dashboard": "/dashboard/hospital-admin/index.html"
+    },
+    {
+      "email": "doctor.smith@bloodbank.dev",
+      "password": "UserDev123!",
+      "role": "DOCTOR",
+      "organization": "City General Hospital",
+      "dashboard": "/dashboard/doctor/index.html"
+    },
+    {
+      "email": "clinic.admin@bloodbank.dev",
+      "password": "UserDev123!",
+      "role": "CLINIC_ADMIN",
+      "organization": "Metro Community Clinic",
+      "dashboard": "/dashboard/clinic-admin/index.html"
+    },
+    {
+      "email": "bloodbank.staff@bloodbank.dev",
+      "password": "UserDev123!",
+      "role": "BLOOD_BANK_STAFF",
+      "organization": "Central Red Cross Blood Bank",
+      "dashboard": "/dashboard/blood-bank-staff/index.html"
+    },
+    {
+      "email": "donor.john@bloodbank.dev",
+      "password": "UserDev123!",
+      "role": "DONOR",
+      "organization": "Walk-in / Independent (O+)",
+      "dashboard": "/dashboard/donor/index.html"
+    },
+    {
+      "email": "donor.sarah@bloodbank.dev",
+      "password": "UserDev123!",
+      "role": "DONOR",
+      "organization": "Universal Donor (O-)",
+      "dashboard": "/dashboard/donor/index.html"
+    },
+    {
+      "email": "requester.jane@bloodbank.dev",
+      "password": "UserDev123!",
+      "role": "REQUESTER",
+      "organization": "Patient Representative",
+      "dashboard": "/dashboard/donor/index.html"
+    }
+  ]
+}

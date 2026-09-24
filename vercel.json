@@ -6,6 +6,7 @@
 
     { "src": "/css/(.*)", "dest": "/frontend/css/$1" },
     { "src": "/js/(.*)", "dest": "/frontend/js/$1" },
+    { "src": "/demo/(.*)", "dest": "/frontend/demo/$1" },
 
     { "src": "/super-admin(/dashboard)?/?$", "dest": "/frontend/dashboard/super-admin/index.html" },
     { "src": "/hospital-admin(/dashboard)?/?$", "dest": "/frontend/dashboard/hospital-admin/index.html" },
