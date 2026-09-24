@@ -9,7 +9,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css">
-  <style>body { font-family: 'Inter', sans-serif; }</style>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .shadow-2xs { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04); }
+  </style>
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-900 flex flex-col antialiased" data-auth-required="true" data-allowed-roles="ORGANIZATION_ADMIN,HOSPITAL_ADMIN">
 
@@ -29,8 +32,16 @@
           </a>
         </div>
 
-        <!-- User Info & Logout Button -->
+        <!-- User Info, Demo Badge & Logout Button -->
         <div class="flex items-center gap-2.5">
+          <!-- Demo Indicator Badge (§26) -->
+          <div id="demoBadgeContainer" class="hidden sm:flex items-center">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase bg-amber-50 text-amber-800 border border-amber-300 shadow-2xs">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+              <span>DEMO MODE</span>
+            </span>
+          </div>
+
           <a href="/" title="Go to Main Landing Page" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-200 transition-colors shadow-xs cursor-pointer">
             <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
@@ -67,21 +78,30 @@
     <div class="flex flex-col md:flex-row gap-6">
 
       <!-- Sidebar -->
-      <aside class="w-full md:w-64 bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-1 h-fit">
-        <a href="#" class="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-xl bg-red-50 text-red-700 border border-red-100">
+      <aside class="w-full md:w-64 bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-1 h-fit sticky top-24">
+        <a href="#overview" class="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-xl bg-red-50 text-red-700 border border-red-100">
           <span>🏥</span> Hospital Overview
         </a>
-        <a href="#" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+        <a href="#emergency-section" class="flex items-center justify-between px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+          <div class="flex items-center gap-2.5">
+            <span>🚨</span> Emergency Orders
+          </div>
+          <span id="sidebarEmergencyBadge" class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700">0</span>
+        </a>
+        <a href="#inventory-section" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
           <span>🩸</span> Blood Inventory
         </a>
-        <a href="#" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-          <span>📋</span> Blood Orders & Requests
+        <a href="#requests-section" class="flex items-center justify-between px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+          <div class="flex items-center gap-2.5">
+            <span>📋</span> Inpatient Orders
+          </div>
+          <span id="sidebarOrdersBadge" class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">0</span>
         </a>
-        <a href="#" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-          <span>⏱️</span> Unit Reservations & Issuing
-        </a>
-        <a href="#" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+        <a href="#staff-section" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
           <span>👨‍⚕️</span> Clinical Staff
+        </a>
+        <a href="#activity-section" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+          <span>⚡</span> Recent Activity
         </a>
 
         <div class="pt-4 mt-4 border-t border-slate-100">
@@ -97,53 +117,360 @@
       </aside>
 
       <!-- Main Dashboard Content -->
-      <main class="flex-1 space-y-6">
+      <main class="flex-1 space-y-6" id="overview">
+
+        <!-- Header Greeting Banner -->
         <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <div class="text-xs font-bold uppercase tracking-wider text-red-700 bg-red-50 px-3 py-1 rounded-full border border-red-200 inline-block mb-2">
-              Hospital Workspace
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-red-700 bg-red-50 px-3 py-1 rounded-full border border-red-200">
+                Hospital Tenant Workspace
+              </span>
+              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-50 text-amber-800 border border-amber-200">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Demo Dataset
+              </span>
             </div>
             <h1 class="text-2xl font-extrabold text-slate-900">
-              <span data-user-org>Hospital Workspace</span>
+              <span data-user-org>City General Hospital</span>
             </h1>
             <p class="text-sm text-slate-500 mt-1">
-              Logged in as <strong data-user-name>Administrator</strong>. Manage blood inventory, inpatient requests, and clinical staff.
+              Logged in as <strong data-user-name>Administrator</strong>. Inpatient transfusion management, surgical reservations, and clinical staff governance.
             </p>
           </div>
-          <button 
-            type="button" 
-            data-logout-btn 
-            class="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold text-xs border border-rose-200 transition-colors flex items-center gap-1.5 cursor-pointer"
-          >
-            <span>Log Out</span>
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
-          </button>
+          <div class="flex items-center gap-2 self-stretch sm:self-auto">
+            <a 
+              href="#requests-section" 
+              class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>New Blood Request</span>
+            </a>
+          </div>
         </div>
 
-        <!-- Quick Summary Metrics -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <!-- KPI Metrics Grid (Animated 0 -> Target, §10, §20) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-            <span class="text-xs font-medium text-slate-500 block">In-Stock Units</span>
-            <span class="text-2xl font-extrabold text-slate-900 mt-1 block">4 Units</span>
-            <span class="text-[11px] text-slate-400 mt-0.5 block">Stored in hospital bank</span>
+            <span class="text-xs font-medium text-slate-500 block">Hospital In-Stock Units</span>
+            <span id="kpiHospitalUnits" class="text-2xl font-extrabold text-slate-900 mt-1 block">0</span>
+            <span class="text-[11px] text-slate-400 mt-0.5 block">Stored in hospital surgical bank</span>
           </div>
+
           <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-            <span class="text-xs font-medium text-slate-500 block">Pending Requests</span>
-            <span class="text-2xl font-extrabold text-amber-600 mt-1 block">2 Orders</span>
-            <span class="text-[11px] text-slate-400 mt-0.5 block">Awaiting fulfillment</span>
+            <span class="text-xs font-medium text-slate-500 block">Pending Inpatient Requests</span>
+            <span id="kpiPendingRequests" class="text-2xl font-extrabold text-amber-600 mt-1 block">0</span>
+            <span class="text-[11px] text-slate-400 mt-0.5 block">Awaiting regional dispatch</span>
           </div>
+
           <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-            <span class="text-xs font-medium text-slate-500 block">Active Staff Members</span>
-            <span class="text-2xl font-extrabold text-emerald-600 mt-1 block">2 Assigned</span>
-            <span class="text-[11px] text-slate-400 mt-0.5 block">Authorized physicians & staff</span>
+            <span class="text-xs font-medium text-slate-500 block">Emergency Orders</span>
+            <span id="kpiEmergencyRequests" class="text-2xl font-extrabold text-rose-600 mt-1 block">0</span>
+            <span class="text-[11px] text-slate-400 mt-0.5 block">Trauma & ICU urgent priority</span>
+          </div>
+
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+            <span class="text-xs font-medium text-slate-500 block">Active Clinical Doctors</span>
+            <span id="kpiActiveDoctors" class="text-2xl font-extrabold text-emerald-600 mt-1 block">0</span>
+            <span class="text-[11px] text-slate-400 mt-0.5 block">Physicians authorized on duty</span>
           </div>
         </div>
+
+        <!-- EMERGENCY REQUESTS PANEL (§7, §10) -->
+        <div id="emergency-section" class="bg-rose-50/60 rounded-3xl p-6 border border-rose-200 shadow-xs space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-rose-600 animate-ping"></span>
+              <h2 class="text-base font-bold text-rose-950 flex items-center gap-1.5">
+                <span>Critical Emergency Transfusion Orders</span>
+              </h2>
+            </div>
+            <span class="px-2.5 py-0.5 text-xs font-bold uppercase rounded-full bg-rose-200/80 text-rose-900 border border-rose-300">
+              Immediate Priority
+            </span>
+          </div>
+          <p class="text-xs text-rose-700">
+            Emergency orders bypass standard queuing and trigger priority cross-matching courier dispatch.
+          </p>
+
+          <div class="overflow-x-auto rounded-2xl bg-white border border-rose-200">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-rose-100/50 text-rose-900 font-semibold border-b border-rose-200">
+                <tr>
+                  <th class="py-3 px-4">Emergency ID</th>
+                  <th class="py-3 px-4">Department</th>
+                  <th class="py-3 px-4">Blood Group</th>
+                  <th class="py-3 px-4">Component</th>
+                  <th class="py-3 px-4">Units</th>
+                  <th class="py-3 px-4">Required Within</th>
+                  <th class="py-3 px-4">Status</th>
+                </tr>
+              </thead>
+              <tbody id="emergencyTableBody" class="divide-y divide-rose-100 text-slate-700">
+                <tr>
+                  <td colspan="7" class="py-4 text-center text-slate-400">Loading emergency orders...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- BLOOD INVENTORY OVERVIEW (§4, §5, §19: Visual blood group bars) -->
+        <div id="inventory-section" class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h2 class="text-lg font-bold text-slate-900">Regional Blood Group Availability</h2>
+              <p class="text-xs text-slate-500 mt-0.5">Real-time supply levels across Central Red Cross Blood Bank & City General Hospital</p>
+            </div>
+            <div class="flex items-center gap-2 text-xs">
+              <span class="inline-flex items-center gap-1 text-slate-500">
+                <span class="w-2.5 h-2.5 rounded bg-emerald-500"></span> Available
+              </span>
+              <span class="inline-flex items-center gap-1 text-slate-500">
+                <span class="w-2.5 h-2.5 rounded bg-amber-500"></span> Low Stock
+              </span>
+              <span class="inline-flex items-center gap-1 text-slate-500">
+                <span class="w-2.5 h-2.5 rounded bg-rose-500"></span> Critical
+              </span>
+            </div>
+          </div>
+
+          <!-- 8 Blood Group Cards Matrix -->
+          <div id="bloodGroupMatrix" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <!-- Dynamically populated by JS from demo-data.json -->
+          </div>
+        </div>
+
+        <!-- INPATIENT BLOOD REQUESTS TABLE (§6, §10) -->
+        <div id="requests-section" class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-lg font-bold text-slate-900">Inpatient Orders & Blood Requests</h2>
+              <p class="text-xs text-slate-500 mt-0.5">Clinical requests originating from City General Hospital surgical and intensive care suites</p>
+            </div>
+            <span id="requestsCountBadge" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">0 orders</span>
+          </div>
+
+          <div class="overflow-x-auto rounded-2xl border border-slate-200">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                <tr>
+                  <th class="py-3 px-4">Request ID</th>
+                  <th class="py-3 px-4">Doctor / Spec</th>
+                  <th class="py-3 px-4">Blood Group</th>
+                  <th class="py-3 px-4">Component</th>
+                  <th class="py-3 px-4">Units</th>
+                  <th class="py-3 px-4">Priority</th>
+                  <th class="py-3 px-4">Date</th>
+                  <th class="py-3 px-4">Status</th>
+                </tr>
+              </thead>
+              <tbody id="requestsTableBody" class="divide-y divide-slate-100 text-slate-700">
+                <tr>
+                  <td colspan="8" class="py-4 text-center text-slate-400">Loading requests...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- CLINICAL STAFF ROSTER & RECENT ACTIVITY (§10, §16) -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+          <!-- Clinical Staff Roster -->
+          <div id="staff-section" class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between">
+              <h2 class="text-base font-bold text-slate-900">Clinical Transfusion Staff</h2>
+              <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">On-Duty</span>
+            </div>
+            <div id="staffListContainer" class="space-y-2.5">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Recent Hospital Activity -->
+          <div id="activity-section" class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between">
+              <h2 class="text-base font-bold text-slate-900">Hospital Transfusion Activity</h2>
+              <span class="text-xs text-slate-400">Live audit</span>
+            </div>
+            <div id="hospitalActivityTimeline" class="space-y-3">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+        </div>
+
       </main>
 
     </div>
   </div>
 
+  <!-- Scripts -->
+  <script src="/js/demo-loader.js"></script>
   <script src="/js/api.js"></script>
   <script src="/js/auth.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 1. Role validation
+      if (window.BloodBankAuth && typeof window.BloodBankAuth.requireRole === 'function') {
+        const allowed = window.BloodBankAuth.requireRole('HOSPITAL_ADMIN');
+        if (!allowed) return;
+      }
+
+      // 2. Load dynamic demo data (§18)
+      if (!window.DemoDataLoader) {
+        console.error('DemoDataLoader missing');
+        return;
+      }
+
+      const orgId = 1; // City General Hospital
+
+      // Fetch dynamic stats computed from demo-data.json
+      const [invStats, regionalInv, reqStats, emgStats, staffList, activities] = await Promise.all([
+        window.DemoDataLoader.getInventoryStats(orgId), // In-hospital stock
+        window.DemoDataLoader.getInventoryStats(null),  // Regional stock
+        window.DemoDataLoader.getRequestStats(orgId),   // Hospital requests
+        window.DemoDataLoader.getEmergencyRequests(orgId),
+        window.DemoDataLoader.getHospitalStaff(),
+        window.DemoDataLoader.getActivities(orgId, 6)
+      ]);
+
+      // 3. Animated KPI counters (§20)
+      window.DemoDataLoader.animateCounter(document.getElementById('kpiHospitalUnits'), invStats.totalUnits || 4);
+      window.DemoDataLoader.animateCounter(document.getElementById('kpiPendingRequests'), reqStats.pending || 2);
+      window.DemoDataLoader.animateCounter(document.getElementById('kpiEmergencyRequests'), emgStats.total || 2);
+      window.DemoDataLoader.animateCounter(document.getElementById('kpiActiveDoctors'), staffList.filter(s => s.role === 'DOCTOR').length || 3);
+
+      // Sidebar badges
+      const sbEmergency = document.getElementById('sidebarEmergencyBadge');
+      if (sbEmergency) sbEmergency.textContent = emgStats.total;
+      const sbOrders = document.getElementById('sidebarOrdersBadge');
+      if (sbOrders) sbOrders.textContent = reqStats.total;
+      const reqBadge = document.getElementById('requestsCountBadge');
+      if (reqBadge) reqBadge.textContent = `${reqStats.total} orders`;
+
+      // 4. Render Emergency Orders Panel (§7)
+      const emgTableBody = document.getElementById('emergencyTableBody');
+      if (emgTableBody) {
+        if (emgStats.list.length === 0) {
+          emgTableBody.innerHTML = '<tr><td colspan="7" class="py-6 text-center text-slate-400">No active emergency orders.</td></tr>';
+        } else {
+          emgTableBody.innerHTML = emgStats.list.map(e => `
+            <tr class="hover:bg-rose-50/40 transition-colors">
+              <td class="py-3 px-4 font-mono font-bold text-rose-700">${e.id}</td>
+              <td class="py-3 px-4 font-medium text-slate-800">${e.department || 'Emergency ICU'}</td>
+              <td class="py-3 px-4"><span class="px-2 py-0.5 rounded font-extrabold bg-red-100 text-red-800">${e.bloodGroup}</span></td>
+              <td class="py-3 px-4 text-slate-600">${e.component.replace('_', ' ')}</td>
+              <td class="py-3 px-4 font-bold text-slate-900">${e.units} units</td>
+              <td class="py-3 px-4 text-rose-600 font-semibold">${e.estimatedNeedWithin || '30 mins'}</td>
+              <td class="py-3 px-4">
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                  e.status === 'PENDING' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
+                  e.status === 'APPROVED' ? 'bg-blue-100 text-blue-800 border border-blue-200' :
+                  'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                }">
+                  ${e.status}
+                </span>
+              </td>
+            </tr>
+          `).join('');
+        }
+      }
+
+      // 5. Render Blood Group Matrix (§19)
+      const matrixContainer = document.getElementById('bloodGroupMatrix');
+      if (matrixContainer) {
+        const groups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+        matrixContainer.innerHTML = groups.map(bg => {
+          const info = regionalInv.byBloodGroup[bg] || { available: 0, status: 'Low Stock', statusClass: 'text-amber-700 bg-amber-50 border-amber-200', barClass: 'bg-amber-500', percentage: 20 };
+          return `
+            <div class="p-3.5 rounded-2xl border border-slate-200 bg-white hover:border-slate-300 hover:shadow-xs transition-all">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-base font-extrabold text-slate-900">${bg}</span>
+                <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold border ${info.statusClass}">${info.status}</span>
+              </div>
+              <div class="flex items-baseline justify-between mb-1.5">
+                <span class="text-xs text-slate-500">Available:</span>
+                <span class="text-base font-bold text-slate-900">${info.available} <span class="text-xs font-normal text-slate-400">units</span></span>
+              </div>
+              <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                <div class="${info.barClass} h-full rounded-full transition-all duration-700" style="width: ${info.percentage}%"></div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // 6. Render Inpatient Blood Requests Table
+      const reqTableBody = document.getElementById('requestsTableBody');
+      if (reqTableBody) {
+        if (reqStats.requestsList.length === 0) {
+          reqTableBody.innerHTML = '<tr><td colspan="8" class="py-6 text-center text-slate-400">No requests on file.</td></tr>';
+        } else {
+          reqTableBody.innerHTML = reqStats.requestsList.map(r => {
+            let statusBadge = 'bg-slate-100 text-slate-700';
+            if (r.status === 'PENDING') statusBadge = 'bg-amber-100 text-amber-800 border border-amber-200';
+            if (r.status === 'APPROVED') statusBadge = 'bg-blue-100 text-blue-800 border border-blue-200';
+            if (r.status === 'FULFILLED') statusBadge = 'bg-emerald-100 text-emerald-800 border border-emerald-200';
+            if (r.status === 'REJECTED') statusBadge = 'bg-rose-100 text-rose-800 border border-rose-200';
+
+            const prioClass = r.priority === 'CRITICAL' ? 'text-rose-600 font-extrabold' : r.priority === 'HIGH' ? 'text-amber-600 font-bold' : 'text-slate-600';
+            const dateStr = r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Sep 24';
+
+            return `
+              <tr class="hover:bg-slate-50 transition-colors">
+                <td class="py-3 px-4 font-mono font-bold text-slate-800">${r.id}</td>
+                <td class="py-3 px-4 font-medium text-slate-900">${r.requesterName || 'Physician'}</td>
+                <td class="py-3 px-4"><span class="px-1.5 py-0.5 rounded font-bold bg-slate-100 text-slate-800">${r.bloodGroup}</span></td>
+                <td class="py-3 px-4 text-slate-600">${r.component.replace('_', ' ')}</td>
+                <td class="py-3 px-4 font-bold text-slate-900">${r.units}</td>
+                <td class="py-3 px-4 ${prioClass}">${r.priority}</td>
+                <td class="py-3 px-4 text-slate-500">${dateStr}</td>
+                <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${statusBadge}">${r.status}</span></td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
+
+      // 7. Render Staff Roster
+      const staffContainer = document.getElementById('staffListContainer');
+      if (staffContainer) {
+        staffContainer.innerHTML = staffList.map(s => `
+          <div class="flex items-center justify-between p-3 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-teal-100 text-teal-800 flex items-center justify-center font-bold text-xs">
+                ${s.name.split(' ').map(n=>n[0]).join('')}
+              </div>
+              <div>
+                <span class="text-xs font-bold text-slate-900 block">${s.name}</span>
+                <span class="text-[11px] text-slate-500 block">${s.department} · ${s.role}</span>
+              </div>
+            </div>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${s.status === 'ON_DUTY' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600'}">
+              ${s.status.replace('_', ' ')}
+            </span>
+          </div>
+        `).join('');
+      }
+
+      // 8. Render Recent Hospital Activity
+      const activityTimeline = document.getElementById('hospitalActivityTimeline');
+      if (activityTimeline) {
+        activityTimeline.innerHTML = activities.map(a => {
+          const timeFormatted = a.timestamp ? new Date(a.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recent';
+          return `
+            <div class="flex items-start gap-3 text-xs">
+              <div class="w-2 h-2 rounded-full bg-red-500 mt-1.5 shrink-0"></div>
+              <div class="flex-1">
+                <p class="font-medium text-slate-800">${a.description}</p>
+                <span class="text-[10px] text-slate-400 mt-0.5 block">${timeFormatted} · ${a.organization}</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    });
+  </script>
 </body>
 </html>

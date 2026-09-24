@@ -187,6 +187,28 @@
         };
       }
 
+      const userNames = {
+        'admin@bloodbank.dev': 'Sarah Johnson',
+        'hospital.admin@bloodbank.dev': 'David Miller',
+        'doctor.smith@bloodbank.dev': 'Dr. Robert Smith',
+        'clinic.admin@bloodbank.dev': 'Elena Vance',
+        'bloodbank.staff@bloodbank.dev': 'Marcus Brody',
+        'donor.john@bloodbank.dev': 'Johnathan Mercer',
+        'donor.sarah@bloodbank.dev': 'Sarah Elizabeth Jenkins',
+        'requester.jane@bloodbank.dev': 'Jane Foster'
+      };
+
+      const orgIds = {
+        'hospital.admin@bloodbank.dev': 1,
+        'doctor.smith@bloodbank.dev': 1,
+        'clinic.admin@bloodbank.dev': 2,
+        'bloodbank.staff@bloodbank.dev': 3
+      };
+
+      const cleanEmailKey = matched.email.toLowerCase();
+      const displayName = userNames[cleanEmailKey] || matched.organization;
+      const orgId = orgIds[cleanEmailKey] || null;
+
       // Build explicit demo session
       const demoSession = {
         isDemo: true,
@@ -194,9 +216,12 @@
         role: matched.role,
         organization: matched.organization,
         dashboard: matched.dashboard,
-        fullName: matched.organization,
+        fullName: displayName,
+        full_name: displayName,
+        organization_id: orgId,
         organizationStaff: {
           role_name: matched.role,
+          organization_id: orgId,
           organization_name: matched.organization,
           organization_status: 'APPROVED'
         }

@@ -3,13 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Donor Profile — BloodLink Platform</title>
+  <title>Donor & Requester Portal — BloodLink Platform</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css">
-  <style>body { font-family: 'Inter', sans-serif; }</style>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .shadow-2xs { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04); }
+  </style>
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-900 flex flex-col antialiased" data-auth-required="true" data-allowed-roles="DONOR,REQUESTER">
 
@@ -24,13 +27,21 @@
             </div>
             <div>
               <span class="font-extrabold text-base tracking-tight text-slate-900">Blood<span class="text-red-600">Link</span></span>
-              <span data-portal-badge class="ml-2 px-2 py-0.5 text-[10px] font-bold uppercase rounded-md bg-red-100 text-red-800 border border-red-200">Donor Portal</span>
+              <span id="portalHeaderBadge" class="ml-2 px-2 py-0.5 text-[10px] font-bold uppercase rounded-md bg-red-100 text-red-800 border border-red-200">Donor Portal</span>
             </div>
           </a>
         </div>
 
-        <!-- User Info & Logout Button -->
+        <!-- User Info, Demo Badge & Logout Button -->
         <div class="flex items-center gap-2.5">
+          <!-- Demo Badge (§26) -->
+          <div id="demoBadgeContainer" class="hidden sm:flex items-center">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase bg-amber-50 text-amber-800 border border-amber-300 shadow-2xs">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+              <span>DEMO MODE</span>
+            </span>
+          </div>
+
           <a href="/" title="Go to Main Landing Page" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-200 transition-colors shadow-xs cursor-pointer">
             <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
@@ -40,16 +51,16 @@
 
           <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs">
             <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span data-user-name class="font-semibold text-slate-800">Donor</span>
+            <span data-user-name class="font-semibold text-slate-800">User</span>
             <span class="text-slate-400">|</span>
-            <span data-user-role class="text-slate-500 font-medium">Voluntary Donor</span>
+            <span data-user-role class="text-slate-500 font-medium">Verified Profile</span>
           </div>
 
           <!-- Logout Button -->
           <button 
             type="button" 
             data-logout-btn 
-            title="Log out of Donor Portal" 
+            title="Log out of Portal" 
             class="logout-btn inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-xl bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 transition-all shadow-xs hover:border-rose-300 cursor-pointer"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -67,19 +78,38 @@
     <div class="flex flex-col md:flex-row gap-6">
 
       <!-- Sidebar -->
-      <aside class="w-full md:w-64 bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-1 h-fit">
-        <a href="#" class="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-xl bg-red-50 text-red-700 border border-red-100">
-          <span>🩸</span> Donor Profile
-        </a>
-        <a href="#" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-          <span>📜</span> Donation History
-        </a>
-        <a href="#" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-          <span>📅</span> Donation Centers
-        </a>
-        <a href="#" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-          <span>⚙️</span> Account Settings
-        </a>
+      <aside class="w-full md:w-64 bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-1 h-fit sticky top-24">
+        <!-- Donor Links -->
+        <div id="donorSidebarLinks" class="space-y-1">
+          <a href="#overview" class="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-xl bg-red-50 text-red-700 border border-red-100">
+            <span>🩸</span> Donor Profile
+          </a>
+          <a href="#history-section" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+            <span>📜</span> Donation History
+          </a>
+          <a href="#appointment-section" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+            <span>📅</span> Upcoming Donation
+          </a>
+          <a href="#centers-section" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+            <span>🏥</span> Donation Centers
+          </a>
+        </div>
+
+        <!-- Requester Links -->
+        <div id="requesterSidebarLinks" class="space-y-1 hidden">
+          <a href="#overview" class="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-100">
+            <span>📋</span> Requester Overview
+          </a>
+          <a href="#create-request-section" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+            <span>➕</span> Create Blood Request
+          </a>
+          <a href="#tracking-section" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+            <span>🔎</span> Request Tracking
+          </a>
+          <a href="#requester-history-section" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+            <span>📜</span> Request History
+          </a>
+        </div>
 
         <div class="pt-4 mt-4 border-t border-slate-100">
           <button 
@@ -93,54 +123,451 @@
         </div>
       </aside>
 
-      <!-- Main Dashboard Content -->
-      <main class="flex-1 space-y-6">
-        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <div data-role-badge class="text-xs font-bold uppercase tracking-wider text-red-700 bg-red-50 px-3 py-1 rounded-full border border-red-200 inline-block mb-2">
-              Voluntary Blood Donor
+      <!-- Main Portal Content -->
+      <main class="flex-1 space-y-6" id="overview">
+
+        <!-- ================================================================= -->
+        <!-- VIEW A: DONOR VIEW (Johnathan Mercer O+ & Sarah Jenkins O-)        -->
+        <!-- ================================================================= -->
+        <div id="donorViewContainer" class="space-y-6">
+
+          <!-- Welcome Banner -->
+          <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-2 mb-2">
+                <span id="donorRoleBadge" class="text-xs font-bold uppercase tracking-wider text-red-700 bg-red-50 px-3 py-1 rounded-full border border-red-200">
+                  Voluntary Blood Donor
+                </span>
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-50 text-amber-800 border border-amber-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Demo Dataset
+                </span>
+              </div>
+              <h1 class="text-2xl font-extrabold text-slate-900">
+                Welcome, <span id="donorDisplayFullName">Johnathan Mercer</span>!
+              </h1>
+              <p class="text-sm text-slate-500 mt-1">
+                Thank you for your life-saving voluntary blood contributions. Your units have supported hospital trauma surgery and patient recovery.
+              </p>
             </div>
-            <h1 class="text-2xl font-extrabold text-slate-900">
-              Welcome, <span data-user-name>John Doe</span>!
-            </h1>
-            <p class="text-sm text-slate-500 mt-1">
-              Track your donation timeline and coordinate with nearby collection facilities.
-            </p>
+            <div class="text-center sm:text-right p-4 rounded-2xl bg-red-50/60 border border-red-100 min-w-[130px]">
+              <span class="text-[11px] font-medium text-slate-500 block uppercase tracking-wider">Blood Group</span>
+              <span id="donorBloodGroupBadge" class="text-3xl font-black text-red-600 mt-0.5 block">O+</span>
+              <span id="donorRhBadge" class="text-[10px] font-semibold text-slate-400 block">Rh Positive</span>
+            </div>
           </div>
-          <button 
-            type="button" 
-            data-logout-btn 
-            class="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold text-xs border border-rose-200 transition-colors flex items-center gap-1.5 cursor-pointer"
-          >
-            <span>Log Out</span>
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
-          </button>
+
+          <!-- KPI Cards Grid (Animated 0 -> Target, §8, §20) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+              <span class="text-xs font-medium text-slate-500 block">Total Donations</span>
+              <span id="donorTotalDonations" class="text-2xl font-extrabold text-red-600 mt-1 block">0</span>
+              <span class="text-[11px] text-slate-400 mt-0.5 block">Verified blood donations</span>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+              <span class="text-xs font-medium text-slate-500 block">Estimated Lives Impacted</span>
+              <span id="donorLivesSaved" class="text-2xl font-extrabold text-emerald-600 mt-1 block">0</span>
+              <span class="text-[11px] text-slate-400 mt-0.5 block">Up to 3 lives per donation</span>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+              <span class="text-xs font-medium text-slate-500 block">Last Donation Date</span>
+              <span id="donorLastDate" class="text-lg font-bold text-slate-900 mt-1 block">—</span>
+              <span class="text-[11px] text-slate-400 mt-0.5 block">Central Red Cross Blood Bank</span>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+              <span class="text-xs font-medium text-slate-500 block">Eligibility Status</span>
+              <span id="donorEligibility" class="text-lg font-bold text-emerald-600 mt-1 block">Eligible Now</span>
+              <span class="text-[11px] text-slate-400 mt-0.5 block">56-day rest cycle completed</span>
+            </div>
+          </div>
+
+          <!-- UPCOMING APPOINTMENT & DONATION IMPACT (§8) -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="appointment-section">
+            <!-- Upcoming Appointment Card -->
+            <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+              <div class="flex items-center justify-between">
+                <h2 class="text-base font-bold text-slate-900">Upcoming Donation Appointment</h2>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Confirmed</span>
+              </div>
+              <div class="p-4 rounded-2xl border border-slate-100 bg-slate-50 flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-red-100 text-red-600 flex items-center justify-center font-bold text-xl">
+                  📅
+                </div>
+                <div>
+                  <span id="upcomingDate" class="text-sm font-bold text-slate-900 block">Oct 5, 2026 at 10:30 AM</span>
+                  <span id="upcomingLocation" class="text-xs text-slate-500 block">Central Red Cross Blood Bank · Station 4</span>
+                  <span class="text-[11px] text-emerald-600 font-medium mt-0.5 block">Appointment confirmed · Digital pass active</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Donation Impact Card -->
+            <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+              <h2 class="text-base font-bold text-slate-900">Donation Impact Summary</h2>
+              <p class="text-xs text-slate-500">
+                Your donations are separated into red blood cells, platelets, and plasma to support trauma surgery, oncology transfusions, and pediatric care.
+              </p>
+              <div class="grid grid-cols-3 gap-2 pt-2 text-center text-xs">
+                <div class="p-3 rounded-xl bg-red-50 text-red-800">
+                  <span class="font-extrabold text-sm block">Red Cells</span>
+                  <span class="text-[10px] text-red-600">Oxygen delivery</span>
+                </div>
+                <div class="p-3 rounded-xl bg-amber-50 text-amber-800">
+                  <span class="font-extrabold text-sm block">Plasma</span>
+                  <span class="text-[10px] text-amber-600">Coagulation factor</span>
+                </div>
+                <div class="p-3 rounded-xl bg-teal-50 text-teal-800">
+                  <span class="font-extrabold text-sm block">Platelets</span>
+                  <span class="text-[10px] text-teal-600">Clotting support</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- DONATION HISTORY TABLE (§8) -->
+          <div id="history-section" class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-lg font-bold text-slate-900">Personal Donation History</h2>
+                <p class="text-xs text-slate-500 mt-0.5">Chronological record of verified donations and laboratory screening clearances</p>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto rounded-2xl border border-slate-200">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                  <tr>
+                    <th class="py-3 px-4">Donation ID</th>
+                    <th class="py-3 px-4">Date</th>
+                    <th class="py-3 px-4">Donation Center</th>
+                    <th class="py-3 px-4">Blood Group</th>
+                    <th class="py-3 px-4">Component</th>
+                    <th class="py-3 px-4">Units</th>
+                    <th class="py-3 px-4">Screening Result</th>
+                    <th class="py-3 px-4">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="donorHistoryTableBody" class="divide-y divide-slate-100 text-slate-700">
+                  <tr>
+                    <td colspan="8" class="py-4 text-center text-slate-400">Loading donation records...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
 
-        <!-- Quick Summary Metrics -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-            <span data-metric-title class="text-xs font-medium text-slate-500 block">Total Donations</span>
-            <span class="text-2xl font-extrabold text-red-600 mt-1 block">1 Donation</span>
-            <span class="text-[11px] text-slate-400 mt-0.5 block">Central Red Cross Bank</span>
+        <!-- ================================================================= -->
+        <!-- VIEW B: REQUESTER VIEW (Jane Foster - Patient Representative)     -->
+        <!-- ================================================================= -->
+        <div id="requesterViewContainer" class="space-y-6 hidden">
+
+          <!-- Welcome Banner -->
+          <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+                  Patient Blood Requester Portal
+                </span>
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-50 text-amber-800 border border-amber-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Demo Dataset
+                </span>
+              </div>
+              <h1 class="text-2xl font-extrabold text-slate-900">
+                Welcome, <span id="requesterDisplayFullName">Jane Foster</span>
+              </h1>
+              <p class="text-sm text-slate-500 mt-1">
+                Patient Representative & Family Liaison. Submit structured blood requisitions and monitor fulfillment progress across regional medical centers.
+              </p>
+            </div>
+            <a 
+              href="#create-request-section" 
+              class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>Submit Requisition</span>
+            </a>
           </div>
-          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-            <span class="text-xs font-medium text-slate-500 block">Next Eligible Donation</span>
-            <span class="text-2xl font-extrabold text-emerald-600 mt-1 block">Eligible Now</span>
-            <span class="text-[11px] text-slate-400 mt-0.5 block">56+ days standard interval</span>
+
+          <!-- Requester KPI Cards (Animated 0 -> Target, §9, §20) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+              <span class="text-xs font-medium text-slate-500 block">Total Requests Placed</span>
+              <span id="reqTotalCount" class="text-2xl font-extrabold text-slate-900 mt-1 block">0</span>
+              <span class="text-[11px] text-slate-400 mt-0.5 block">Requisitions on record</span>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+              <span class="text-xs font-medium text-slate-500 block">Pending Clinical Review</span>
+              <span id="reqPendingCount" class="text-2xl font-extrabold text-amber-600 mt-1 block">0</span>
+              <span class="text-[11px] text-slate-400 mt-0.5 block">Awaiting medical clearance</span>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+              <span class="text-xs font-medium text-slate-500 block">Fulfilled Transfusions</span>
+              <span id="reqFulfilledCount" class="text-2xl font-extrabold text-emerald-600 mt-1 block">0</span>
+              <span class="text-[11px] text-slate-400 mt-0.5 block">Successfully infused</span>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+              <span class="text-xs font-medium text-slate-500 block">Critical Emergency Status</span>
+              <span id="reqCriticalCount" class="text-2xl font-extrabold text-rose-600 mt-1 block">0</span>
+              <span class="text-[11px] text-slate-400 mt-0.5 block">Urgent pediatric care</span>
+            </div>
           </div>
-          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-            <span class="text-xs font-medium text-slate-500 block">Account Status</span>
-            <span class="text-2xl font-extrabold text-slate-900 mt-1 block">Active</span>
-            <span class="text-[11px] text-slate-400 mt-0.5 block">Verified profile</span>
+
+          <!-- VISUAL REQUEST TRACKING WORKFLOW (§9, §18) -->
+          <div id="tracking-section" class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-4">
+            <h2 class="text-base font-bold text-slate-900">Active Request Progress: REQ-9902 (1 Unit O- Whole Blood)</h2>
+            <p class="text-xs text-slate-500">Live operational workflow status from Central Red Cross Blood Bank</p>
+
+            <div class="grid grid-cols-4 gap-2 pt-3 text-center text-xs">
+              <div class="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800">
+                <span class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold mx-auto mb-1">✓</span>
+                <span class="font-bold block">1. Submitted</span>
+                <span class="text-[10px] text-emerald-600">Sep 24, 09:00</span>
+              </div>
+              <div class="p-3 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 ring-2 ring-amber-400/30">
+                <span class="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold mx-auto mb-1 animate-pulse">2</span>
+                <span class="font-bold block">2. Under Review</span>
+                <span class="text-[10px] text-amber-700">Coordinator Active</span>
+              </div>
+              <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-400">
+                <span class="w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold mx-auto mb-1">3</span>
+                <span class="font-bold block">3. Reserved</span>
+                <span class="text-[10px]">Cold storage lock</span>
+              </div>
+              <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-400">
+                <span class="w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold mx-auto mb-1">4</span>
+                <span class="font-bold block">4. Fulfilled</span>
+                <span class="text-[10px]">Delivered to OR</span>
+              </div>
+            </div>
           </div>
+
+          <!-- CREATE BLOOD REQUEST FORM (§9) -->
+          <div id="create-request-section" class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-4">
+            <h2 class="text-base font-bold text-slate-900">Create New Blood Request</h2>
+            <form id="requesterForm" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs" onsubmit="event.preventDefault(); alert('Demo Requisition Submitted! Added to demo tracking in memory.');">
+              <div>
+                <label class="block font-semibold uppercase tracking-wider text-slate-700 mb-1">Required Blood Group</label>
+                <select class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white">
+                  <option>O+</option>
+                  <option selected>O-</option>
+                  <option>A+</option>
+                  <option>A-</option>
+                  <option>B+</option>
+                  <option>B-</option>
+                  <option>AB+</option>
+                  <option>AB-</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-semibold uppercase tracking-wider text-slate-700 mb-1">Component Needed</label>
+                <select class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white">
+                  <option>RED_CELLS</option>
+                  <option>WHOLE_BLOOD</option>
+                  <option>PLATELETS</option>
+                  <option>PLASMA</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-semibold uppercase tracking-wider text-slate-700 mb-1">Required Units</label>
+                <input type="number" min="1" max="6" value="2" class="w-full px-3 py-2 rounded-xl border border-slate-200" />
+              </div>
+              <div>
+                <label class="block font-semibold uppercase tracking-wider text-slate-700 mb-1">Priority Level</label>
+                <select class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white">
+                  <option>NORMAL</option>
+                  <option>HIGH</option>
+                  <option>CRITICAL (Emergency)</option>
+                </select>
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block font-semibold uppercase tracking-wider text-slate-700 mb-1">Clinical Context / Patient Reference</label>
+                <input type="text" placeholder="e.g. Inpatient Orthopedic surgery at City General Hospital" class="w-full px-3 py-2 rounded-xl border border-slate-200" />
+              </div>
+              <div class="sm:col-span-2">
+                <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-sm transition-colors cursor-pointer">
+                  Submit Request to Regional Network
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- REQUESTER HISTORY TABLE (§9) -->
+          <div id="requester-history-section" class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-4">
+            <h2 class="text-base font-bold text-slate-900">Requisition History</h2>
+            <div class="overflow-x-auto rounded-2xl border border-slate-200">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                  <tr>
+                    <th class="py-3 px-4">Request ID</th>
+                    <th class="py-3 px-4">Blood Group</th>
+                    <th class="py-3 px-4">Component</th>
+                    <th class="py-3 px-4">Units</th>
+                    <th class="py-3 px-4">Priority</th>
+                    <th class="py-3 px-4">Recipient</th>
+                    <th class="py-3 px-4">Date</th>
+                    <th class="py-3 px-4">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="requesterHistoryTableBody" class="divide-y divide-slate-100 text-slate-700">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
+
       </main>
 
     </div>
   </div>
 
+  <!-- Scripts -->
+  <script src="/js/demo-loader.js"></script>
   <script src="/js/api.js"></script>
   <script src="/js/auth.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      let user = null;
+      if (window.BloodBankAuth) {
+        user = window.BloodBankAuth.getUser();
+      }
+
+      if (!window.DemoDataLoader) return;
+
+      const email = (user && user.email) ? user.email.toLowerCase() : 'donor.john@bloodbank.dev';
+      const role = (user && (user.role || user.globalRole || user.global_role || '')).toUpperCase();
+
+      const isRequester = role === 'REQUESTER' || email.includes('requester');
+
+      // Toggle Views between Donor & Requester
+      const donorContainer = document.getElementById('donorViewContainer');
+      const reqContainer = document.getElementById('requesterViewContainer');
+      const donorLinks = document.getElementById('donorSidebarLinks');
+      const reqLinks = document.getElementById('requesterSidebarLinks');
+      const portalHeader = document.getElementById('portalHeaderBadge');
+
+      if (isRequester) {
+        if (donorContainer) donorContainer.classList.add('hidden');
+        if (reqContainer) reqContainer.classList.remove('hidden');
+        if (donorLinks) donorLinks.classList.add('hidden');
+        if (reqLinks) reqLinks.classList.remove('hidden');
+        if (portalHeader) {
+          portalHeader.textContent = 'Requester Portal';
+          portalHeader.className = 'ml-2 px-2 py-0.5 text-[10px] font-bold uppercase rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200';
+        }
+
+        // Load Requester Data (§9)
+        const reqData = await window.DemoDataLoader.getRequesterData(email);
+        if (reqData) {
+          const reqName = document.getElementById('requesterDisplayFullName');
+          if (reqName) reqName.textContent = reqData.fullName;
+
+          const reqs = reqData.requests || [];
+          const total = reqs.length;
+          const pending = reqs.filter(r => r.status === 'PENDING').length;
+          const fulfilled = reqs.filter(r => r.status === 'FULFILLED').length;
+          const critical = reqs.filter(r => r.priority === 'CRITICAL').length;
+
+          window.DemoDataLoader.animateCounter(document.getElementById('reqTotalCount'), total);
+          window.DemoDataLoader.animateCounter(document.getElementById('reqPendingCount'), pending);
+          window.DemoDataLoader.animateCounter(document.getElementById('reqFulfilledCount'), fulfilled);
+          window.DemoDataLoader.animateCounter(document.getElementById('reqCriticalCount'), critical);
+
+          const rTable = document.getElementById('requesterHistoryTableBody');
+          if (rTable) {
+            rTable.innerHTML = reqs.map(r => `
+              <tr class="hover:bg-slate-50 transition-colors">
+                <td class="py-3 px-4 font-mono font-bold text-slate-800">${r.id}</td>
+                <td class="py-3 px-4"><span class="px-2 py-0.5 rounded font-extrabold bg-red-100 text-red-800">${r.bloodGroup}</span></td>
+                <td class="py-3 px-4 text-slate-600">${r.component.replace('_', ' ')}</td>
+                <td class="py-3 px-4 font-bold text-slate-900">${r.units}</td>
+                <td class="py-3 px-4 font-semibold ${r.priority === 'CRITICAL' ? 'text-rose-600' : 'text-slate-600'}">${r.priority}</td>
+                <td class="py-3 px-4 text-slate-700">${r.recipient || 'Inpatient'}</td>
+                <td class="py-3 px-4 text-slate-500">${r.createdDate}</td>
+                <td class="py-3 px-4">
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                    r.status === 'PENDING' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
+                    r.status === 'APPROVED' ? 'bg-blue-100 text-blue-800 border border-blue-200' :
+                    'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                  }">
+                    ${r.status}
+                  </span>
+                </td>
+              </tr>
+            `).join('');
+          }
+        }
+
+      } else {
+        // Load Donor Data (John or Sarah, §8)
+        const donorData = await window.DemoDataLoader.getDonorData(email);
+        if (donorData) {
+          const donorName = document.getElementById('donorDisplayFullName');
+          if (donorName) donorName.textContent = donorData.fullName;
+
+          const bloodBadge = document.getElementById('donorBloodGroupBadge');
+          if (bloodBadge) bloodBadge.textContent = donorData.bloodGroup;
+
+          const rhBadge = document.getElementById('donorRhBadge');
+          if (rhBadge) rhBadge.textContent = donorData.universalDonor ? 'Universal Donor (Rh-)' : 'Rh Positive';
+
+          const roleBadge = document.getElementById('donorRoleBadge');
+          if (roleBadge && donorData.universalDonor) {
+            roleBadge.textContent = 'Universal Donor (O-)';
+            roleBadge.className = 'text-xs font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-3 py-1 rounded-full border border-amber-200';
+          }
+
+          window.DemoDataLoader.animateCounter(document.getElementById('donorTotalDonations'), donorData.totalDonations || 6);
+          window.DemoDataLoader.animateCounter(document.getElementById('donorLivesSaved'), donorData.estimatedLivesSaved || 18);
+
+          const lastDate = document.getElementById('donorLastDate');
+          if (lastDate) lastDate.textContent = donorData.lastDonationDate || 'Jul 15, 2026';
+
+          const eligEl = document.getElementById('donorEligibility');
+          if (eligEl) {
+            if (donorData.eligibilityStatus === 'ELIGIBLE_NOW') {
+              eligEl.textContent = 'Eligible Now';
+              eligEl.className = 'text-lg font-bold text-emerald-600 mt-1 block';
+            } else {
+              eligEl.textContent = 'Eligible in 7 Days';
+              eligEl.className = 'text-lg font-bold text-amber-600 mt-1 block';
+            }
+          }
+
+          if (donorData.upcomingDonation) {
+            const upDate = document.getElementById('upcomingDate');
+            if (upDate) upDate.textContent = `${donorData.upcomingDonation.date} at ${donorData.upcomingDonation.time || '10:00 AM'}`;
+            const upLoc = document.getElementById('upcomingLocation');
+            if (upLoc) upLoc.textContent = donorData.upcomingDonation.organization;
+          }
+
+          // Populate History Table
+          const historyTable = document.getElementById('donorHistoryTableBody');
+          if (historyTable && donorData.donations) {
+            historyTable.innerHTML = donorData.donations.map(d => `
+              <tr class="hover:bg-slate-50 transition-colors">
+                <td class="py-3 px-4 font-mono font-bold text-slate-800">${d.donationId}</td>
+                <td class="py-3 px-4 text-slate-700 font-medium">${d.donationDate}</td>
+                <td class="py-3 px-4 text-slate-900 font-semibold">${d.facilityName}</td>
+                <td class="py-3 px-4"><span class="px-2 py-0.5 rounded font-extrabold bg-red-100 text-red-800">${donorData.bloodGroup}</span></td>
+                <td class="py-3 px-4 text-slate-600">${d.donationType.replace('_', ' ')}</td>
+                <td class="py-3 px-4 font-bold text-slate-900">${d.unitsCollected} unit</td>
+                <td class="py-3 px-4 text-emerald-600 font-semibold">${d.screeningResult || 'CLEAR / VERIFIED'}</td>
+                <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">${d.status}</span></td>
+              </tr>
+            `).join('');
+          }
+        }
+      }
+    });
+  </script>
 </body>
 </html>

@@ -295,6 +295,14 @@
 
             <!-- Right: Notifications, Current Date, User Profile & Actions -->
             <div class="flex items-center gap-2 sm:gap-3">
+
+              <!-- Demo Badge (§26) -->
+              <div id="demoBadgeContainer" class="hidden sm:flex items-center">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase bg-amber-50 text-amber-800 border border-amber-300 shadow-2xs">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                  <span>DEMO MODE</span>
+                </span>
+              </div>
               
               <!-- Current Date Display -->
               <div class="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-medium text-slate-500 bg-slate-50 border border-slate-200">
@@ -1153,6 +1161,7 @@
   </div>
 
   <!-- Scripts -->
+  <script src="/js/demo-loader.js"></script>
   <script src="/js/api.js"></script>
   <script src="/js/auth.js"></script>
   <script src="/dashboard/super-admin/super-admin.js"></script>

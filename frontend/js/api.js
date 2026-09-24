@@ -298,6 +298,13 @@ const BloodBankAPI = {
    * List platform organizations (Super Admin: all; Org Staff: own tenant)
    */
   async getOrganizations(params = {}) {
+    // Automatically delegate to DemoDataLoader if in demo session (§27)
+    if (window.BloodBankAuth && typeof window.BloodBankAuth.isDemoSession === 'function' && window.BloodBankAuth.isDemoSession()) {
+      if (window.DemoDataLoader) {
+        return window.DemoDataLoader.getOrganizations(params);
+      }
+    }
+
     const query = new URLSearchParams(params).toString();
     try {
       return await this._request(`/api/organizations${query ? `?${query}` : ''}`, { method: 'GET' });
@@ -317,6 +324,12 @@ const BloodBankAPI = {
    * Get specific organization by ID
    */
   async getOrganizationById(orgId) {
+    if (window.BloodBankAuth && typeof window.BloodBankAuth.isDemoSession === 'function' && window.BloodBankAuth.isDemoSession()) {
+      if (window.DemoDataLoader) {
+        return window.DemoDataLoader.getOrganizationById(orgId);
+      }
+    }
+
     try {
       return await this._request(`/api/organizations/${orgId}`, { method: 'GET' });
     } catch (err) {
@@ -333,6 +346,12 @@ const BloodBankAPI = {
    * Approve organization (Super Admin only)
    */
   async approveOrganization(orgId) {
+    if (window.BloodBankAuth && typeof window.BloodBankAuth.isDemoSession === 'function' && window.BloodBankAuth.isDemoSession()) {
+      if (window.DemoDataLoader) {
+        return window.DemoDataLoader.approveOrganization(orgId);
+      }
+    }
+
     try {
       return await this._request(`/api/organizations/${orgId}/approve`, {
         method: 'PATCH'
@@ -352,6 +371,12 @@ const BloodBankAPI = {
    * Reject organization (Super Admin only)
    */
   async rejectOrganization(orgId, reason = '') {
+    if (window.BloodBankAuth && typeof window.BloodBankAuth.isDemoSession === 'function' && window.BloodBankAuth.isDemoSession()) {
+      if (window.DemoDataLoader) {
+        return window.DemoDataLoader.rejectOrganization(orgId, reason);
+      }
+    }
+
     try {
       return await this._request(`/api/organizations/${orgId}/reject`, {
         method: 'PATCH',
@@ -397,6 +422,19 @@ const BloodBankAPI = {
    * View system audit logs
    */
   async getAdminAuditLogs(params = {}) {
+    if (window.BloodBankAuth && typeof window.BloodBankAuth.isDemoSession === 'function' && window.BloodBankAuth.isDemoSession()) {
+      if (window.DemoDataLoader) {
+        const acts = await window.DemoDataLoader.getActivities();
+        return {
+          success: true,
+          data: {
+            logs: acts,
+            pagination: { total: acts.length, page: 1, limit: 30, totalPages: 1 }
+          }
+        };
+      }
+    }
+
     const query = new URLSearchParams(params).toString();
     return this._request(`/api/admin/audit-logs${query ? `?${query}` : ''}`, { method: 'GET' });
   },
@@ -405,6 +443,13 @@ const BloodBankAPI = {
    * Get Super Admin dashboard aggregated metrics and telemetry
    */
   async getDashboardStats() {
+    if (window.BloodBankAuth && typeof window.BloodBankAuth.isDemoSession === 'function' && window.BloodBankAuth.isDemoSession()) {
+      if (window.DemoDataLoader) {
+        const stats = await window.DemoDataLoader.getPlatformStats();
+        return { success: true, data: stats };
+      }
+    }
+
     return this._request('/api/admin/stats', { method: 'GET' });
   }
 };

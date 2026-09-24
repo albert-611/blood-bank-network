@@ -9,7 +9,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css">
-  <style>body { font-family: 'Inter', sans-serif; }</style>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .shadow-2xs { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04); }
+  </style>
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-900 flex flex-col antialiased" data-auth-required="true" data-allowed-roles="STAFF,BLOOD_BANK_STAFF,ORGANIZATION_ADMIN">
 
@@ -24,13 +27,21 @@
             </div>
             <div>
               <span class="font-extrabold text-base tracking-tight text-slate-900">Blood<span class="text-red-600">Link</span></span>
-              <span class="ml-2 px-2 py-0.5 text-[10px] font-bold uppercase rounded-md bg-rose-100 text-rose-800 border border-rose-200">Blood Bank Staff</span>
+              <span class="ml-2 px-2 py-0.5 text-[10px] font-bold uppercase rounded-md bg-rose-100 text-rose-800 border border-rose-200">Blood Bank Technologist</span>
             </div>
           </a>
         </div>
 
-        <!-- User Info & Logout Button -->
+        <!-- User Info, Demo Badge & Logout Button -->
         <div class="flex items-center gap-2.5">
+          <!-- Demo Badge (§26) -->
+          <div id="demoBadgeContainer" class="hidden sm:flex items-center">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase bg-amber-50 text-amber-800 border border-amber-300 shadow-2xs">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+              <span>DEMO MODE</span>
+            </span>
+          </div>
+
           <a href="/" title="Go to Main Landing Page" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-200 transition-colors shadow-xs cursor-pointer">
             <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
@@ -67,21 +78,33 @@
     <div class="flex flex-col md:flex-row gap-6">
 
       <!-- Sidebar -->
-      <aside class="w-full md:w-64 bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-1 h-fit">
-        <a href="#" class="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-xl bg-red-50 text-red-700 border border-red-100">
+      <aside class="w-full md:w-64 bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-1 h-fit sticky top-24">
+        <a href="#overview" class="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-xl bg-rose-50 text-rose-700 border border-rose-100">
           <span>🩸</span> Bank Overview
         </a>
-        <a href="#" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-          <span>📦</span> Blood Inventory Units
+        <a href="#expiring-section" class="flex items-center justify-between px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+          <div class="flex items-center gap-2.5">
+            <span>⏱️</span> Expiring Soon
+          </div>
+          <span id="sidebarExpiringBadge" class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">0</span>
         </a>
-        <a href="#" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-          <span>💉</span> Donor Donations
+        <a href="#matrix-section" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+          <span>📊</span> Blood Group Distribution
         </a>
-        <a href="#" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-          <span>🔬</span> Laboratory Testing
+        <a href="#inventory-table-section" class="flex items-center justify-between px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+          <div class="flex items-center gap-2.5">
+            <span>📦</span> Blood Inventory Units
+          </div>
+          <span id="sidebarInventoryBadge" class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">0</span>
         </a>
-        <a href="#" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-          <span>🚚</span> Multi-Facility Issuing
+        <a href="#incoming-section" class="flex items-center justify-between px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+          <div class="flex items-center gap-2.5">
+            <span>📋</span> Incoming Hospital Orders
+          </div>
+          <span id="sidebarIncomingBadge" class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">0</span>
+        </a>
+        <a href="#activity-section" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+          <span>⚡</span> Inventory Movement
         </a>
 
         <div class="pt-4 mt-4 border-t border-slate-100">
@@ -97,53 +120,410 @@
       </aside>
 
       <!-- Main Dashboard Content -->
-      <main class="flex-1 space-y-6">
+      <main class="flex-1 space-y-6" id="overview">
+
+        <!-- Welcome Banner -->
         <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <div class="text-xs font-bold uppercase tracking-wider text-rose-700 bg-rose-50 px-3 py-1 rounded-full border border-rose-200 inline-block mb-2">
-              Blood Bank Facility
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-rose-700 bg-rose-50 px-3 py-1 rounded-full border border-rose-200">
+                Blood Bank Operations & Storage Facility
+              </span>
+              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-50 text-amber-800 border border-amber-200">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Demo Dataset
+              </span>
             </div>
             <h1 class="text-2xl font-extrabold text-slate-900">
               <span data-user-org>Central Red Cross Blood Bank</span>
             </h1>
             <p class="text-sm text-slate-500 mt-1">
-              Logged in as <strong data-user-name>Technologist</strong>. Register donations, process testing, and dispatch units.
+              Logged in as <strong data-user-name>Technologist</strong>. Component fractionation, viral screening, cold vault inventory, and multi-facility courier dispatch.
             </p>
           </div>
-          <button 
-            type="button" 
-            data-logout-btn 
-            class="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold text-xs border border-rose-200 transition-colors flex items-center gap-1.5 cursor-pointer"
+          <a 
+            href="#inventory-table-section" 
+            class="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold text-xs transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
           >
-            <span>Log Out</span>
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
-          </button>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <span>Register Blood Batch</span>
+          </a>
         </div>
 
-        <!-- Quick Summary Metrics -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-            <span class="text-xs font-medium text-slate-500 block">Inventory Units</span>
-            <span class="text-2xl font-extrabold text-red-600 mt-1 block">10 Units</span>
-            <span class="text-[11px] text-slate-400 mt-0.5 block">Stored in cooling units</span>
+        <!-- 6 KPI METRICS GRID (Animated 0 -> Target, §13, §20) -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+            <span class="text-[11px] font-medium text-slate-500 block">Total Units</span>
+            <span id="bbTotalUnits" class="text-2xl font-extrabold text-slate-900 mt-0.5 block">0</span>
+            <span class="text-[10px] text-slate-400 mt-0.5 block">All components</span>
           </div>
-          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-            <span class="text-xs font-medium text-slate-500 block">Donations Processed</span>
-            <span class="text-2xl font-extrabold text-slate-900 mt-1 block">3 Donations</span>
-            <span class="text-[11px] text-slate-400 mt-0.5 block">Passed testing</span>
+
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+            <span class="text-[11px] font-medium text-slate-500 block">Available Units</span>
+            <span id="bbAvailableUnits" class="text-2xl font-extrabold text-emerald-600 mt-0.5 block">0</span>
+            <span class="text-[10px] text-slate-400 mt-0.5 block">Ready for issue</span>
           </div>
-          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-            <span class="text-xs font-medium text-slate-500 block">Storage Capacity</span>
-            <span class="text-2xl font-extrabold text-slate-900 mt-1 block">1,500 Units</span>
-            <span class="text-[11px] text-slate-400 mt-0.5 block">Max facility capacity</span>
+
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+            <span class="text-[11px] font-medium text-slate-500 block">Reserved Units</span>
+            <span id="bbReservedUnits" class="text-2xl font-extrabold text-blue-600 mt-0.5 block">0</span>
+            <span class="text-[10px] text-slate-400 mt-0.5 block">Locked for orders</span>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+            <span class="text-[11px] font-medium text-slate-500 block">Expiring Soon</span>
+            <span id="bbExpiringUnits" class="text-2xl font-extrabold text-amber-600 mt-0.5 block">0</span>
+            <span class="text-[10px] text-slate-400 mt-0.5 block">&le; 7 days shelf life</span>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+            <span class="text-[11px] font-medium text-slate-500 block">Issued Units</span>
+            <span id="bbIssuedUnits" class="text-2xl font-extrabold text-indigo-600 mt-0.5 block">0</span>
+            <span class="text-[10px] text-slate-400 mt-0.5 block">Dispatched to ORs</span>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+            <span class="text-[11px] font-medium text-slate-500 block">Expired Units</span>
+            <span id="bbExpiredUnits" class="text-2xl font-extrabold text-rose-600 mt-0.5 block">0</span>
+            <span class="text-[10px] text-slate-400 mt-0.5 block">Quarantined bio-waste</span>
           </div>
         </div>
+
+        <!-- OPERATIONAL ALERT: UNITS EXPIRING SOON (§4, §13) -->
+        <div id="expiring-section" class="bg-amber-50/70 rounded-3xl p-6 border border-amber-200 shadow-xs space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-amber-500 animate-pulse"></span>
+              <h2 class="text-base font-bold text-amber-950">Approaching Expiration Alert Panel (Within 7 Days)</h2>
+            </div>
+            <span class="px-2.5 py-0.5 text-xs font-bold uppercase rounded-full bg-amber-200/80 text-amber-900 border border-amber-300">
+              Priority Cross-Match
+            </span>
+          </div>
+          <p class="text-xs text-amber-800">
+            Units below require priority dispatch or re-allocation to high-throughput surgical trauma theaters before shelf life expiration.
+          </p>
+
+          <div class="overflow-x-auto rounded-2xl bg-white border border-amber-200">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-amber-100/50 text-amber-900 font-semibold border-b border-amber-200">
+                <tr>
+                  <th class="py-3 px-4">Unit ID</th>
+                  <th class="py-3 px-4">Blood Group</th>
+                  <th class="py-3 px-4">Component</th>
+                  <th class="py-3 px-4">Expiry Date</th>
+                  <th class="py-3 px-4">Days Remaining</th>
+                  <th class="py-3 px-4">Cold Storage Location</th>
+                  <th class="py-3 px-4">Action</th>
+                </tr>
+              </thead>
+              <tbody id="expiringUnitsTable" class="divide-y divide-amber-100 text-slate-700">
+                <tr>
+                  <td colspan="7" class="py-4 text-center text-slate-400">Loading expiring units...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- BLOOD GROUP DISTRIBUTION MATRIX (§5, §13, §19) -->
+        <div id="matrix-section" class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h2 class="text-lg font-bold text-slate-900">Blood Group Distribution & Reserve Matrix</h2>
+              <p class="text-xs text-slate-500 mt-0.5">Live inventory quantities calculated dynamically from demo dataset</p>
+            </div>
+            <div class="flex items-center gap-3 text-xs">
+              <span class="text-slate-500">Overall Capacity: <strong class="text-slate-900">1,500 Units</strong></span>
+            </div>
+          </div>
+
+          <div id="bbMatrixContainer" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- DETAILED INVENTORY UNITS TABLE (§4, §13) -->
+        <div id="inventory-table-section" class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 class="text-lg font-bold text-slate-900">Physical Blood Inventory Units</h2>
+              <p class="text-xs text-slate-500 mt-0.5">Barcoded blood units currently monitored in climate-controlled storage vaults</p>
+            </div>
+            <!-- Search & Filters -->
+            <div class="flex items-center gap-2">
+              <select id="groupFilter" class="px-2.5 py-1.5 text-xs rounded-xl border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+                <option value="ALL">All Blood Groups</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+              </select>
+              <select id="statusFilter" class="px-2.5 py-1.5 text-xs rounded-xl border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+                <option value="ALL">All Statuses</option>
+                <option value="AVAILABLE">Available</option>
+                <option value="RESERVED">Reserved</option>
+                <option value="ISSUED">Issued</option>
+                <option value="EXPIRED">Expired</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto rounded-2xl border border-slate-200">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                <tr>
+                  <th class="py-3 px-4">Unit ID</th>
+                  <th class="py-3 px-4">Blood Group</th>
+                  <th class="py-3 px-4">Component</th>
+                  <th class="py-3 px-4">Collection Date</th>
+                  <th class="py-3 px-4">Expiry Date</th>
+                  <th class="py-3 px-4">Storage Location</th>
+                  <th class="py-3 px-4">Status</th>
+                </tr>
+              </thead>
+              <tbody id="inventoryUnitsTableBody" class="divide-y divide-slate-100 text-slate-700">
+                <tr>
+                  <td colspan="7" class="py-4 text-center text-slate-400">Loading inventory units...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="flex items-center justify-between text-xs text-slate-500 pt-2">
+            <span id="inventoryShowingCount">Showing 0 of 0 units</span>
+          </div>
+        </div>
+
+        <!-- INCOMING HOSPITAL ORDERS & INVENTORY MOVEMENT ACTIVITY (§13, §16) -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="incoming-section">
+
+          <!-- Incoming Hospital & Clinic Requests -->
+          <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between">
+              <h2 class="text-base font-bold text-slate-900">Incoming Hospital & Clinic Requests</h2>
+              <span id="incomingBadge" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">0 orders</span>
+            </div>
+            <div class="overflow-x-auto rounded-xl border border-slate-100">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-100">
+                  <tr>
+                    <th class="py-2.5 px-3">Req ID</th>
+                    <th class="py-2.5 px-3">Facility</th>
+                    <th class="py-2.5 px-3">Group</th>
+                    <th class="py-2.5 px-3">Units</th>
+                    <th class="py-2.5 px-3">Priority</th>
+                    <th class="py-2.5 px-3">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="incomingRequestsBody" class="divide-y divide-slate-100 text-slate-700">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Recent Inventory Activity -->
+          <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4" id="activity-section">
+            <div class="flex items-center justify-between">
+              <h2 class="text-base font-bold text-slate-900">Recent Inventory Movement</h2>
+              <span class="text-xs text-slate-400">Live RFID & Dispatch</span>
+            </div>
+            <div id="bbActivityTimeline" class="space-y-3">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+
+        </div>
+
       </main>
 
     </div>
   </div>
 
+  <!-- Scripts -->
+  <script src="/js/demo-loader.js"></script>
   <script src="/js/api.js"></script>
   <script src="/js/auth.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (window.BloodBankAuth && typeof window.BloodBankAuth.requireRole === 'function') {
+        const ok = window.BloodBankAuth.requireRole('BLOOD_BANK_STAFF');
+        if (!ok) return;
+      }
+
+      if (!window.DemoDataLoader) return;
+
+      const [invStats, reqStats, emgStats, activities] = await Promise.all([
+        window.DemoDataLoader.getInventoryStats(null), // All units in regional inventory
+        window.DemoDataLoader.getRequestStats(null),
+        window.DemoDataLoader.getEmergencyRequests(null),
+        window.DemoDataLoader.getActivities(null, 6)
+      ]);
+
+      // Animate KPIs (§13, §20)
+      window.DemoDataLoader.animateCounter(document.getElementById('bbTotalUnits'), invStats.totalUnits || 102);
+      window.DemoDataLoader.animateCounter(document.getElementById('bbAvailableUnits'), invStats.availableUnits || 85);
+      window.DemoDataLoader.animateCounter(document.getElementById('bbReservedUnits'), invStats.reservedUnits || 10);
+      window.DemoDataLoader.animateCounter(document.getElementById('bbExpiringUnits'), invStats.expiringSoonUnits || 5);
+      window.DemoDataLoader.animateCounter(document.getElementById('bbIssuedUnits'), invStats.issuedUnits || 4);
+      window.DemoDataLoader.animateCounter(document.getElementById('bbExpiredUnits'), invStats.expiredUnits || 3);
+
+      // Badges
+      const sbExpBadge = document.getElementById('sidebarExpiringBadge');
+      if (sbExpBadge) sbExpBadge.textContent = invStats.expiringSoonUnits;
+      const sbInvBadge = document.getElementById('sidebarInventoryBadge');
+      if (sbInvBadge) sbInvBadge.textContent = invStats.totalUnits;
+      const sbIncBadge = document.getElementById('sidebarIncomingBadge');
+      if (sbIncBadge) sbIncBadge.textContent = reqStats.total;
+      const incBadge = document.getElementById('incomingBadge');
+      if (incBadge) incBadge.textContent = `${reqStats.total} orders`;
+
+      // Render Expiring Soon Panel
+      const expiringTable = document.getElementById('expiringUnitsTable');
+      if (expiringTable) {
+        if (invStats.expiringList.length === 0) {
+          expiringTable.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-slate-400">No units expiring within 7 days.</td></tr>';
+        } else {
+          expiringTable.innerHTML = invStats.expiringList.map(u => `
+            <tr class="hover:bg-amber-50/50 transition-colors">
+              <td class="py-3 px-4 font-mono font-bold text-slate-900">${u.id}</td>
+              <td class="py-3 px-4"><span class="px-2 py-0.5 rounded font-extrabold bg-red-100 text-red-800">${u.bloodGroup}</span></td>
+              <td class="py-3 px-4 text-slate-600">${u.component.replace('_', ' ')}</td>
+              <td class="py-3 px-4 font-semibold text-slate-800">${u.expiryDate}</td>
+              <td class="py-3 px-4 font-extrabold text-amber-600">${u.daysRemaining} days left</td>
+              <td class="py-3 px-4 text-slate-500">${u.storageLocation}</td>
+              <td class="py-3 px-4">
+                <button type="button" class="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-semibold text-[11px] shadow-xs cursor-pointer">
+                  Prioritize
+                </button>
+              </td>
+            </tr>
+          `).join('');
+        }
+      }
+
+      // Render Blood Matrix
+      const matrixContainer = document.getElementById('bbMatrixContainer');
+      if (matrixContainer) {
+        const groups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+        matrixContainer.innerHTML = groups.map(bg => {
+          const info = invStats.byBloodGroup[bg] || { total: 0, available: 0, reserved: 0, status: 'Available' };
+          return `
+            <div class="p-3.5 rounded-2xl border border-slate-200 bg-white hover:border-rose-400 hover:shadow-xs transition-all">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-base font-extrabold text-slate-900">${bg}</span>
+                <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold border ${info.statusClass}">${info.status}</span>
+              </div>
+              <div class="text-xs space-y-1 text-slate-600">
+                <div class="flex justify-between">
+                  <span>Available:</span>
+                  <strong class="text-slate-900">${info.available} units</strong>
+                </div>
+                <div class="flex justify-between">
+                  <span>Reserved:</span>
+                  <strong class="text-blue-700">${info.reserved} units</strong>
+                </div>
+                <div class="flex justify-between text-[11px] text-slate-400 pt-0.5">
+                  <span>Total stock:</span>
+                  <span>${info.total}</span>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Render Detailed Inventory Table with filtering
+      let currentUnits = invStats.unitsList;
+      const groupFilter = document.getElementById('groupFilter');
+      const statusFilter = document.getElementById('statusFilter');
+      const invTableBody = document.getElementById('inventoryUnitsTableBody');
+      const showingCount = document.getElementById('inventoryShowingCount');
+
+      function renderInventoryTable() {
+        let filtered = currentUnits;
+        const gVal = groupFilter.value;
+        const sVal = statusFilter.value;
+
+        if (gVal !== 'ALL') {
+          filtered = filtered.filter(u => u.bloodGroup === gVal);
+        }
+        if (sVal !== 'ALL') {
+          filtered = filtered.filter(u => u.status === sVal);
+        }
+
+        if (showingCount) {
+          showingCount.textContent = `Showing ${filtered.length} of ${currentUnits.length} total units`;
+        }
+
+        if (!invTableBody) return;
+
+        if (filtered.length === 0) {
+          invTableBody.innerHTML = '<tr><td colspan="7" class="py-6 text-center text-slate-400">No units matching filters.</td></tr>';
+          return;
+        }
+
+        // Display up to 25 items for smooth responsive scrolling
+        invTableBody.innerHTML = filtered.slice(0, 30).map(u => {
+          let statusBadge = 'bg-slate-100 text-slate-700';
+          if (u.status === 'AVAILABLE') statusBadge = 'bg-emerald-100 text-emerald-800 border border-emerald-200';
+          if (u.status === 'RESERVED') statusBadge = 'bg-blue-100 text-blue-800 border border-blue-200';
+          if (u.status === 'ISSUED') statusBadge = 'bg-indigo-100 text-indigo-800 border border-indigo-200';
+          if (u.status === 'EXPIRED') statusBadge = 'bg-rose-100 text-rose-800 border border-rose-200';
+
+          return `
+            <tr class="hover:bg-slate-50 transition-colors">
+              <td class="py-2.5 px-4 font-mono font-bold text-slate-800">${u.id}</td>
+              <td class="py-2.5 px-4"><span class="px-1.5 py-0.5 rounded font-bold bg-slate-100 text-slate-800">${u.bloodGroup}</span></td>
+              <td class="py-2.5 px-4 text-slate-600">${u.component.replace('_', ' ')}</td>
+              <td class="py-2.5 px-4 text-slate-500">${u.collectionDate}</td>
+              <td class="py-2.5 px-4 font-medium text-slate-700">${u.expiryDate}</td>
+              <td class="py-2.5 px-4 text-slate-500 truncate max-w-[200px]">${u.storageLocation}</td>
+              <td class="py-2.5 px-4"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${statusBadge}">${u.status}</span></td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      if (groupFilter) groupFilter.addEventListener('change', renderInventoryTable);
+      if (statusFilter) statusFilter.addEventListener('change', renderInventoryTable);
+      renderInventoryTable();
+
+      // Render Incoming Orders
+      const incomingTable = document.getElementById('incomingRequestsBody');
+      if (incomingTable) {
+        incomingTable.innerHTML = reqStats.requestsList.slice(0, 6).map(r => `
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="py-2 px-3 font-mono font-bold text-slate-800">${r.id}</td>
+            <td class="py-2 px-3 text-slate-900 font-medium truncate max-w-[120px]">${r.organizationName || 'Hospital'}</td>
+            <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded font-bold bg-slate-100 text-slate-800">${r.bloodGroup}</span></td>
+            <td class="py-2 px-3 font-bold text-slate-900">${r.units}</td>
+            <td class="py-2 px-3 ${r.priority === 'CRITICAL' ? 'text-rose-600 font-bold' : 'text-slate-600'}">${r.priority}</td>
+            <td class="py-2 px-3"><span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${r.status === 'PENDING' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}">${r.status}</span></td>
+          </tr>
+        `).join('');
+      }
+
+      // Render Activity
+      const activityContainer = document.getElementById('bbActivityTimeline');
+      if (activityContainer) {
+        activityContainer.innerHTML = activities.map(a => {
+          const time = a.timestamp ? new Date(a.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recent';
+          return `
+            <div class="flex items-start gap-3 text-xs">
+              <div class="w-2 h-2 rounded-full bg-rose-500 mt-1.5 shrink-0"></div>
+              <div class="flex-1">
+                <p class="font-medium text-slate-800">${a.description}</p>
+                <span class="text-[10px] text-slate-400 mt-0.5 block">${time} · ${a.organization}</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    });
+  </script>
 </body>
 </html>

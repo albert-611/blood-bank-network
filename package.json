@@ -10,11 +10,13 @@
     "db:seed": "node backend/scripts/init-db.js --seed-only",
     "test": "node backend/tests/auth.test.js",
     "test:demo": "node backend/tests/demoAuth.test.js",
+    "test:demodata": "node backend/tests/demoDataSystem.test.js",
+    "test:dashboards": "node backend/tests/verifyAllSeededDashboards.test.js",
     "test:seeded": "node backend/tests/seededAuthProduction.test.js",
     "test:org": "node backend/tests/orgRegistration.test.js",
     "test:rbac": "node backend/tests/rbac.test.js",
     "test:phase4": "node backend/tests/phase4_tenant_saas.test.js",
-    "test:all": "node backend/tests/auth.test.js && node backend/tests/seededAuthProduction.test.js && node backend/tests/orgRegistration.test.js && node backend/tests/rbac.test.js && node backend/tests/phase4_tenant_saas.test.js"
+    "test:all": "node backend/tests/auth.test.js && node backend/tests/demoAuth.test.js && node backend/tests/demoDataSystem.test.js && node backend/tests/verifyAllSeededDashboards.test.js && node backend/tests/seededAuthProduction.test.js && node backend/tests/orgRegistration.test.js && node backend/tests/rbac.test.js && node backend/tests/phase4_tenant_saas.test.js"
   },
   "keywords": [
     "blood-bank",
