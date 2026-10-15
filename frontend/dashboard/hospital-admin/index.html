@@ -88,8 +88,11 @@
           </div>
           <span id="sidebarEmergencyBadge" class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700">0</span>
         </a>
-        <a href="#inventory-section" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-          <span>🩸</span> Blood Inventory
+        <a href="/inventory.html" class="flex items-center justify-between px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+          <div class="flex items-center gap-2.5">
+            <span>🩸</span> Blood Inventory
+          </div>
+          <span class="text-[10px] font-bold text-red-600 uppercase">Live</span>
         </a>
         <a href="#requests-section" class="flex items-center justify-between px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
           <div class="flex items-center gap-2.5">
@@ -221,7 +224,10 @@
               <h2 class="text-lg font-bold text-slate-900">Regional Blood Group Availability</h2>
               <p class="text-xs text-slate-500 mt-0.5">Real-time supply levels across Central Red Cross Blood Bank & City General Hospital</p>
             </div>
-            <div class="flex items-center gap-2 text-xs">
+            <div class="flex items-center gap-3 text-xs">
+              <a href="/inventory.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold text-xs shadow-xs transition-colors">
+                <span>Manage Live Inventory &rarr;</span>
+              </a>
               <span class="inline-flex items-center gap-1 text-slate-500">
                 <span class="w-2.5 h-2.5 rounded bg-emerald-500"></span> Available
               </span>

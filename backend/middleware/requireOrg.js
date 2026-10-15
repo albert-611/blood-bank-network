@@ -46,6 +46,13 @@ function requireOrg(req, res, next) {
       req.params?.organizationId;
 
     if (targetId !== undefined && targetId !== null && String(targetId).trim() !== '') {
+      if (String(targetId).trim().toUpperCase() === 'ALL') {
+        req.organizationId = null;
+        req.orgId = null;
+        req.organization = null;
+        return next();
+      }
+
       const parsedId = parseInt(targetId, 10);
       if (isNaN(parsedId)) {
         return res.status(400).json({

@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blood Inventory Management — BloodLink</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .shadow-2xs { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04); }
+    .shadow-card { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05); }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900 flex flex-col antialiased" data-auth-required="true">
+
+  <!-- Navigation Bar -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-2xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- Logo & Title -->
+        <div class="flex items-center gap-3">
+          <a href="/" class="flex items-center gap-3 group">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-white shadow-md shadow-red-500/20">
+              <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+            </div>
+            <div>
+              <span class="font-extrabold text-base tracking-tight text-slate-900">Blood<span class="text-red-600">Link</span></span>
+              <span class="ml-2 px-2 py-0.5 text-[10px] font-bold uppercase rounded-md bg-red-100 text-red-800 border border-red-200">Inventory</span>
+            </div>
+          </a>
+        </div>
+
+        <!-- User Info, Dashboard Return & Logout -->
+        <div class="flex items-center gap-3">
+          <a id="backToDashboardBtn" href="/dashboard/hospital-admin/" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-200 transition-colors shadow-xs">
+            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+            <span>Dashboard</span>
+          </a>
+
+          <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span id="navUserName" class="font-semibold text-slate-800">User</span>
+            <span class="text-slate-400">|</span>
+            <span id="navUserOrg" class="text-slate-500 font-medium">Organization</span>
+          </div>
+
+          <button 
+            type="button" 
+            id="logoutBtn"
+            title="Log out" 
+            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-xl bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 transition-all shadow-xs hover:border-rose-300 cursor-pointer"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+            </svg>
+            <span>Log Out</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+    <!-- Header Banner -->
+    <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-red-700 bg-red-50 px-3 py-1 rounded-full border border-red-200">
+            Phase 6 — Blood Inventory Management
+          </span>
+          <span id="tenantScopeBadge" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+            Tenant Isolated
+          </span>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          Blood Stock & Cold Chain Inventory
+        </h1>
+        <p class="text-sm text-slate-500 mt-1 max-w-2xl">
+          Track individual blood unit lifecycles, monitor shelf-life expiration, verify cold storage integrity, and manage operational availability.
+        </p>
+      </div>
+
+      <div class="flex items-center gap-3 self-stretch md:self-auto">
+        <button 
+          type="button" 
+          id="refreshBtn"
+          class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+        >
+          <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          <span>Refresh</span>
+        </button>
+
+        <button 
+          type="button" 
+          id="openAddUnitModalBtn"
+          class="hidden px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          <span>Add Blood Unit</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Alert / Toast Banner -->
+    <div id="toastBanner" class="hidden p-4 rounded-2xl text-xs font-semibold transition-all"></div>
+
+    <!-- KPI Summary Cards Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      
+      <!-- Card 1: Total Units -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-card flex items-center justify-between">
+        <div>
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Recorded</span>
+          <div class="text-2xl font-extrabold text-slate-900 mt-1" id="kpiTotalUnits">-</div>
+          <p class="text-[11px] text-slate-500 mt-0.5">Physical units in storage</p>
+        </div>
+        <div class="w-11 h-11 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-lg">
+          📦
+        </div>
+      </div>
+
+      <!-- Card 2: Available Units -->
+      <div class="bg-white rounded-2xl p-5 border border-emerald-200 bg-emerald-50/20 shadow-card flex items-center justify-between">
+        <div>
+          <span class="text-xs font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Available Stock
+          </span>
+          <div class="text-2xl font-extrabold text-emerald-900 mt-1" id="kpiAvailableUnits">-</div>
+          <p class="text-[11px] text-emerald-700 mt-0.5">Valid & unexpired</p>
+        </div>
+        <div class="w-11 h-11 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-lg">
+          🩸
+        </div>
+      </div>
+
+      <!-- Card 3: Expiring Soon (< 7 Days) -->
+      <div class="bg-white rounded-2xl p-5 border border-amber-200 bg-amber-50/20 shadow-card flex items-center justify-between">
+        <div>
+          <span class="text-xs font-bold text-amber-700 uppercase tracking-wider">Expiring ≤ 7 Days</span>
+          <div class="text-2xl font-extrabold text-amber-900 mt-1" id="kpiExpiringUnits">-</div>
+          <p class="text-[11px] text-amber-700 mt-0.5">Priority dispatch needed</p>
+        </div>
+        <div class="w-11 h-11 rounded-2xl bg-amber-100 flex items-center justify-center text-amber-700 font-bold text-lg">
+          ⏳
+        </div>
+      </div>
+
+      <!-- Card 4: Expired / Ineligible Units -->
+      <div class="bg-white rounded-2xl p-5 border border-rose-200 bg-rose-50/20 shadow-card flex items-center justify-between">
+        <div>
+          <span class="text-xs font-bold text-rose-700 uppercase tracking-wider">Expired / Discarded</span>
+          <div class="text-2xl font-extrabold text-rose-900 mt-1" id="kpiExpiredUnits">-</div>
+          <p class="text-[11px] text-rose-700 mt-0.5">Excluded from availability</p>
+        </div>
+        <div class="w-11 h-11 rounded-2xl bg-rose-100 flex items-center justify-center text-rose-700 font-bold text-lg">
+          ⚠️
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Blood Group Availability Matrix -->
+    <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div>
+          <h2 class="text-base font-bold text-slate-900">ABO & Rh Availability Matrix</h2>
+          <p class="text-xs text-slate-500">Click any blood group below to quick-filter inventory units</p>
+        </div>
+        <button type="button" id="clearGroupFilterBtn" class="text-xs font-semibold text-red-600 hover:text-red-700 hover:underline">
+          Reset Group Filter
+        </button>
+      </div>
+
+      <div id="bloodGroupMatrix" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- Search & Filter Controls -->
+    <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        
+        <!-- Search by unit code -->
+        <div class="relative">
+          <input 
+            type="text" 
+            id="searchInput" 
+            placeholder="Search Unit Code..." 
+            class="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition-all"
+          >
+          <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+        </div>
+
+        <!-- Filter Blood Group -->
+        <select id="filterBloodGroup" class="px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition-all">
+          <option value="">All Blood Groups</option>
+          <option value="A+">A+</option>
+          <option value="A-">A-</option>
+          <option value="B+">B+</option>
+          <option value="B-">B-</option>
+          <option value="AB+">AB+</option>
+          <option value="AB-">AB-</option>
+          <option value="O+">O+</option>
+          <option value="O-">O-</option>
+        </select>
+
+        <!-- Filter Component -->
+        <select id="filterComponent" class="px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition-all">
+          <option value="">All Components</option>
+          <option value="WHOLE_BLOOD">Whole Blood</option>
+          <option value="PACKED_RBC">Packed RBC</option>
+          <option value="PLASMA">Plasma</option>
+          <option value="PLATELETS">Platelets</option>
+          <option value="CRYO">Cryoprecipitate</option>
+        </select>
+
+        <!-- Filter Status -->
+        <select id="filterStatus" class="px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition-all">
+          <option value="">All Lifecycle Statuses</option>
+          <option value="AVAILABLE">Available</option>
+          <option value="DONATED">Donated</option>
+          <option value="TESTING">Testing</option>
+          <option value="RESERVED">Reserved</option>
+          <option value="ISSUED">Issued</option>
+          <option value="COMPLETED">Completed</option>
+          <option value="EXPIRED">Expired</option>
+          <option value="DISCARDED">Discarded</option>
+          <option value="REJECTED">Rejected</option>
+        </select>
+
+        <!-- Availability Toggle -->
+        <select id="filterAvailability" class="px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition-all">
+          <option value="">All Units</option>
+          <option value="true">Available Stock Only</option>
+          <option value="false">Unavailable / Expired Only</option>
+        </select>
+
+      </div>
+    </div>
+
+    <!-- Inventory Data Table -->
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden space-y-4">
+      <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+        <div>
+          <h2 class="text-base font-bold text-slate-900">Physical Units Roster</h2>
+          <p class="text-xs text-slate-500" id="tableHeaderSummary">Showing inventory records</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-slate-500 font-medium">Rows per page:</span>
+          <select id="limitSelect" class="px-2 py-1 text-xs rounded-lg border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none">
+            <option value="10">10</option>
+            <option value="20" selected>20</option>
+            <option value="50">50</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+            <tr>
+              <th class="py-3 px-4">Unit Code</th>
+              <th class="py-3 px-4">Group</th>
+              <th class="py-3 px-4">Component</th>
+              <th class="py-3 px-4">Collection Date</th>
+              <th class="py-3 px-4">Expiry Date</th>
+              <th class="py-3 px-4">Shelf Status</th>
+              <th class="py-3 px-4">Status</th>
+              <th class="py-3 px-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="inventoryTableBody" class="divide-y divide-slate-100 text-slate-700">
+            <tr>
+              <td colspan="8" class="py-8 text-center text-slate-400">Loading inventory data...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination Footer -->
+      <div class="p-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
+        <div id="paginationText">Showing 0 of 0</div>
+        <div class="flex items-center gap-2">
+          <button 
+            type="button" 
+            id="prevPageBtn" 
+            disabled 
+            class="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 font-semibold transition-colors"
+          >
+            Previous
+          </button>
+          <span id="pageIndicator" class="px-2 font-semibold text-slate-800">Page 1 of 1</span>
+          <button 
+            type="button" 
+            id="nextPageBtn" 
+            disabled 
+            class="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 font-semibold transition-colors"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ======================================================================== -->
+  <!-- MODALS                                                                   -->
+  <!-- ======================================================================== -->
+
+  <!-- 1. Add Blood Unit Modal -->
+  <div id="addUnitModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-6 animate-scale-in">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-lg font-bold text-slate-900">Record New Blood Unit</h3>
+          <p class="text-xs text-slate-500">Stamps unit directly under authenticated organization</p>
+        </div>
+        <button type="button" id="closeAddModalBtn" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div id="addModalError" class="hidden p-3 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 text-xs"></div>
+
+      <form id="addUnitForm" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Unit Code *</label>
+          <input 
+            type="text" 
+            name="unit_code" 
+            id="addUnitCode" 
+            required 
+            placeholder="e.g. BD-2026-000201"
+            class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:outline-none"
+          >
+          <p class="text-[10px] text-slate-400 mt-0.5">Unique barcode/ID identifier</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Blood Group *</label>
+            <select name="blood_group" id="addBloodGroup" required class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:outline-none">
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+              <option value="O+" selected>O+</option>
+              <option value="O-">O-</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Component *</label>
+            <select name="component" id="addComponent" required class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:outline-none">
+              <option value="WHOLE_BLOOD">Whole Blood</option>
+              <option value="PACKED_RBC" selected>Packed RBC</option>
+              <option value="PLASMA">Plasma</option>
+              <option value="PLATELETS">Platelets</option>
+              <option value="CRYO">Cryoprecipitate</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Collection Date *</label>
+            <input 
+              type="date" 
+              name="collection_date" 
+              id="addCollectionDate" 
+              required 
+              class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:outline-none"
+            >
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Expiry Date *</label>
+            <input 
+              type="date" 
+              name="expiry_date" 
+              id="addExpiryDate" 
+              required 
+              class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:outline-none"
+            >
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Initial Status</label>
+          <select name="status" id="addStatus" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:outline-none">
+            <option value="AVAILABLE" selected>Available</option>
+            <option value="TESTING">Testing</option>
+            <option value="DONATED">Donated</option>
+          </select>
+        </div>
+
+        <div class="pt-4 flex items-center justify-end gap-3">
+          <button type="button" id="cancelAddBtn" class="px-4 py-2 text-xs font-semibold rounded-xl text-slate-600 hover:bg-slate-100 transition-colors">
+            Cancel
+          </button>
+          <button type="submit" id="saveAddBtn" class="px-5 py-2 text-xs font-bold rounded-xl bg-red-600 hover:bg-red-700 text-white shadow-sm transition-colors flex items-center gap-1.5">
+            <span>Save Blood Unit</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. Edit Blood Unit Status Modal -->
+  <div id="editUnitModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-lg font-bold text-slate-900">Update Blood Unit</h3>
+          <p class="text-xs text-slate-500" id="editUnitSubtitle">Unit ID: -</p>
+        </div>
+        <button type="button" id="closeEditModalBtn" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div id="editModalError" class="hidden p-3 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 text-xs"></div>
+
+      <form id="editUnitForm" class="space-y-4">
+        <input type="hidden" id="editUnitId">
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Lifecycle Status *</label>
+          <select id="editStatus" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:outline-none">
+            <option value="AVAILABLE">Available</option>
+            <option value="TESTING">Testing</option>
+            <option value="RESERVED">Reserved</option>
+            <option value="ISSUED">Issued</option>
+            <option value="EXPIRED">Expired</option>
+            <option value="DISCARDED">Discarded</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Expiry Date</label>
+          <input 
+            type="date" 
+            id="editExpiryDate" 
+            class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:outline-none"
+          >
+          <p class="text-[10px] text-slate-400 mt-0.5">Extend or correct shelf expiry date</p>
+        </div>
+
+        <div class="pt-4 flex items-center justify-end gap-3">
+          <button type="button" id="cancelEditBtn" class="px-4 py-2 text-xs font-semibold rounded-xl text-slate-600 hover:bg-slate-100 transition-colors">
+            Cancel
+          </button>
+          <button type="submit" id="saveEditBtn" class="px-5 py-2 text-xs font-bold rounded-xl bg-red-600 hover:bg-red-700 text-white shadow-sm transition-colors">
+            Update Unit
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. Discard Unit Modal -->
+  <div id="discardUnitModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-6">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-rose-100 flex items-center justify-center text-rose-600 text-xl font-bold">
+          ⚠️
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-slate-900">Discard Blood Unit</h3>
+          <p class="text-xs text-slate-500" id="discardUnitSubtitle">Unit ID: -</p>
+        </div>
+      </div>
+
+      <p class="text-xs text-slate-600">
+        Are you sure you want to retire this unit? It will be permanently marked as <strong>DISCARDED</strong> and removed from available clinical stock.
+      </p>
+
+      <div id="discardModalError" class="hidden p-3 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 text-xs"></div>
+
+      <form id="discardUnitForm" class="space-y-4">
+        <input type="hidden" id="discardUnitId">
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Reason for Discard *</label>
+          <select id="discardReasonSelect" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:outline-none">
+            <option value="Expired shelf life">Expired shelf life</option>
+            <option value="Hemolysis / visual inspection failure">Hemolysis / visual inspection failure</option>
+            <option value="Cold chain temperature breach">Cold chain temperature breach</option>
+            <option value="Damaged pack / leak">Damaged pack / leak</option>
+            <option value="Failed serological testing">Failed serological testing</option>
+            <option value="Other clinical retirement">Other clinical retirement</option>
+          </select>
+        </div>
+
+        <div class="pt-4 flex items-center justify-end gap-3">
+          <button type="button" id="cancelDiscardBtn" class="px-4 py-2 text-xs font-semibold rounded-xl text-slate-600 hover:bg-slate-100 transition-colors">
+            Cancel
+          </button>
+          <button type="submit" id="confirmDiscardBtn" class="px-5 py-2 text-xs font-bold rounded-xl bg-rose-600 hover:bg-rose-700 text-white shadow-sm transition-colors">
+            Confirm Discard
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Client JavaScript -->
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/inventory.js"></script>
+</body>
+</html>

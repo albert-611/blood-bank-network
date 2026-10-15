@@ -91,11 +91,11 @@
         <a href="#matrix-section" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
           <span>📊</span> Blood Group Distribution
         </a>
-        <a href="#inventory-table-section" class="flex items-center justify-between px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+        <a href="/inventory.html" class="flex items-center justify-between px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
           <div class="flex items-center gap-2.5">
             <span>📦</span> Blood Inventory Units
           </div>
-          <span id="sidebarInventoryBadge" class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">0</span>
+          <span class="text-[10px] font-bold text-red-600 uppercase">Live</span>
         </a>
         <a href="#incoming-section" class="flex items-center justify-between px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
           <div class="flex items-center gap-2.5">
@@ -251,6 +251,9 @@
             </div>
             <!-- Search & Filters -->
             <div class="flex items-center gap-2">
+              <a href="/inventory.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold text-xs shadow-xs transition-colors">
+                <span>Manage Live Inventory &rarr;</span>
+              </a>
               <select id="groupFilter" class="px-2.5 py-1.5 text-xs rounded-xl border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-red-500">
                 <option value="ALL">All Blood Groups</option>
                 <option value="A+">A+</option>

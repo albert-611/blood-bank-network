@@ -451,8 +451,74 @@ const BloodBankAPI = {
     }
 
     return this._request('/api/admin/stats', { method: 'GET' });
+  },
+
+  // ==========================================================================
+  // PHASE 6: INVENTORY & BLOOD UNITS API METHODS (§14, §18)
+  // ==========================================================================
+
+  /**
+   * Get organization inventory summary KPI metrics
+   * @param {Object} [params={}] - Optional query filters (e.g. { organization_id })
+   */
+  async getInventorySummary(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    return this._request(`/api/inventory/summary${query ? `?${query}` : ''}`, { method: 'GET' });
+  },
+
+  /**
+   * List blood units in inventory with optional filters, search, and pagination
+   * @param {Object} [params={}] - { page, limit, search, blood_group, component, status, is_available, expiring_days }
+   */
+  async getInventory(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    return this._request(`/api/inventory${query ? `?${query}` : ''}`, { method: 'GET' });
+  },
+
+  /**
+   * Get specific blood unit by ID
+   * @param {number|string} id - Blood unit ID
+   */
+  async getBloodUnitById(id) {
+    return this._request(`/api/inventory/${id}`, { method: 'GET' });
+  },
+
+  /**
+   * Add a new blood unit to inventory
+   * @param {Object} data - { unit_code, blood_group, component, collection_date, expiry_date, status, donation_id }
+   */
+  async createBloodUnit(data) {
+    return this._request('/api/inventory', {
+      method: 'POST',
+      body: data
+    });
+  },
+
+  /**
+   * Update permitted blood unit fields
+   * @param {number|string} id - Blood unit ID
+   * @param {Object} data - { status, expiry_date, collection_date }
+   */
+  async updateBloodUnit(id, data) {
+    return this._request(`/api/inventory/${id}`, {
+      method: 'PATCH',
+      body: data
+    });
+  },
+
+  /**
+   * Discard / retire a blood unit from active inventory
+   * @param {number|string} id - Blood unit ID
+   * @param {string} [reason='Manual inventory retirement'] - Reason for discard
+   */
+  async discardBloodUnit(id, reason = 'Manual inventory retirement') {
+    return this._request(`/api/inventory/${id}/discard`, {
+      method: 'POST',
+      body: { reason }
+    });
   }
 };
 
 window.BloodBankAPI = BloodBankAPI;
+
 

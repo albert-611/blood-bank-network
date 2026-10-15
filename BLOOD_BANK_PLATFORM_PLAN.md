@@ -1,6 +1,6 @@
 # 🩸 BLOOD BANK PLATFORM — MASTER PLAN
 
-**Status:** Phase 4 (Multi-Tenant SaaS Foundation & Organization Management) Completed — Phase 5 Ready
+**Status:** Phase 6 (Blood Inventory Management) Completed — Phase 7 Ready (Blood Requests)
 **Single Source of Truth for this project.** Update this file whenever an architectural decision is made or a phase is completed.
 
 ---
@@ -1089,8 +1089,45 @@ Implementation Status: **Phase 1, Phase 2, Phase 3, Phase 4, & Phase 5 Completed
 - **Database Statement:** No database schema alterations or migrations were required. The existing relational schema (`roles`, `permissions`, `role_permissions`, `organization_staff`, `blood_units`, `audit_logs`) fully satisfied all Phase 5 requirements.
 - **Deviations:** None.
 
-Waiting for: **START PHASE 6** (Blood Inventory CRUD & Status Lifecycle)
+Implementation Status: **Phase 1, Phase 2, Phase 3, Phase 4, Phase 5, & Phase 6 Completed.**
 
+---
 
+### Phase 6 Completion Notes
 
+- **Date Completed:** 2026-10-15
+- **Architectural Scope:** Fully implemented Phase 6 — Blood Inventory Management (§9.10, §11, §14, §18, §25, §27).
+- **Inventory Data Model & Schema Integrity:**
+  - Utilized existing `blood_units` table in MySQL (`database/schema.sql`) with no schema migrations required.
+  - Enforced exact 8-group ABO/Rh ENUM (`'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'`), 5-component ENUM (`'WHOLE_BLOOD', 'PACKED_RBC', 'PLASMA', 'PLATELETS', 'CRYO'`), and 9-state lifecycle status ENUM (`'DONATED', 'TESTING', 'AVAILABLE', 'RESERVED', 'ISSUED', 'COMPLETED', 'EXPIRED', 'DISCARDED', 'REJECTED'`).
+- **Availability Rule & Expiry Logic (§14):**
+  - Enforced single source of truth for blood availability: a unit is `AVAILABLE` if and only if `status = 'AVAILABLE'` AND `expiry_date >= CURDATE()`.
+  - Expired units (`expiry_date < CURDATE()`) are strictly excluded from available inventory and availability counts, even if their database status field was marked `'AVAILABLE'`.
+  - Prevented creating units with past expiry dates as `AVAILABLE` (returns HTTP 400 `EXPIRED_UNIT_CANNOT_BE_AVAILABLE`).
+- **API Endpoints Implemented & Secured:**
+  - `GET /api/inventory/summary`: Returns tenant-scoped KPI aggregate counts (total, available, expired, expiring soon within 7 days, reserved, testing, issued, discarded), plus distribution breakdowns across all 8 blood groups and 5 components.
+  - `GET /api/inventory`: Lists blood units scoped to authenticated organization with search (`unit_code`), filtering (`blood_group`, `component`, `status`, `is_available`, `expiring_days`), deterministic sort (`expiry_date ASC, id DESC`), and validated pagination (`page`, `limit`).
+  - `POST /api/inventory`: Creates blood unit stamped strictly with verified server-side `req.organizationId`. Validates required fields, date formats, and calendar constraints (`collection_date <= expiry_date`). Detects cross-organization tampering (returns HTTP 403 `CROSS_ORGANIZATION_ACCESS_DENIED`), prevents duplicate unit codes (returns HTTP 409 `DUPLICATE_UNIT_CODE`), and writes audit entry `INVENTORY_UNIT_CREATE`.
+  - `GET /api/inventory/:id`: Retrieves individual blood unit, verifying organization ownership via `checkResourceOwnership('blood_units')`.
+  - `PATCH /api/inventory/:id`: Controlled update using strict allowlist (`status`, `expiry_date`, `collection_date`). Prevents transferring organization ownership (returns HTTP 403 `ORGANIZATION_REASSIGNMENT_FORBIDDEN`), rejects invalid status transitions from terminal states (`COMPLETED`, `DISCARDED`, `REJECTED`), rejects setting expired units to `AVAILABLE`, and writes audit log `INVENTORY_UNIT_UPDATE`.
+  - `DELETE /api/inventory/:id` & `POST /api/inventory/:id/discard`: Non-destructive deactivation retiring blood unit by transitioning status to `DISCARDED`, capturing retirement reason in `audit_logs` (`INVENTORY_UNIT_DISCARD`) while preserving historical records.
+- **Multi-Tenant Security & Isolation:**
+  - Authenticated user's organization context derived server-side via `requireOrg` (`req.organizationId`), never trusting client-supplied organization identifiers.
+  - Cross-tenant data isolation verified: Hospital A is strictly prohibited from viewing, creating, updating, or discarding units belonging to Hospital B (returns HTTP 403 `CROSS_ORGANIZATION_ACCESS_DENIED`).
+  - CRITICAL COMPLETION CRITERION VERIFIED: Hospital A attempt to modify Hospital B's / Blood Bank B's blood unit (`PATCH /api/inventory/1`) returns HTTP 403, and Hospital B's record in MySQL remains strictly untouched.
+  - Super Admin explicitly authorized for platform-wide queries or targeted organization queries (`req.query.organization_id`).
+- **Frontend Implementation:**
+  - `frontend/inventory.html` & `frontend/js/inventory.js`: Comprehensive, responsive inventory workspace styled with modern design tokens, integrating:
+    - Real-time KPI summary cards (Total Recorded, Available Stock, Expiring ≤ 7 Days, Expired / Discarded).
+    - Interactive 8-group ABO/Rh matrix with live availability badges and click-to-filter capability.
+    - Search toolbar with real-time unit code search, blood group filter, component filter, status filter, availability toggle, and page limit selector.
+    - Data table displaying unit code, blood group, component, collection date, expiry date with visual shelf status tags, lifecycle status badges, and action buttons.
+    - Modal forms: "Add Blood Unit" (auto-suggested code, date defaults, client & server validation), "Update Blood Unit" (status transition selector, expiry date modification), and "Discard Blood Unit" (confirmation prompt with reason selector).
+    - Linked from Hospital Admin (`hospital-admin/index.html`), Blood Bank Staff (`blood-bank-staff/index.html`), and Super Admin (`super-admin/index.html`) workspaces.
+  - `frontend/js/api.js`: Extended with `getInventorySummary`, `getInventory`, `getBloodUnitById`, `createBloodUnit`, `updateBloodUnit`, and `discardBloodUnit`.
+- **Automated Test Suite:**
+  - Authored `backend/tests/phase6_inventory.test.js` covering all 26 mandatory prompt scenarios across 5 test groups (plus discard edge cases): 73 assertions, 73 passed, 0 failed.
+  - Executed full project regression suite (`npm run test:all`): 411 passed, 0 failed across 10 test suites (`auth.test.js`, `demoAuth.test.js`, `demoDataSystem.test.js`, `verifyAllSeededDashboards.test.js`, `seededAuthProduction.test.js`, `orgRegistration.test.js`, `rbac.test.js`, `phase4_tenant_saas.test.js`, `phase5_authorization_rbac.test.js`, `phase6_inventory.test.js`).
+- **Deviations:** None.
 
+Waiting for: **START PHASE 7** (Blood Requests & Inpatient Orders Workflow)

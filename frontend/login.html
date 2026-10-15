@@ -580,6 +580,19 @@
         demoBtnSpinner.classList.remove('hidden');
 
         try {
+          // Attempt real API login so JWT token is saved to localStorage for database operations
+          try {
+            const apiRes = await BloodBankAPI.login({ email: cleanEmail, password: cleanPassword });
+            if (apiRes.success && apiRes.data?.token) {
+              BloodBankAuth.setToken(apiRes.data.token);
+              if (apiRes.data.user) {
+                BloodBankAuth.setUser(apiRes.data.user);
+              }
+            }
+          } catch (apiErr) {
+            console.warn('Real backend auth during demo login skipped/failed:', apiErr.message);
+          }
+
           const result = await window.DemoAuth.login(cleanEmail, cleanPassword);
           if (result.success && result.dashboard) {
             showAlert('success', 'Demo access authorized! Redirecting to dashboard...');
