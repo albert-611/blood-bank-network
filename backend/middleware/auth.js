@@ -16,6 +16,93 @@
 const db = require('../config/db');
 const { verifyAccessToken } = require('../services/tokenService');
 
+const DEFAULT_ROLE_PERMISSIONS = {
+  SUPER_ADMIN: [
+    'organizations.approve',
+    'organizations.manage_staff',
+    'inventory.manage',
+    'inventory.view',
+    'donations.record',
+    'donations.view_own',
+    'requests.create',
+    'requests.verify',
+    'requests.emergency',
+    'reservations.create',
+    'issues.create',
+    'audit.view',
+    'settings.manage'
+  ],
+  HOSPITAL_ADMIN: [
+    'organizations.manage_staff',
+    'inventory.manage',
+    'inventory.view',
+    'requests.create',
+    'requests.verify',
+    'requests.emergency',
+    'reservations.create',
+    'issues.create',
+    'audit.view'
+  ],
+  ORGANIZATION_ADMIN: [
+    'organizations.manage_staff',
+    'inventory.manage',
+    'inventory.view',
+    'requests.create',
+    'requests.verify',
+    'requests.emergency',
+    'reservations.create',
+    'issues.create',
+    'audit.view'
+  ],
+  CLINIC_ADMIN: [
+    'organizations.manage_staff',
+    'inventory.view',
+    'requests.create',
+    'requests.emergency',
+    'audit.view'
+  ],
+  BLOOD_BANK_STAFF: [
+    'organizations.manage_staff',
+    'inventory.manage',
+    'inventory.view',
+    'donations.record',
+    'reservations.create',
+    'issues.create',
+    'audit.view'
+  ],
+  STAFF: [
+    'organizations.manage_staff',
+    'inventory.manage',
+    'inventory.view',
+    'donations.record',
+    'reservations.create',
+    'issues.create',
+    'audit.view'
+  ],
+  DOCTOR: [
+    'inventory.view',
+    'requests.create',
+    'requests.emergency'
+  ],
+  MEDICAL_STAFF: [
+    'inventory.view',
+    'requests.create',
+    'requests.emergency'
+  ],
+  DONOR: [
+    'inventory.view',
+    'donations.view_own'
+  ],
+  REQUESTER: [
+    'inventory.view',
+    'requests.create'
+  ],
+  PATIENT: [
+    'inventory.view',
+    'requests.create'
+  ]
+};
+
 function extractBearerToken(authHeader) {
   if (typeof authHeader !== 'string') return null;
 
@@ -197,10 +284,21 @@ async function authenticate(req, res, next) {
             permissions = (permRows || []).map((p) => p.key);
           }
         }
+
+        // Fallback to seeded matrix if permissions query returned empty
+        if (!permissions || permissions.length === 0) {
+          const matchedRole = String(roleName || role || user.global_role || '').toUpperCase().trim();
+          permissions = DEFAULT_ROLE_PERMISSIONS[matchedRole] || [];
+        }
       } catch (ctxErr) {
         // Fallback for mock/test environments
-        permissions = [];
+        const matchedRole = String(roleName || role || user.global_role || '').toUpperCase().trim();
+        permissions = DEFAULT_ROLE_PERMISSIONS[matchedRole] || [];
       }
+    }
+
+    if (user.global_role === 'SUPER_ADMIN' && (!permissions || permissions.length === 0)) {
+      permissions = DEFAULT_ROLE_PERMISSIONS.SUPER_ADMIN;
     }
 
     // Attach complete verified user profile to request object
@@ -222,6 +320,8 @@ async function authenticate(req, res, next) {
       role_id: roleId,
       roleName,
       role_name: roleName,
+      orgId: organizationId,
+      org_id: organizationId,
       organizationId,
       organization_id: organizationId,
       organizationName,
@@ -230,6 +330,12 @@ async function authenticate(req, res, next) {
       organization_type: organizationType,
       organizationStatus,
       organization_status: organizationStatus,
+      organization: organizationId ? {
+        id: organizationId,
+        name: organizationName,
+        type: organizationType,
+        status: organizationStatus
+      } : null,
       organizationStaff,
       permissions
     };

@@ -237,8 +237,142 @@ async function getBloodUnitById(req, res, next) {
   }
 }
 
+/**
+ * Update Blood Unit in Inventory
+ * PATCH /api/inventory/:id or PATCH /api/blood-units/:id
+ *
+ * Verifies resource ownership: Organization Admin / Staff can only modify units owned by their organization.
+ * Cross-organization modification attempts are strictly rejected with 403 CROSS_ORGANIZATION_ACCESS_DENIED,
+ * audited, and target resource data remains untouched.
+ */
+async function updateBloodUnit(req, res, next) {
+  try {
+    const unitId = req.params.id;
+    const isSuperAdmin = req.user.role === 'SUPER_ADMIN' || req.user.global_role === 'SUPER_ADMIN';
+
+    // Retrieve unit if not already attached by checkResourceOwnership
+    let unit = req.resource;
+    if (!unit) {
+      const [rows] = await db.query(
+        'SELECT * FROM blood_units WHERE id = ? LIMIT 1',
+        [unitId]
+      );
+      if (!rows || rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: {
+            message: 'Blood unit not found.',
+            code: 'NOT_FOUND'
+          }
+        });
+      }
+      unit = rows[0];
+    }
+
+    // Strict Cross-Organization Mutation Defense
+    if (!isSuperAdmin && String(unit.organization_id) !== String(req.user.organization_id)) {
+      logAuditEvent({
+        userId: req.user.id,
+        action: 'SECURITY_CROSS_ORG_MUTATION_ATTEMPT',
+        resourceType: 'BLOOD_UNIT',
+        resourceId: parseInt(unitId, 10),
+        previousValue: { userOrgId: req.user.organization_id },
+        newValue: { targetUnitOrgId: unit.organization_id },
+        ipAddress: req.ip
+      }).catch(() => {});
+
+      return res.status(403).json({
+        success: false,
+        error: {
+          message: 'Access denied: You do not have permission to modify blood units belonging to another organization.',
+          code: 'CROSS_ORGANIZATION_ACCESS_DENIED'
+        }
+      });
+    }
+
+    const { status, expiry_date, collection_date, blood_group, component } = req.body;
+    const updates = [];
+    const params = [];
+
+    if (status) {
+      updates.push('status = ?');
+      params.push(status.toUpperCase().trim());
+    }
+    if (expiry_date) {
+      updates.push('expiry_date = ?');
+      params.push(expiry_date);
+    }
+    if (collection_date) {
+      updates.push('collection_date = ?');
+      params.push(collection_date);
+    }
+    if (blood_group && isSuperAdmin) {
+      updates.push('blood_group = ?');
+      params.push(blood_group.toUpperCase().trim());
+    }
+    if (component && isSuperAdmin) {
+      updates.push('component = ?');
+      params.push(component.toUpperCase().trim());
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: 'No valid fields provided for update.',
+          code: 'INVALID_INPUT'
+        }
+      });
+    }
+
+    params.push(unitId);
+    await db.query(`UPDATE blood_units SET ${updates.join(', ')} WHERE id = ?`, params);
+
+    // Record audit trail
+    logAuditEvent({
+      userId: req.user.id,
+      action: 'INVENTORY_UNIT_UPDATE',
+      resourceType: 'BLOOD_UNIT',
+      resourceId: parseInt(unitId, 10),
+      previousValue: {
+        status: unit.status,
+        expiry_date: unit.expiry_date,
+        organization_id: unit.organization_id
+      },
+      newValue: {
+        status: status ? status.toUpperCase().trim() : unit.status,
+        expiry_date: expiry_date || unit.expiry_date
+      },
+      ipAddress: req.ip
+    }).catch(() => {});
+
+    const [updatedRows] = await db.query(
+      `SELECT bu.id, bu.unit_code, bu.donation_id, bu.organization_id,
+              bu.blood_group, bu.component, bu.collection_date, bu.expiry_date, bu.status,
+              bu.created_at, bu.updated_at,
+              o.name AS organization_name, o.type AS organization_type
+       FROM blood_units bu
+       JOIN organizations o ON bu.organization_id = o.id
+       WHERE bu.id = ?
+       LIMIT 1`,
+      [unitId]
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        unit: updatedRows && updatedRows.length > 0 ? updatedRows[0] : { ...unit, ...req.body }
+      },
+      message: 'Blood unit updated successfully.'
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   listInventory,
   createBloodUnit,
-  getBloodUnitById
+  getBloodUnitById,
+  updateBloodUnit
 };

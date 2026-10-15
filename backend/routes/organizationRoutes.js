@@ -93,40 +93,45 @@ router.get(
   orgController.getOrganizationMe
 );
 
+const checkPermission = require('../middleware/checkPermission');
+
 /**
  * @route   PATCH /api/organizations/me
  * @desc    Update authenticated organization details
- * @access  Protected (ORGANIZATION_ADMIN only)
+ * @access  Protected (ORGANIZATION_ADMIN, organizations.manage_staff)
  */
 router.patch(
   '/me',
   authenticate,
   requireRole('ORGANIZATION_ADMIN'),
   requireOrg,
+  checkPermission('organizations.manage_staff'),
   orgController.updateOrganizationMe
 );
 
 /**
  * @route   PATCH /api/organizations/:id/approve
  * @desc    Super Admin approves a pending organization
- * @access  Protected (SUPER_ADMIN)
+ * @access  Protected (SUPER_ADMIN, organizations.approve)
  */
 router.patch(
   '/:id/approve',
   authenticate,
   requireRole('SUPER_ADMIN'),
+  checkPermission('organizations.approve'),
   orgController.approveOrganization
 );
 
 /**
  * @route   PATCH /api/organizations/:id/reject
  * @desc    Super Admin rejects a pending organization
- * @access  Protected (SUPER_ADMIN)
+ * @access  Protected (SUPER_ADMIN, organizations.approve)
  */
 router.patch(
   '/:id/reject',
   authenticate,
   requireRole('SUPER_ADMIN'),
+  checkPermission('organizations.approve'),
   validateOrgReject,
   orgController.rejectOrganization
 );

@@ -831,7 +831,7 @@ None of these are added to the MVP unless a concrete need arises.
 | 2 | Database | `schema.sql`, `seed.sql`, MySQL connection pool | ✅ **Completed** — All 19 tables in InnoDB, full seed data, mysql2 pool, GET /api/health/db route |
 | 3 | Authentication | Register/login/logout, JWT middleware, bcrypt | ✅ **Completed** — Can register, log in, access protected routes with signed JWT, rate limiting, helmet, audit logging |
 | 4 | Organization Management | Multi-Tenant SaaS Foundation & CRUD + Super Admin approval flow | ✅ **Completed** — Multi-tenant isolation verified, PENDING lifecycle enforced, Super Admin approve/reject, 71 tests passing |
-| 5 | User Roles & Authorization | `organization_staff`, `checkPermission`, `requireOrg` middleware | Cross-org write attempt returns 403 in a test |
+| 5 | User Roles & Authorization | `organization_staff`, `checkPermission`, `requireOrg` middleware | ✅ **Completed** — RBAC & multi-tenant authorization enforced across all routes, 42 tests passing, cross-org write returns 403 with target data unchanged |
 | 6 | Blood Inventory | `blood_units` CRUD + status transitions, derived inventory query | Inventory query returns correct counts after unit status changes |
 | 7 | Blood Requests | Request + request_items + full status workflow | A request can be created, verified, reserved, issued, completed |
 | 8 | Emergency Requests | Priority flag, notification trigger | Emergency request visibly prioritized in staff worklist |
@@ -1039,10 +1039,58 @@ Implementation Status: **Phase 1, Phase 2, Phase 3, & Phase 4 Completed.**
 - **Automated Test Suite:**
   - Created `backend/tests/phase4_tenant_saas.test.js` containing 71 test cases covering tenant boundary enforcement, cross-org 403 denials, transactional rollbacks, subtype constraints, Super Admin approval/rejection lifecycle, non-super-admin 403 restrictions, status tampering defense, specialized endpoints, and audit logging.
   - Verified full test regression: 143 passed, 0 failed (`auth.test.js`: 14, `orgRegistration.test.js`: 29, `rbac.test.js`: 29, `phase4_tenant_saas.test.js`: 71).
-- **Database Statement:** No database schema alterations or migrations were required. The existing relational schema (`organizations`, `hospitals`, `clinics`, `blood_banks`, `organization_staff`, `audit_logs`) fully satisfied all multi-tenant SaaS requirements.
 - **Deviations:** None.
 
-Waiting for: **START PHASE 5** (User Roles & Authorization / RBAC enforcement)
+Implementation Status: **Phase 1, Phase 2, Phase 3, Phase 4, & Phase 5 Completed.**
+
+---
+
+### Phase 5 Completion Notes
+
+- **Date Completed:** 2026-10-15
+- **Architectural Scope:** Fully implemented Phase 5 — User Roles & Authorization (RBAC) and strict organization-level tenant boundaries (§5, §9, §11, §13, §18, §25, §27).
+- **`organization_staff` Integration:**
+  - Resolved user organization context and role server-side by joining `organization_staff` with `roles` and `organizations`.
+  - Enforced `staff_status === 'SUSPENDED'` rejection with HTTP 403 `STAFF_ACCESS_SUSPENDED`.
+  - Prevented silent role elevation or default administrative privileges for users lacking valid active staff memberships.
+  - Linked authenticated user profile to `req.user.organizationStaff`, `req.user.organizationId`, and `req.user.roleName`.
+- **`checkPermission()` Middleware (`backend/middleware/checkPermission.js` & `backend/middleware/rbac.js`):**
+  - Implemented reusable middleware factory supporting single permissions (`checkPermission('inventory.manage')`), multiple required permissions (AND semantics), arrays, and `checkPermission.any()` (OR semantics).
+  - Enforced authentication prerequisite (HTTP 401 `UNAUTHORIZED`) before permission validation.
+  - Preserved `SUPER_ADMIN` platform-wide authority bypass.
+  - Returns structured error envelope `{ success: false, error: { message, code: 'FORBIDDEN_PERMISSION', requiredPermissions } }` with HTTP 403 on permission deficiency.
+  - Normalized permission keys across dot and colon notations.
+- **`requireOrg()` Middleware (`backend/middleware/requireOrg.js`):**
+  - Derives trusted organization ID from verified server-side membership (`req.user.organization_id`).
+  - Sets consistent request conventions: `req.organizationId`, `req.orgId`, and `req.organization`.
+  - Prohibits trusting client-supplied `organization_id` in query parameters, request bodies, or route params.
+  - Detects tenant ID tampering: records `SECURITY_CROSS_ORG_ATTEMPT` audit log and rejects with HTTP 403 `CROSS_ORGANIZATION_ACCESS_DENIED`.
+  - Enforces organization approval lifecycle: `PENDING` -> 403 `ORGANIZATION_PENDING_APPROVAL`, `SUSPENDED` -> 403 `ORGANIZATION_SUSPENDED`, `REJECTED` -> 403 `ORGANIZATION_REJECTED`.
+  - Preserves `SUPER_ADMIN` platform-wide authority (`req.organizationId = null` by default); when Super Admin targets a specific tenant ID, verifies that the target organization exists in database.
+  - Enhanced `checkResourceOwnership` to distinguish read (`SECURITY_CROSS_ORG_RESOURCE_ACCESS`) and mutation (`SECURITY_CROSS_ORG_MUTATION_ATTEMPT`) security violations.
+- **Route Authorization & Enforced Permissions (§13 & §18):**
+  - `backend/routes/inventoryRoutes.js`:
+    - `GET /api/inventory`: `checkPermission('inventory.view')`
+    - `POST /api/inventory`: `checkPermission('inventory.manage')`
+    - `GET /api/inventory/:id`: `checkPermission('inventory.view')`, `checkResourceOwnership('blood_units')`
+    - `PATCH /api/inventory/:id`: `checkPermission('inventory.manage')`, `checkResourceOwnership('blood_units')`, `inventoryController.updateBloodUnit`
+  - `backend/routes/staffRoutes.js`:
+    - `GET /api/organization/staff`: `checkPermission('organizations.manage_staff')`
+    - `POST /api/organization/staff`: `checkPermission('organizations.manage_staff')`
+  - `backend/routes/organizationRoutes.js`:
+    - `PATCH /api/organizations/me`: `checkPermission('organizations.manage_staff')`
+    - `PATCH /api/organizations/:id/approve`: `checkPermission('organizations.approve')`
+    - `PATCH /api/organizations/:id/reject`: `checkPermission('organizations.approve')`
+- **Critical Completion Criterion Verified:**
+  - Automated test: Hospital A attempt to modify Hospital B's / Blood Bank B's blood unit (`PATCH /api/inventory/1`) returns HTTP 403 `CROSS_ORGANIZATION_ACCESS_DENIED`, records `SECURITY_CROSS_ORG_MUTATION_ATTEMPT` audit log, and Hospital B's unit data in the database remains strictly unchanged (`status = 'AVAILABLE'`).
+- **Automated Test Suite:**
+  - Authored `backend/tests/phase5_authorization_rbac.test.js` containing 42 test assertions covering all 21 prompt specifications: 42 passed, 0 failed.
+  - Full automated regression suite (`npm run test:all`) passing all 9 test suites: 266 passed, 0 failed.
+- **Database Statement:** No database schema alterations or migrations were required. The existing relational schema (`roles`, `permissions`, `role_permissions`, `organization_staff`, `blood_units`, `audit_logs`) fully satisfied all Phase 5 requirements.
+- **Deviations:** None.
+
+Waiting for: **START PHASE 6** (Blood Inventory CRUD & Status Lifecycle)
+
 
 
 

@@ -45,7 +45,27 @@ function requireOrg(req, res, next) {
       req.params?.orgId ||
       req.params?.organizationId;
 
-    req.organizationId = targetId ? parseInt(targetId, 10) : null;
+    if (targetId !== undefined && targetId !== null && String(targetId).trim() !== '') {
+      const parsedId = parseInt(targetId, 10);
+      if (isNaN(parsedId)) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            message: 'Invalid organization identifier provided.',
+            code: 'INVALID_ORGANIZATION_ID'
+          }
+        });
+      }
+
+      req.organizationId = parsedId;
+      req.orgId = parsedId;
+      req.organization = { id: parsedId };
+      return next();
+    }
+
+    req.organizationId = null;
+    req.orgId = null;
+    req.organization = null;
     return next();
   }
 
@@ -129,8 +149,15 @@ function requireOrg(req, res, next) {
     }
   }
 
-  // Bind trusted organization ID to request (never trust client payload)
+  // Bind trusted organization ID and context to request (never trust client payload)
   req.organizationId = req.user.organization_id;
+  req.orgId = req.user.organization_id;
+  req.organization = {
+    id: req.user.organization_id,
+    name: req.user.organization_name,
+    type: req.user.organization_type,
+    status: req.user.organization_status
+  };
   next();
 }
 
@@ -183,7 +210,7 @@ function checkResourceOwnership(tableName, idParamName = 'id', orgColumn = 'orga
             // Log security incident
             logAuditEvent({
               userId: req.user.id,
-              action: 'SECURITY_CROSS_ORG_RESOURCE_ACCESS',
+              action: req.method === 'GET' ? 'SECURITY_CROSS_ORG_RESOURCE_ACCESS' : 'SECURITY_CROSS_ORG_MUTATION_ATTEMPT',
               resourceType: tableName.toUpperCase(),
               resourceId: parseInt(resourceId, 10),
               previousValue: { userOrgId: req.user.organization_id },

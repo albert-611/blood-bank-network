@@ -92,13 +92,54 @@ function requireRole(...allowedRoles) {
 }
 
 /**
- * Express middleware to enforce fine-grained permissions.
- * Super Admins automatically bypass permission checks.
+ * Normalize permission key to uniform dot-notation lowercase string.
+ * Supports both 'inventory.manage' and 'inventory:manage'.
+ */
+function normalizePermissionKey(key) {
+  if (!key) return '';
+  return String(key).toLowerCase().trim().replace(/:/g, '.');
+}
+
+/**
+ * Check whether an authenticated user profile possesses all specified permissions.
+ * Super Admins automatically possess all functional permissions.
  *
- * @param {...string} permissionKeys - Permission keys required (e.g. 'inventory.manage')
+ * @param {Object} user - Sanitized req.user profile
+ * @param {...(string|string[])} permissionKeys - One or more permission keys
+ * @returns {boolean}
+ */
+function hasPermission(user, ...permissionKeys) {
+  if (!user) return false;
+
+  // Super Admin possesses system-wide permissions
+  if (
+    user.role === 'SUPER_ADMIN' ||
+    user.global_role === 'SUPER_ADMIN' ||
+    user.roleName === 'SUPER_ADMIN' ||
+    user.role_name === 'SUPER_ADMIN'
+  ) {
+    return true;
+  }
+
+  const rawPermissions = user.permissions || [];
+  if (rawPermissions.includes('*')) return true;
+
+  const userPerms = rawPermissions.map(normalizePermissionKey);
+  const required = permissionKeys.flat().map(normalizePermissionKey).filter(Boolean);
+
+  if (required.length === 0) return true;
+  return required.every((reqKey) => userPerms.includes(reqKey));
+}
+
+/**
+ * Express middleware to enforce fine-grained permissions.
+ * All specified permissions are required (AND semantics).
+ * Super Admins automatically bypass functional permission checks.
+ *
+ * @param {...(string|string[])} permissionKeys - Permission keys required (e.g. 'inventory.manage')
  */
 function requirePermission(...permissionKeys) {
-  const required = permissionKeys.flat();
+  const required = permissionKeys.flat().filter(Boolean);
 
   return (req, res, next) => {
     if (!req.user) {
@@ -111,15 +152,60 @@ function requirePermission(...permissionKeys) {
       });
     }
 
-    // Super Admin has system-wide permissions
-    if (req.user.role === 'SUPER_ADMIN' || req.user.global_role === 'SUPER_ADMIN') {
+    if (hasPermission(req.user, ...required)) {
       return next();
     }
 
-    const userPermissions = req.user.permissions || [];
-    const hasAll = required.every((key) => userPermissions.includes(key));
+    return res.status(403).json({
+      success: false,
+      error: {
+        message: 'Access denied: Missing required functional permission.',
+        code: 'FORBIDDEN_PERMISSION',
+        requiredPermissions: required
+      }
+    });
+  };
+}
 
-    if (!hasAll) {
+/**
+ * Express middleware to enforce at least one of the specified permissions (OR semantics).
+ * Super Admins automatically bypass permission checks.
+ *
+ * @param {...(string|string[])} permissionKeys - Permission keys where at least one is required
+ */
+function requireAnyPermission(...permissionKeys) {
+  const required = permissionKeys.flat().filter(Boolean);
+
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          message: 'Authentication required to access this resource.',
+          code: 'UNAUTHORIZED'
+        }
+      });
+    }
+
+    // Super Admin platform-wide bypass
+    if (
+      req.user.role === 'SUPER_ADMIN' ||
+      req.user.global_role === 'SUPER_ADMIN' ||
+      req.user.roleName === 'SUPER_ADMIN' ||
+      req.user.role_name === 'SUPER_ADMIN'
+    ) {
+      return next();
+    }
+
+    const rawPermissions = req.user.permissions || [];
+    if (rawPermissions.includes('*')) return next();
+
+    const userPerms = rawPermissions.map(normalizePermissionKey);
+    const normalizedRequired = required.map(normalizePermissionKey);
+
+    const hasAny = normalizedRequired.some((reqKey) => userPerms.includes(reqKey));
+
+    if (!hasAny) {
       return res.status(403).json({
         success: false,
         error: {
@@ -137,6 +223,8 @@ function requirePermission(...permissionKeys) {
 module.exports = {
   hasRole,
   requireRole,
+  hasPermission,
   requirePermission,
+  requireAnyPermission,
   ROLE_ALIASES
 };
