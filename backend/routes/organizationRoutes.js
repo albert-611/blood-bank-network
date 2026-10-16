@@ -47,6 +47,13 @@ const requireOrg = require('../middleware/requireOrg');
 router.get('/types', orgController.getOrganizationTypes);
 
 /**
+ * @route   GET /api/organizations/facilities
+ * @desc    Search and discover approved treatment facilities (Hospitals & Clinics)
+ * @access  Public / Authenticated
+ */
+router.get('/facilities', orgController.getFacilities);
+
+/**
  * @route   POST /api/organizations/register
  * @desc    Register a new organization and create its initial administrator
  * @access  Public

@@ -31,6 +31,7 @@ const inventoryRoutes = require('./routes/inventoryRoutes');
 const publicRoutes = require('./routes/publicRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const userRoutes = require('./routes/userRoutes');
+const requestRoutes = require('./routes/requestRoutes');
 
 // Initialize the Express application
 const app = express();
@@ -219,6 +220,10 @@ app.use('/api/public', publicRoutes);
 
 // Mount Platform Super Admin Routes (§5, §11, §13)
 app.use('/api/admin', adminRoutes);
+
+// Mount Blood Requests Routes (§9, §11, §18)
+app.use('/api/blood-requests', requestRoutes);
+app.use('/api/requests', requestRoutes);
 
 // ============================================================================
 // ERROR HANDLING & FALLBACKS (§18 & §25)

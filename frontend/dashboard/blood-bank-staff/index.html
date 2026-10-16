@@ -80,31 +80,37 @@
       <!-- Sidebar -->
       <aside class="w-full md:w-64 bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-1 h-fit sticky top-24">
         <a href="#overview" class="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-xl bg-rose-50 text-rose-700 border border-rose-100">
-          <span>🩸</span> Bank Overview
+          <svg class="w-4 h-4 text-rose-600 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+          <span>Bank Overview</span>
         </a>
         <a href="#expiring-section" class="flex items-center justify-between px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
           <div class="flex items-center gap-2.5">
-            <span>⏱️</span> Expiring Soon
+            <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span>Expiring Soon</span>
           </div>
           <span id="sidebarExpiringBadge" class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">0</span>
         </a>
         <a href="#matrix-section" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-          <span>📊</span> Blood Group Distribution
+          <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          <span>Blood Group Distribution</span>
         </a>
         <a href="/inventory.html" class="flex items-center justify-between px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
           <div class="flex items-center gap-2.5">
-            <span>📦</span> Blood Inventory Units
+            <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            <span>Blood Inventory Units</span>
           </div>
           <span class="text-[10px] font-bold text-red-600 uppercase">Live</span>
         </a>
         <a href="#incoming-section" class="flex items-center justify-between px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
           <div class="flex items-center gap-2.5">
-            <span>📋</span> Incoming Hospital Orders
+            <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+            <span>Incoming Hospital Orders</span>
           </div>
           <span id="sidebarIncomingBadge" class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">0</span>
         </a>
         <a href="#activity-section" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-          <span>⚡</span> Inventory Movement
+          <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          <span>Inventory Movement</span>
         </a>
 
         <div class="pt-4 mt-4 border-t border-slate-100">
@@ -314,7 +320,7 @@
                 <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-100">
                   <tr>
                     <th class="py-2.5 px-3">Req ID</th>
-                    <th class="py-2.5 px-3">Facility</th>
+                    <th class="py-2.5 px-3">Destination Facility</th>
                     <th class="py-2.5 px-3">Group</th>
                     <th class="py-2.5 px-3">Units</th>
                     <th class="py-2.5 px-3">Priority</th>
@@ -498,16 +504,23 @@
       // Render Incoming Orders
       const incomingTable = document.getElementById('incomingRequestsBody');
       if (incomingTable) {
-        incomingTable.innerHTML = reqStats.requestsList.slice(0, 6).map(r => `
+        incomingTable.innerHTML = reqStats.requestsList.slice(0, 8).map(r => {
+          const facilityDisplay = r.preferredFacility || r.organizationName || 'Treatment Center';
+          const isManual = r.preferredFacilityType === 'MANUAL';
+          return `
           <tr class="hover:bg-slate-50 transition-colors">
             <td class="py-2 px-3 font-mono font-bold text-slate-800">${r.id}</td>
-            <td class="py-2 px-3 text-slate-900 font-medium truncate max-w-[120px]">${r.organizationName || 'Hospital'}</td>
+            <td class="py-2 px-3 text-slate-900 font-medium truncate max-w-[150px]" title="${facilityDisplay}">
+              <span>${facilityDisplay}</span>
+              ${isManual ? '<span class="ml-1 text-[9px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-1 py-0.2 rounded">Manual</span>' : ''}
+            </td>
             <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded font-bold bg-slate-100 text-slate-800">${r.bloodGroup}</span></td>
             <td class="py-2 px-3 font-bold text-slate-900">${r.units}</td>
             <td class="py-2 px-3 ${r.priority === 'CRITICAL' ? 'text-rose-600 font-bold' : 'text-slate-600'}">${r.priority}</td>
             <td class="py-2 px-3"><span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${r.status === 'PENDING' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}">${r.status}</span></td>
           </tr>
-        `).join('');
+        `;
+        }).join('');
       }
 
       // Render Activity

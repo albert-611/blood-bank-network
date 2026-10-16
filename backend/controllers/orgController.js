@@ -300,6 +300,87 @@ function getOrganizationTypes(req, res) {
 }
 
 /**
+ * Discover Approved Treatment Facilities (Hospitals & Clinics)
+ * GET /api/organizations/facilities
+ *
+ * Query params:
+ * - search / q: filter by name or city / address
+ * - type: 'HOSPITAL' | 'CLINIC' (optional)
+ * - limit: max records (default 50, max 100)
+ *
+ * Strict Rules:
+ * - Returns ONLY APPROVED organizations.
+ * - Returns ONLY HOSPITAL and CLINIC types (BLOOD_BANK excluded).
+ * - Excludes PENDING, REJECTED, SUSPENDED organizations.
+ * - Does not expose internal administrative, license, or credential data.
+ */
+async function getFacilities(req, res, next) {
+  try {
+    const rawSearch = req.query.search || req.query.q || '';
+    const rawType = req.query.type || '';
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 50, 1), 100);
+
+    let query = `
+      SELECT o.id, o.name, o.type, o.city, o.address
+      FROM organizations o
+      WHERE o.type IN ('HOSPITAL', 'CLINIC')
+        AND o.status = 'APPROVED'
+    `;
+    const params = [];
+
+    if (rawType) {
+      const normalizedType = String(rawType).toUpperCase().trim();
+      if (['HOSPITAL', 'CLINIC'].includes(normalizedType)) {
+        query += ' AND o.type = ?';
+        params.push(normalizedType);
+      }
+    }
+
+    if (rawSearch && typeof rawSearch === 'string') {
+      const sanitized = rawSearch.trim().substring(0, 100);
+      if (sanitized.length > 0) {
+        query += ' AND (o.name LIKE ? OR o.city LIKE ? OR o.address LIKE ?)';
+        const term = `%${sanitized}%`;
+        params.push(term, term, term);
+      }
+    }
+
+    query += ' ORDER BY o.name ASC LIMIT ?';
+    params.push(limit);
+
+    const [rows] = await db.query(query, params);
+
+    const facilities = (rows || []).map((r) => {
+      const city = r.city ? r.city.trim() : '';
+      const addr = r.address ? r.address.trim() : '';
+      let location = '';
+      if (city && addr) {
+        location = `${city} (${addr})`;
+      } else {
+        location = city || addr || 'Regional Facility';
+      }
+
+      return {
+        id: r.id,
+        name: r.name,
+        type: r.type,
+        city: r.city,
+        address: r.address,
+        location
+      };
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: facilities,
+      total: facilities.length
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
  * Get Authenticated User's Organization Profile
  * GET /api/organizations/me
  */
@@ -1234,6 +1315,7 @@ module.exports = {
   createOrganization,
   listOrganizations,
   getOrganizationTypes,
+  getFacilities,
   getOrganizationMe,
   updateOrganizationMe,
   getOrganizationById,

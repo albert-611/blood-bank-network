@@ -246,6 +246,9 @@ CREATE TABLE blood_requests (
   status ENUM('PENDING', 'VERIFIED', 'SEARCHING', 'PARTIALLY_FULFILLED', 'RESERVED', 'ISSUED', 'COMPLETED', 'REJECTED', 'CANCELLED', 'EXPIRED') NOT NULL DEFAULT 'PENDING',
   required_by DATETIME NULL,
   notes TEXT NULL,
+  preferred_organization_id BIGINT UNSIGNED NULL,
+  preferred_facility_name VARCHAR(150) NULL,
+  preferred_facility_location VARCHAR(255) NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT fk_blood_requests_user FOREIGN KEY (requester_user_id) 
@@ -253,7 +256,10 @@ CREATE TABLE blood_requests (
   CONSTRAINT fk_blood_requests_org FOREIGN KEY (organization_id) 
     REFERENCES organizations (id) ON DELETE RESTRICT,
   CONSTRAINT fk_blood_requests_role FOREIGN KEY (created_by_role_id) 
-    REFERENCES roles (id) ON DELETE RESTRICT
+    REFERENCES roles (id) ON DELETE RESTRICT,
+  CONSTRAINT fk_blood_requests_preferred_org FOREIGN KEY (preferred_organization_id) 
+    REFERENCES organizations (id) ON DELETE SET NULL,
+  INDEX idx_blood_requests_preferred_org (preferred_organization_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================================

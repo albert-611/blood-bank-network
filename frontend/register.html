@@ -92,7 +92,10 @@
               <label class="relative flex flex-col p-3 border rounded-xl cursor-pointer hover:border-red-400 transition-colors border-red-500 bg-red-50/40" id="labelDonor">
                 <input type="radio" name="global_role" value="DONOR" class="sr-only" checked />
                 <span class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                  <span>🩸</span> Blood Donor
+                  <svg class="w-4 h-4 text-red-600 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/>
+                  </svg>
+                  Blood Donor
                 </span>
                 <span class="text-[11px] text-slate-500 mt-0.5 leading-snug">Donate blood & track records</span>
               </label>
@@ -100,7 +103,10 @@
               <label class="relative flex flex-col p-3 border rounded-xl cursor-pointer hover:border-red-400 transition-colors border-slate-200" id="labelRequester">
                 <input type="radio" name="global_role" value="REQUESTER" class="sr-only" />
                 <span class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                  <span>📋</span> Requester
+                  <svg class="w-4 h-4 text-slate-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                  </svg>
+                  Requester
                 </span>
                 <span class="text-[11px] text-slate-500 mt-0.5 leading-snug">Search & request blood</span>
               </label>

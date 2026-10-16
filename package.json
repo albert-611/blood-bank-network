@@ -19,7 +19,8 @@
     "test:phase5": "node backend/tests/phase5_authorization_rbac.test.js",
     "test:phase6": "node backend/tests/phase6_inventory.test.js",
     "test:summary": "node backend/tests/inventory_summary_fix.test.js",
-    "test:all": "node backend/tests/auth.test.js && node backend/tests/demoAuth.test.js && node backend/tests/demoDataSystem.test.js && node backend/tests/verifyAllSeededDashboards.test.js && node backend/tests/seededAuthProduction.test.js && node backend/tests/orgRegistration.test.js && node backend/tests/rbac.test.js && node backend/tests/phase4_tenant_saas.test.js && node backend/tests/phase5_authorization_rbac.test.js && node backend/tests/phase6_inventory.test.js && node backend/tests/inventory_summary_fix.test.js"
+    "test:preferred": "node backend/tests/preferred_facility.test.js",
+    "test:all": "node backend/tests/auth.test.js && node backend/tests/demoAuth.test.js && node backend/tests/demoDataSystem.test.js && node backend/tests/verifyAllSeededDashboards.test.js && node backend/tests/seededAuthProduction.test.js && node backend/tests/orgRegistration.test.js && node backend/tests/rbac.test.js && node backend/tests/phase4_tenant_saas.test.js && node backend/tests/phase5_authorization_rbac.test.js && node backend/tests/phase6_inventory.test.js && node backend/tests/inventory_summary_fix.test.js && node backend/tests/preferred_facility.test.js"
   },
   "keywords": [
     "blood-bank",

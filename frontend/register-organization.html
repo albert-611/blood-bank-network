@@ -170,7 +170,9 @@
 
           <!-- Alert Notification Box -->
           <div id="alertBox" class="hidden mb-6 p-4 rounded-xl text-sm border flex items-start gap-3 transition-all" role="alert">
-            <span id="alertIcon" class="text-lg flex-shrink-0">⚠️</span>
+            <span id="alertIcon" class="w-5 h-5 flex-shrink-0 flex items-center justify-center mt-0.5">
+              <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            </span>
             <div id="alertMessage" class="flex-1 font-medium leading-relaxed"></div>
           </div>
 
@@ -194,8 +196,8 @@
                 <label id="card-HOSPITAL" class="relative flex flex-col justify-between p-4 border rounded-2xl cursor-pointer hover:border-red-400 transition-all border-slate-200 bg-white group org-type-card">
                   <input type="radio" name="org_type" value="HOSPITAL" class="sr-only" checked />
                   <div>
-                    <div class="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center text-lg mb-2 group-hover:scale-110 transition-transform">
-                      🏥
+                    <div class="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                      <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                     </div>
                     <div class="text-xs font-bold text-slate-900 group-hover:text-red-600 transition-colors">
                       Hospital
@@ -213,8 +215,8 @@
                 <label id="card-CLINIC" class="relative flex flex-col justify-between p-4 border rounded-2xl cursor-pointer hover:border-blue-400 transition-all border-slate-200 bg-white group org-type-card">
                   <input type="radio" name="org_type" value="CLINIC" class="sr-only" />
                   <div>
-                    <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-lg mb-2 group-hover:scale-110 transition-transform">
-                      🏪
+                    <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                      <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                     </div>
                     <div class="text-xs font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
                       Clinic
@@ -232,8 +234,8 @@
                 <label id="card-BLOOD_BANK" class="relative flex flex-col justify-between p-4 border rounded-2xl cursor-pointer hover:border-red-400 transition-all border-slate-200 bg-white group org-type-card">
                   <input type="radio" name="org_type" value="BLOOD_BANK" class="sr-only" />
                   <div>
-                    <div class="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center text-lg mb-2 group-hover:scale-110 transition-transform">
-                      🩸
+                    <div class="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                      <svg class="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
                     </div>
                     <div class="text-xs font-bold text-slate-900 group-hover:text-red-600 transition-colors">
                       Blood Bank
@@ -544,8 +546,8 @@
       <div class="bg-white rounded-3xl p-8 sm:p-12 border border-slate-200 shadow-sm space-y-6">
         
         <!-- Animated / Highlighted Success Icon -->
-        <div class="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center mx-auto text-3xl shadow-sm">
-          ✓
+        <div class="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center mx-auto shadow-sm">
+          <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
         </div>
 
         <div>
@@ -591,7 +593,9 @@
 
         <!-- Next Steps Instruction Box -->
         <div class="p-4 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-xs text-left flex items-start gap-3">
-          <span class="text-base flex-shrink-0">ℹ️</span>
+          <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
           <div class="leading-relaxed">
             <strong class="font-bold block mb-0.5">Next Steps for Organization Access:</strong>
             Our compliance team verifies healthcare credentials against regional registries. Once your application is reviewed and approved, you will receive an activation notification at your administrator email.

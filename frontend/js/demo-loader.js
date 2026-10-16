@@ -452,6 +452,109 @@
     },
 
     /**
+     * Discover registered treatment facilities (hospitals and clinics) in demo dataset (§Section 2 & 3)
+     */
+    async getFacilities(params = {}) {
+      const data = await this.loadData();
+      const orgs = data.organizations || [];
+      const search = (params.search || params.q || '').toLowerCase().trim();
+      const type = (params.type || '').toUpperCase().trim();
+
+      const filtered = orgs.filter(o => {
+        const isApproved = o.status === 'APPROVED' && !runtimeOverrides.rejectedOrgIds.has(o.id);
+        const isEligibleType = o.type === 'HOSPITAL' || o.type === 'CLINIC';
+        if (!isApproved || !isEligibleType) return false;
+        if (type && o.type !== type) return false;
+        if (search) {
+          const matchName = (o.name || '').toLowerCase().includes(search);
+          const matchCity = (o.city || o.address || '').toLowerCase().includes(search);
+          return matchName || matchCity;
+        }
+        return true;
+      });
+
+      const facilities = filtered.map(o => ({
+        id: o.id,
+        name: o.name,
+        type: o.type,
+        city: o.city || '',
+        address: o.address || '',
+        location: o.city ? (o.address ? `${o.city} (${o.address})` : o.city) : (o.address || 'Regional Facility')
+      }));
+
+      return {
+        success: true,
+        data: facilities,
+        total: facilities.length
+      };
+    },
+
+    /**
+     * Submit a demo requisition with preferred treatment facility
+     */
+    async createRequest(payload = {}) {
+      const data = await this.loadData();
+      const nextIdNum = 9904 + runtimeOverrides.createdRequests.length;
+      const reqId = `REQ-${nextIdNum}`;
+
+      let preferredFacility = null;
+      if (payload.preferred_organization_id) {
+        const orgs = data.organizations || [];
+        const match = orgs.find(o => Number(o.id) === Number(payload.preferred_organization_id));
+        if (match) {
+          preferredFacility = {
+            id: match.id,
+            name: match.name,
+            type: match.type,
+            location: match.city ? `${match.city} (${match.address || ''})` : (match.address || 'Regional Facility'),
+            is_manual: false
+          };
+        }
+      } else if (payload.preferred_facility_name) {
+        preferredFacility = {
+          id: null,
+          name: payload.preferred_facility_name,
+          type: 'UNREGISTERED',
+          location: payload.preferred_facility_location || 'Manual Entry',
+          is_manual: true
+        };
+      }
+
+      const newReq = {
+        id: reqId,
+        bloodGroup: payload.blood_group || 'O-',
+        component: payload.component || 'PACKED_RBC',
+        units: Number(payload.quantity || payload.units || 1),
+        priority: payload.priority || 'ROUTINE',
+        status: 'PENDING',
+        createdDate: new Date().toISOString().split('T')[0],
+        createdAt: new Date().toISOString(),
+        organization: 'Central Red Cross Blood Bank',
+        recipient: payload.notes || 'Inpatient Surgery',
+        trackingStage: 'Submitted',
+        preferredFacility
+      };
+
+      runtimeOverrides.createdRequests.unshift(newReq);
+
+      // Also append to requesters in data
+      if (data.requesters && data.requesters['requester.jane@bloodbank.dev']) {
+        if (!data.requesters['requester.jane@bloodbank.dev'].requests) {
+          data.requesters['requester.jane@bloodbank.dev'].requests = [];
+        }
+        data.requesters['requester.jane@bloodbank.dev'].requests.unshift(newReq);
+      }
+
+      return {
+        success: true,
+        message: 'Requisition submitted successfully.',
+        data: {
+          request: newReq
+        }
+      };
+    },
+
+    /**
      * Hospital clinical staff (§10)
      */
     async getHospitalStaff() {

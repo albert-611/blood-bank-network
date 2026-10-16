@@ -516,6 +516,76 @@ const BloodBankAPI = {
       method: 'POST',
       body: { reason }
     });
+  },
+
+  // ==========================================================================
+  // BLOOD REQUISITION & TREATMENT FACILITY ENDPOINTS (§Section 2, 3, 4, 7)
+  // ==========================================================================
+
+  /**
+   * Search registered treatment facilities (hospitals and clinics)
+   * GET /api/organizations/facilities?search=...
+   * @param {Object} [params={}] - { search, type, limit }
+   */
+  async getFacilities(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    try {
+      const res = await this._request(`/api/organizations/facilities${query ? `?${query}` : ''}`, { method: 'GET' });
+      return res;
+    } catch (err) {
+      if (window.DemoDataLoader && typeof window.DemoDataLoader.getFacilities === 'function') {
+        return window.DemoDataLoader.getFacilities(params);
+      }
+      throw err;
+    }
+  },
+
+  /**
+   * Submit a new blood requisition with preferred treatment facility
+   * POST /api/blood-requests
+   * @param {Object} data - { blood_group, component, quantity, priority, notes, preferred_organization_id, preferred_facility_name, preferred_facility_location }
+   */
+  async createBloodRequest(data) {
+    try {
+      const res = await this._request('/api/blood-requests', {
+        method: 'POST',
+        body: data
+      });
+      return res;
+    } catch (err) {
+      if (window.DemoDataLoader && typeof window.DemoDataLoader.createRequest === 'function') {
+        return window.DemoDataLoader.createRequest(data);
+      }
+      throw err;
+    }
+  },
+
+  /**
+   * List blood requests (scoped to user role & organization)
+   * GET /api/blood-requests
+   * @param {Object} [params={}] - { status, blood_group }
+   */
+  async getBloodRequests(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    try {
+      const res = await this._request(`/api/blood-requests${query ? `?${query}` : ''}`, { method: 'GET' });
+      return res;
+    } catch (err) {
+      if (window.DemoDataLoader && typeof window.DemoDataLoader.getRequestStats === 'function') {
+        const stats = await window.DemoDataLoader.getRequestStats();
+        return { success: true, data: stats.requestsList, total: stats.total };
+      }
+      throw err;
+    }
+  },
+
+  /**
+   * Get single blood request details
+   * GET /api/blood-requests/:id
+   * @param {number|string} id - Blood request ID
+   */
+  async getBloodRequestById(id) {
+    return this._request(`/api/blood-requests/${id}`, { method: 'GET' });
   }
 };
 

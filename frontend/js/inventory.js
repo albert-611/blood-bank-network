@@ -297,8 +297,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         tableBody.innerHTML = `
           <tr>
             <td colspan="8" class="py-12 text-center text-slate-400">
-              <div class="max-w-xs mx-auto space-y-2">
-                <span class="text-3xl">🩸</span>
+              <div class="max-w-xs mx-auto space-y-2 flex flex-col items-center">
+                <div class="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center">
+                  <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/>
+                  </svg>
+                </div>
                 <p class="font-bold text-slate-700">No blood units found</p>
                 <p class="text-xs text-slate-500">No units match the applied filters, or inventory is empty for this organization.</p>
               </div>
