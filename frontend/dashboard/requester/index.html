@@ -9,10 +9,16 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css">
   <style>
-    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      letter-spacing: -0.011em;
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    }
     .shadow-2xs { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04); }
     .shadow-xs { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03); }
     /* Stepper connector lines */
@@ -23,6 +29,135 @@
     .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
     .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    /* Layout & Floating Sidebar Spacing (§1) */
+    .requester-workspace-container {
+      width: 100%;
+      box-sizing: border-box;
+      padding-left: 1rem;
+      padding-right: 1rem;
+      padding-top: 1.5rem;
+      padding-bottom: 2rem;
+    }
+    @media (min-width: 640px) {
+      .requester-workspace-container {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+      }
+    }
+    @media (min-width: 1024px) {
+      .requester-workspace-container {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+      }
+      #portalSidebar {
+        position: sticky;
+        top: 5rem;
+        height: calc(100vh - 6.5rem);
+        max-height: calc(100vh - 6.5rem);
+        align-self: flex-start;
+      }
+    }
+    @media (min-width: 1280px) {
+      .requester-workspace-container {
+        padding-left: 2rem;
+        padding-right: 2rem;
+      }
+    }
+
+    /* Main Content Area Spacing & Centering */
+    #mainContentArea {
+      flex: 1 1 0%;
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+      padding-left: 0.25rem;
+      padding-right: 0.25rem;
+    }
+    @media (min-width: 1024px) {
+      #mainContentArea {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+      }
+    }
+    @media (min-width: 1280px) {
+      #mainContentArea {
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+    }
+
+    .portal-view {
+      width: 100%;
+      max-width: 1440px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* Shared Sidebar Navigation Items (§2) */
+    .sidebar-nav-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 0.5rem 0.75rem; /* px-3 py-2 */
+      border-radius: 0.75rem; /* rounded-xl */
+      font-size: 0.75rem; /* text-xs */
+      line-height: 1rem;
+      transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+      text-decoration: none;
+      border: 1px solid transparent;
+      color: #475569; /* text-slate-600 */
+      font-weight: 500;
+      box-sizing: border-box;
+      cursor: pointer;
+    }
+    .sidebar-nav-item:hover {
+      background-color: #f8fafc; /* bg-slate-50 */
+      color: #0f172a; /* text-slate-900 */
+    }
+    .sidebar-nav-item.active,
+    .sidebar-nav-item[aria-current="page"] {
+      background-color: #fef2f2; /* bg-red-50 */
+      color: #b91c1c; /* text-red-700 */
+      border-color: #fee2e2; /* border-red-100 */
+      font-weight: 500;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04); /* shadow-2xs */
+    }
+
+    .sidebar-nav-main {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem; /* 12px gap-3 */
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+
+    .sidebar-nav-icon {
+      width: 1.25rem; /* 20px */
+      height: 1.25rem; /* 20px */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: #94a3b8; /* text-slate-400 */
+      transition: color 0.15s ease;
+    }
+    .sidebar-nav-item:hover .sidebar-nav-icon {
+      color: #475569; /* text-slate-600 */
+    }
+    .sidebar-nav-item.active .sidebar-nav-icon,
+    .sidebar-nav-item[aria-current="page"] .sidebar-nav-icon {
+      color: #dc2626; /* text-red-600 */
+    }
+
+    .sidebar-nav-label {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
   </style>
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-900 flex flex-col antialiased" data-auth-required="true" data-allowed-roles="REQUESTER">
@@ -31,7 +166,7 @@
   <!-- TOP NAVIGATION BAR (§4.B)                                                 -->
   <!-- ========================================================================= -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
-    <div class="w-full px-4 sm:px-6 lg:px-8">
+    <div class="w-full px-4 sm:px-6 lg:pl-6 lg:pr-6 xl:pl-8 xl:pr-8">
       <div class="flex items-center justify-between h-16">
         
         <!-- Left: Hamburger (mobile) + Brand logo -->
@@ -55,8 +190,8 @@
               <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
             </div>
             <div class="flex items-center gap-2">
-              <span class="font-extrabold text-base tracking-tight text-slate-900">Blood<span class="text-red-600">Link</span></span>
-              <span class="hidden sm:inline-flex px-2 py-0.5 text-[10px] font-bold uppercase rounded-md bg-red-50 text-red-700 border border-red-200">
+              <span class="font-bold text-base tracking-tight text-slate-900">Blood<span class="text-red-600">Link</span></span>
+              <span class="hidden sm:inline-flex px-2 py-0.5 text-[11px] font-medium rounded-lg bg-red-50 text-red-700 border border-red-200/80">
                 Requester
               </span>
             </div>
@@ -66,7 +201,7 @@
           <div class="hidden md:flex items-center gap-2 pl-4 border-l border-slate-200 text-xs text-slate-400">
             <span>Portal</span>
             <span>/</span>
-            <span id="topBreadcrumbTitle" class="font-semibold text-slate-700">Dashboard Overview</span>
+            <span id="topBreadcrumbTitle" class="font-medium text-slate-700">Dashboard Overview</span>
           </div>
         </div>
 
@@ -75,14 +210,14 @@
           
           <!-- Environment Indicator -->
           <div id="demoBadgeContainer" class="hidden xl:flex items-center">
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium tracking-wider uppercase bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
               <span id="envBadgeText">HEALTHCARE NETWORK</span>
             </span>
           </div>
 
           <!-- Main Landing Page Shortcut -->
-          <a href="/" title="Go to Main Website" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-200 transition-colors shadow-2xs cursor-pointer">
+          <a href="/" title="Go to Main Website" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-200 transition-colors shadow-2xs cursor-pointer">
             <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
             </svg>
@@ -99,7 +234,7 @@
             <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
             </svg>
-            <span id="topNotificationBadge" class="hidden absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-600 text-white text-[9px] font-black flex items-center justify-center">0</span>
+            <span id="topNotificationBadge" class="hidden absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-600 text-white text-[9px] font-semibold flex items-center justify-center">0</span>
           </a>
 
           <!-- Profile Badge / Dropdown Toggle -->
@@ -111,12 +246,12 @@
               aria-haspopup="true"
               aria-expanded="false"
             >
-              <div class="w-7 h-7 rounded-lg bg-red-600 text-white font-bold text-xs flex items-center justify-center uppercase shrink-0" id="topAvatarInitials">
+              <div class="w-7 h-7 rounded-lg bg-red-600 text-white font-semibold text-xs flex items-center justify-center uppercase shrink-0" id="topAvatarInitials">
                 JF
               </div>
               <div class="hidden sm:block text-left min-w-0">
-                <span data-user-name class="font-bold text-xs text-slate-800 block truncate max-w-[130px]">Jane Foster</span>
-                <span class="text-[10px] text-slate-500 block leading-tight">Patient Requester</span>
+                <span data-user-name class="font-semibold text-xs text-slate-800 block truncate max-w-[130px]">Jane Foster</span>
+                <span class="text-[11px] text-slate-500 block leading-tight font-normal">Patient Requester</span>
               </div>
               <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -176,28 +311,28 @@
   <div id="mobileDrawerBackdrop" class="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-xs hidden lg:hidden transition-opacity"></div>
 
   <!-- ========================================================================= -->
-  <!-- MAIN WORKSPACE LAYOUT (SIDEBAR + CONTENT)                                  -->
+  <!-- MAIN WORKSPACE LAYOUT (SIDEBAR + CONTENT) (§1)                              -->
   <!-- ========================================================================= -->
-  <div class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-    <div class="flex flex-col lg:flex-row gap-6 items-start">
+  <div class="requester-workspace-container flex-1">
+    <div class="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start w-full">
 
       <!-- ===================================================================== -->
-      <!-- SIDEBAR NAVIGATION (§4.A & §15)                                       -->
+      <!-- SIDEBAR NAVIGATION (§1 & §2)                                          -->
       <!-- ===================================================================== -->
       <aside 
         id="portalSidebar" 
-        class="fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 p-4 flex flex-col justify-between transform -translate-x-full lg:translate-x-0 lg:static lg:inset-auto lg:w-64 lg:h-auto lg:rounded-2xl lg:border lg:border-slate-200 lg:shadow-xs transition-transform duration-200 ease-in-out shrink-0"
+        class="fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 p-4 flex flex-col justify-between transform -translate-x-full lg:translate-x-0 lg:w-64 lg:rounded-2xl lg:border lg:border-slate-200 lg:shadow-xs transition-transform duration-200 ease-in-out shrink-0"
         aria-label="Sidebar Navigation"
       >
-        <!-- Top of Sidebar -->
-        <div class="space-y-4">
+        <!-- Top of Sidebar (Scrollable if height restricted) -->
+        <div class="space-y-4 flex-1 overflow-y-auto custom-scrollbar pr-0.5">
           <!-- Mobile Drawer Header -->
           <div class="flex items-center justify-between pb-3 border-b border-slate-100 lg:hidden">
             <div class="flex items-center gap-2">
               <div class="w-7 h-7 rounded-lg bg-red-600 text-white flex items-center justify-center font-bold text-xs">
                 BL
               </div>
-              <span class="font-extrabold text-sm text-slate-900">Requester Menu</span>
+              <span class="font-semibold text-sm text-slate-900">Requester Menu</span>
             </div>
             <button 
               type="button" 
@@ -214,117 +349,138 @@
             <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Workspace Navigation</span>
           </div>
 
-          <!-- 7 Menu Items (§4.A) -->
+          <!-- 7 Menu Items (§2) -->
           <nav class="space-y-1" id="sidebarNav">
             <!-- 1. Dashboard Overview -->
             <a 
               href="#overview" 
               data-route="overview" 
-              class="sidebar-nav-item flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-xl transition-colors bg-red-50 text-red-700 border border-red-100"
+              class="sidebar-nav-item active group"
+              aria-current="page"
             >
-              <svg class="w-4 h-4 shrink-0 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-              </svg>
-              <span>Dashboard Overview</span>
+              <div class="sidebar-nav-main">
+                <span class="sidebar-nav-icon">
+                  <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                  </svg>
+                </span>
+                <span class="sidebar-nav-label">Dashboard Overview</span>
+              </div>
             </a>
 
             <!-- 2. Find Blood -->
             <a 
               href="#find-blood" 
               data-route="find-blood" 
-              class="sidebar-nav-item flex items-center justify-between px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+              class="sidebar-nav-item group"
             >
-              <div class="flex items-center gap-3">
-                <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
-                <span>Find Blood</span>
+              <div class="sidebar-nav-main">
+                <span class="sidebar-nav-icon">
+                  <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                  </svg>
+                </span>
+                <span class="sidebar-nav-label">Find Blood</span>
               </div>
-              <span class="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase bg-slate-100 text-slate-500">Live</span>
+              <span class="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase bg-slate-100 text-slate-500 shrink-0">Live</span>
             </a>
 
             <!-- 3. Create Blood Request -->
             <a 
               href="#create-request" 
               data-route="create-request" 
-              class="sidebar-nav-item flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+              class="sidebar-nav-item group"
             >
-              <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
-              <span>Create Blood Request</span>
+              <div class="sidebar-nav-main">
+                <span class="sidebar-nav-icon">
+                  <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </span>
+                <span class="sidebar-nav-label">Create Blood Request</span>
+              </div>
             </a>
 
             <!-- 4. My Requests -->
             <a 
               href="#my-requests" 
               data-route="my-requests" 
-              class="sidebar-nav-item flex items-center justify-between px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+              class="sidebar-nav-item group"
             >
-              <div class="flex items-center gap-3">
-                <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                </svg>
-                <span>My Requests</span>
+              <div class="sidebar-nav-main">
+                <span class="sidebar-nav-icon">
+                  <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                  </svg>
+                </span>
+                <span class="sidebar-nav-label">My Requests</span>
               </div>
-              <span id="sidebarTotalBadge" class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">0</span>
+              <span id="sidebarTotalBadge" class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 shrink-0">0</span>
             </a>
 
-            <!-- 5. Active Request Progress -->
+            <!-- 5. Active Progress -->
             <a 
               href="#active-progress" 
               data-route="active-progress" 
-              class="sidebar-nav-item flex items-center justify-between px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+              class="sidebar-nav-item group"
             >
-              <div class="flex items-center gap-3">
-                <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                </svg>
-                <span>Active Progress</span>
+              <div class="sidebar-nav-main">
+                <span class="sidebar-nav-icon">
+                  <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                  </svg>
+                </span>
+                <span class="sidebar-nav-label">Active Progress</span>
               </div>
-              <span id="sidebarActiveBadge" class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">0</span>
+              <span id="sidebarActiveBadge" class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 shrink-0">0</span>
             </a>
 
             <!-- 6. Notifications -->
             <a 
               href="#notifications" 
               data-route="notifications" 
-              class="sidebar-nav-item flex items-center justify-between px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+              class="sidebar-nav-item group"
             >
-              <div class="flex items-center gap-3">
-                <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                </svg>
-                <span>Notifications</span>
+              <div class="sidebar-nav-main">
+                <span class="sidebar-nav-icon">
+                  <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                  </svg>
+                </span>
+                <span class="sidebar-nav-label">Notifications</span>
               </div>
-              <span id="sidebarUnreadBadge" class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700 hidden">0</span>
+              <span id="sidebarUnreadBadge" class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700 shrink-0 hidden">0</span>
             </a>
 
             <!-- 7. Profile & Settings -->
             <a 
               href="#profile" 
               data-route="profile" 
-              class="sidebar-nav-item flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+              class="sidebar-nav-item group"
             >
-              <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-              </svg>
-              <span>Profile & Settings</span>
+              <div class="sidebar-nav-main">
+                <span class="sidebar-nav-icon">
+                  <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  </svg>
+                </span>
+                <span class="sidebar-nav-label">Profile & Settings</span>
+              </div>
             </a>
           </nav>
         </div>
 
         <!-- Sidebar Footer (§4.A) -->
-        <div class="pt-4 mt-4 border-t border-slate-100 space-y-3">
+        <div class="pt-4 mt-4 border-t border-slate-100 space-y-3 shrink-0">
           <!-- Requester Identity Card -->
           <a href="#profile" class="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-50 transition-colors group cursor-pointer">
             <div class="w-8 h-8 rounded-lg bg-red-100 text-red-700 font-bold text-xs flex items-center justify-center shrink-0 uppercase" id="sidebarAvatarInitials">
               JF
             </div>
             <div class="min-w-0 flex-1">
-              <span data-user-name class="font-bold text-xs text-slate-800 block truncate group-hover:text-red-700">Jane Foster</span>
-              <span class="text-[10px] text-slate-400 block truncate">Patient Requester</span>
+              <span data-user-name class="font-semibold text-xs text-slate-800 block truncate group-hover:text-red-700">Jane Foster</span>
+              <span class="text-[11px] text-slate-500 font-normal block truncate">Patient Requester</span>
             </div>
           </a>
 
@@ -341,7 +497,7 @@
       </aside>
 
       <!-- ===================================================================== -->
-      <!-- MAIN CONTENT CONTAINER (VIEWPORT)                                     -->
+      <!-- MAIN CONTENT CONTAINER (VIEWPORT) (§1)                                -->
       <!-- ===================================================================== -->
       <main class="flex-1 w-full min-w-0" id="mainContentArea">
 
@@ -354,13 +510,13 @@
           <div class="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <div class="flex items-center gap-2 mb-1.5">
-                <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-red-50 text-red-700 border border-red-200">
+                <span class="px-2.5 py-0.5 rounded-lg text-[11px] font-medium bg-red-50 text-red-700 border border-red-200/80">
                   Requester Workspace
                 </span>
                 <span class="text-xs text-slate-400">•</span>
                 <span class="text-xs font-medium text-slate-500">Authorized Patient Representative</span>
               </div>
-              <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">
+              <h1 class="text-2xl font-semibold text-slate-900 tracking-tight">
                 Welcome back, <span id="overviewWelcomeName">Jane Foster</span>
               </h1>
               <p class="text-xs sm:text-sm text-slate-500 mt-1">
@@ -370,6 +526,18 @@
 
             <!-- Primary & Secondary Action CTAs (§5) -->
             <div class="flex flex-wrap items-center gap-2.5 w-full sm:w-auto shrink-0">
+              <button 
+                type="button" 
+                id="refreshOverviewBtn" 
+                title="Refresh dashboard statistics & requests" 
+                class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-2xs transition-colors cursor-pointer"
+              >
+                <svg id="refreshOverviewIcon" class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                <span>Refresh</span>
+              </button>
+
               <a 
                 href="#find-blood" 
                 class="inline-flex items-center justify-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-2xs transition-colors cursor-pointer"
@@ -400,7 +568,7 @@
                 </div>
               </div>
               <div class="mt-3">
-                <span id="kpiTotalRequests" class="text-2xl sm:text-3xl font-extrabold text-slate-900 block leading-tight">0</span>
+                <span id="kpiTotalRequests" class="text-2xl sm:text-3xl font-bold text-slate-900 block leading-tight">0</span>
                 <span class="text-[11px] text-slate-400 mt-1 block">All requisitions created</span>
               </div>
             </div>
@@ -414,7 +582,7 @@
                 </div>
               </div>
               <div class="mt-3">
-                <span id="kpiActiveRequests" class="text-2xl sm:text-3xl font-extrabold text-amber-600 block leading-tight">0</span>
+                <span id="kpiActiveRequests" class="text-2xl sm:text-3xl font-bold text-amber-600 block leading-tight">0</span>
                 <span class="text-[11px] text-slate-400 mt-1 block">Currently being processed</span>
               </div>
             </div>
@@ -428,7 +596,7 @@
                 </div>
               </div>
               <div class="mt-3">
-                <span id="kpiReadyRequests" class="text-2xl sm:text-3xl font-extrabold text-purple-700 block leading-tight">0</span>
+                <span id="kpiReadyRequests" class="text-2xl sm:text-3xl font-bold text-purple-700 block leading-tight">0</span>
                 <span class="text-[11px] text-slate-400 mt-1 block">Stock reserved & ready</span>
               </div>
             </div>
@@ -442,7 +610,7 @@
                 </div>
               </div>
               <div class="mt-3">
-                <span id="kpiCompletedRequests" class="text-2xl sm:text-3xl font-extrabold text-emerald-600 block leading-tight">0</span>
+                <span id="kpiCompletedRequests" class="text-2xl sm:text-3xl font-bold text-emerald-600 block leading-tight">0</span>
                 <span class="text-[11px] text-slate-400 mt-1 block">Successfully fulfilled</span>
               </div>
             </div>
@@ -558,7 +726,7 @@
               <span class="text-xs text-slate-400">•</span>
               <span class="text-xs font-medium text-slate-500">Certified Regional Network</span>
             </div>
-            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Find Available Blood</h1>
+            <h1 class="text-2xl font-semibold text-slate-900 tracking-tight">Find Available Blood</h1>
             <p class="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl">
               Search live blood unit availability across approved hospitals, clinics, and blood banks. 
               Searching is strictly informational and does not deduct or reserve inventory.
@@ -680,7 +848,7 @@
               <span class="text-xs text-slate-400">•</span>
               <span class="text-xs font-medium text-slate-500">Multi-Section Requisition Protocol</span>
             </div>
-            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Create Blood Request</h1>
+            <h1 class="text-2xl font-semibold text-slate-900 tracking-tight">Create Blood Request</h1>
             <p class="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl">
               Submit an official blood availability request. The request will be forwarded to the designated treatment facility and fulfilling blood bank for clinical review.
             </p>
@@ -1123,7 +1291,7 @@
                 <span class="text-xs text-slate-400">•</span>
                 <span class="text-xs font-medium text-slate-500">Personal Requisition History</span>
               </div>
-              <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">My Blood Requests</h1>
+              <h1 class="text-2xl font-semibold text-slate-900 tracking-tight">My Blood Requests</h1>
               <p class="text-xs sm:text-sm text-slate-500 mt-1">
                 View, filter, track, edit eligible requests within 6 hours, or cancel in-progress requests.
               </p>
@@ -1246,7 +1414,7 @@
                 <span class="text-xs text-slate-400">•</span>
                 <span class="text-xs font-medium text-slate-500">Real-Time Clinical Status</span>
               </div>
-              <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Active Request Progress</h1>
+              <h1 class="text-2xl font-semibold text-slate-900 tracking-tight">Active Request Progress</h1>
               <p class="text-xs sm:text-sm text-slate-500 mt-1">
                 Track each active blood requisition through the authorized 6-stage lifecycle.
               </p>
@@ -1303,7 +1471,7 @@
                 <span class="text-xs text-slate-400">•</span>
                 <span class="text-xs font-medium text-slate-500">Audit & Lifecycle Updates</span>
               </div>
-              <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Notifications</h1>
+              <h1 class="text-2xl font-semibold text-slate-900 tracking-tight">Notifications</h1>
               <p class="text-xs sm:text-sm text-slate-500 mt-1">
                 Real-time alerts regarding request submissions, reviews, stock reservations, and completions.
               </p>
@@ -1365,7 +1533,7 @@
               <span class="text-xs text-slate-400">•</span>
               <span class="text-xs font-medium text-slate-500">Security & Profile Details</span>
             </div>
-            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Profile & Settings</h1>
+            <h1 class="text-2xl font-semibold text-slate-900 tracking-tight">Profile & Settings</h1>
             <p class="text-xs sm:text-sm text-slate-500 mt-1">
               Manage your personal information, phone number, and security preferences.
             </p>
@@ -1375,16 +1543,16 @@
 
             <!-- Profile Summary Card -->
             <div class="lg:col-span-1 bg-white rounded-2xl p-6 border border-slate-200 shadow-xs flex flex-col items-center text-center">
-              <div class="w-20 h-20 rounded-2xl bg-red-600 text-white font-extrabold text-2xl flex items-center justify-center uppercase shadow-md shadow-red-500/20 mb-3" id="profileBigAvatarInitials">
+              <div class="w-20 h-20 rounded-2xl bg-red-600 text-white font-bold text-2xl flex items-center justify-center uppercase shadow-md shadow-red-500/20 mb-3" id="profileBigAvatarInitials">
                 JF
               </div>
-              <h2 class="font-extrabold text-base text-slate-900" id="profileCardFullName">Jane Foster</h2>
+              <h2 class="font-semibold text-base text-slate-900" id="profileCardFullName">Jane Foster</h2>
               <span class="text-xs font-medium text-slate-500 mt-0.5 block" id="profileCardEmail">requester.jane@bloodbank.dev</span>
 
               <div class="mt-4 pt-4 border-t border-slate-100 w-full space-y-2 text-xs text-left">
                 <div class="flex items-center justify-between">
                   <span class="text-slate-400">Account Role:</span>
-                  <span class="font-bold text-red-700 uppercase bg-red-50 px-2 py-0.5 rounded border border-red-200 text-[10px]">
+                  <span class="font-medium text-red-700 bg-red-50 px-2.5 py-0.5 rounded-lg border border-red-200/80 text-[11px]">
                     Patient Requester
                   </span>
                 </div>
@@ -1494,7 +1662,7 @@
       <div class="flex items-center justify-between pb-3 border-b border-slate-100">
         <div class="flex items-center gap-2.5">
           <span class="w-3 h-3 rounded-full bg-red-600"></span>
-          <h3 class="font-extrabold text-base text-slate-900" id="modalDetailTitle">Requisition Details</h3>
+          <h3 class="font-semibold text-base text-slate-900" id="modalDetailTitle">Requisition Details</h3>
         </div>
         <button type="button" id="closeDetailModalBtn" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -1521,7 +1689,7 @@
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 border border-slate-200 shadow-2xl space-y-4 my-8" role="dialog" aria-modal="true" aria-labelledby="modalEditTitle">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100">
         <div>
-          <h3 class="font-extrabold text-base text-slate-900" id="modalEditTitle">Edit Blood Requisition</h3>
+          <h3 class="font-semibold text-base text-slate-900" id="modalEditTitle">Edit Blood Requisition</h3>
           <!-- 6-Hour Editing Countdown Banner (§10) -->
           <span id="editCountdownBanner" class="inline-block mt-1 text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
             ⏱ Editing window active
@@ -1609,7 +1777,7 @@
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
         </div>
         <div>
-          <h3 class="font-extrabold text-base text-slate-900" id="modalCancelTitle">Cancel Blood Request</h3>
+          <h3 class="font-semibold text-base text-slate-900" id="modalCancelTitle">Cancel Blood Request</h3>
           <p class="text-xs text-slate-500" id="cancelRequestSubtitle">Request #REQ-000</p>
         </div>
       </div>

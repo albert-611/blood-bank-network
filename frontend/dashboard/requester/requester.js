@@ -214,16 +214,14 @@
       activeView.classList.remove('hidden');
     }
 
-    // 3. Highlight sidebar active item
+    // 3. Highlight sidebar active item cleanly without breaking layout alignment (§2)
     document.querySelectorAll('.sidebar-nav-item').forEach((link) => {
       const route = link.getAttribute('data-route');
       if (route === targetRoute) {
-        link.className =
-          'sidebar-nav-item flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-xl transition-colors bg-red-50 text-red-700 border border-red-100 shadow-2xs';
+        link.classList.add('active');
         link.setAttribute('aria-current', 'page');
       } else {
-        link.className =
-          'sidebar-nav-item flex items-center justify-between px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors';
+        link.classList.remove('active');
         link.removeAttribute('aria-current');
       }
     });
@@ -452,28 +450,113 @@
   }
 
   // ==========================================================================
+  // ANIMATED NUMERICAL COUNTERS (§3)
+  // ==========================================================================
+  const activeCounterAnimations = new Map(); // element -> rafId
+
+  /**
+   * Smoothly animates a numerical counter from startValue (or 0) to targetValue using requestAnimationFrame.
+   * Duration: ~800-1200ms with natural easeOutCubic easing curve.
+   * Features:
+   * - Starts at 0 or current value and animates smoothly to actual target
+   * - Replays from 0 to newly retrieved value on data refresh
+   * - Cancels previous frame loops on the same element to prevent overlap
+   * - Respects user's prefers-reduced-motion preference
+   * - Displays clean whole numbers (using toLocaleString) without NaN or decimal glitches
+   * - Handles zero, small, and large numbers correctly
+   *
+   * @param {HTMLElement|string} targetEl - DOM element or element ID
+   * @param {number|string} targetValue - Destination number from API
+   * @param {Object} [options]
+   * @param {number} [options.duration=1000] - Duration in ms (800-1200ms)
+   * @param {boolean} [options.startFromZero=true] - Whether to start count from 0
+   */
+  function animateValueCounter(targetEl, targetValue, options = {}) {
+    const el = typeof targetEl === 'string' ? document.getElementById(targetEl) : targetEl;
+    if (!el) return;
+
+    const {
+      duration = 1000,
+      startFromZero = true
+    } = options;
+
+    // Sanitize target value to a valid whole integer
+    const parsed = Number(targetValue);
+    const end = Number.isFinite(parsed) ? Math.max(0, Math.round(parsed)) : 0;
+
+    // Cancel any active animation running on this element
+    if (activeCounterAnimations.has(el)) {
+      cancelAnimationFrame(activeCounterAnimations.get(el));
+      activeCounterAnimations.delete(el);
+    }
+
+    // Check user's motion preference
+    const prefersReducedMotion =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (prefersReducedMotion || duration <= 0) {
+      el.textContent = end.toLocaleString();
+      return;
+    }
+
+    // Determine starting value
+    let start = 0;
+    if (!startFromZero) {
+      const rawCurrent = String(el.textContent || '').replace(/[^\d]/g, '');
+      const parsedCurrent = parseInt(rawCurrent, 10);
+      start = Number.isFinite(parsedCurrent) ? parsedCurrent : 0;
+    }
+
+    // If already at target value, ensure formatting and return
+    if (start === end && el.textContent === end.toLocaleString()) {
+      return;
+    }
+
+    const startTime = performance.now();
+
+    function step(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      // easeOutCubic: fast initial response followed by smooth, natural deceleration
+      const ease = 1 - Math.pow(1 - progress, 3);
+      const current = Math.round(start + (end - start) * ease);
+
+      el.textContent = current.toLocaleString();
+
+      if (progress < 1) {
+        const nextId = requestAnimationFrame(step);
+        activeCounterAnimations.set(el, nextId);
+      } else {
+        el.textContent = end.toLocaleString();
+        activeCounterAnimations.delete(el);
+      }
+    }
+
+    el.textContent = start.toLocaleString();
+    const rafId = requestAnimationFrame(step);
+    activeCounterAnimations.set(el, rafId);
+  }
+
+  // ==========================================================================
   // DASHBOARD OVERVIEW VIEW (§5)
   // ==========================================================================
   function renderOverviewTab() {
-    // 1. Update 4 Summary Cards
-    const kpiTotal = document.getElementById('kpiTotalRequests');
-    if (kpiTotal) kpiTotal.textContent = State.summary.total || State.requests.length;
+    const totalCount = State.summary.total || State.requests.length;
+    const activeCount = State.summary.active ?? State.requests.filter((r) => ACTIVE_STATUSES.includes(r.status)).length;
+    const readyCount = State.summary.readyForCollection ?? State.requests.filter((r) => r.status === 'READY_FOR_COLLECTION').length;
+    const completedCount = State.summary.completed ?? State.requests.filter((r) => r.status === 'COMPLETED').length;
 
-    const kpiActive = document.getElementById('kpiActiveRequests');
-    if (kpiActive) kpiActive.textContent = State.summary.active;
-
-    const kpiReady = document.getElementById('kpiReadyRequests');
-    if (kpiReady) kpiReady.textContent = State.summary.readyForCollection;
-
-    const kpiCompleted = document.getElementById('kpiCompletedRequests');
-    if (kpiCompleted) kpiCompleted.textContent = State.summary.completed;
+    // 1. Update 4 Summary Cards with smooth value counter animation (§3)
+    animateValueCounter('kpiTotalRequests', totalCount, { duration: 1000, startFromZero: true });
+    animateValueCounter('kpiActiveRequests', activeCount, { duration: 1000, startFromZero: true });
+    animateValueCounter('kpiReadyRequests', readyCount, { duration: 1000, startFromZero: true });
+    animateValueCounter('kpiCompletedRequests', completedCount, { duration: 1000, startFromZero: true });
 
     // Sidebar counter badges
-    const sideTotal = document.getElementById('sidebarTotalBadge');
-    if (sideTotal) sideTotal.textContent = State.requests.length;
-
-    const sideActive = document.getElementById('sidebarActiveBadge');
-    if (sideActive) sideActive.textContent = State.summary.active;
+    animateValueCounter('sidebarTotalBadge', State.requests.length, { duration: 800, startFromZero: true });
+    animateValueCounter('sidebarActiveBadge', activeCount, { duration: 800, startFromZero: true });
 
     // 2. Render Active Request Progress Widget (§5.C)
     renderOverviewActiveProgressWidget();
@@ -522,8 +605,8 @@
         <!-- Request Top Info -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
           <div class="flex items-center gap-3">
-            <span class="font-extrabold text-sm text-slate-900">Request #${req.id}</span>
-            <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase ${getStatusBadgeClasses(req.status)}">
+            <span class="font-semibold text-sm text-slate-900">Request #${req.id}</span>
+            <span class="px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase ${getStatusBadgeClasses(req.status)}">
               ${formatStatusLabel(req.status)}
             </span>
             <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${getPriorityBadgeClasses(req.priority)}">
@@ -541,7 +624,7 @@
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs bg-slate-50/70 p-3 rounded-xl border border-slate-100">
           <div>
             <span class="text-slate-400 text-[10px] uppercase font-bold block">Blood Group</span>
-            <span class="font-extrabold text-red-700 text-sm">${req.blood_group || '—'}</span>
+            <span class="font-bold text-red-700 text-sm">${req.blood_group || '—'}</span>
           </div>
           <div>
             <span class="text-slate-400 text-[10px] uppercase font-bold block">Component & Units</span>
@@ -616,7 +699,7 @@
           <tr class="hover:bg-slate-50/70 transition-colors">
             <td class="py-3 px-4 font-mono font-bold text-slate-900">#${req.id}</td>
             <td class="py-3 px-4">
-              <span class="inline-flex px-2 py-0.5 rounded text-xs font-black bg-red-100 text-red-800">
+              <span class="inline-flex px-2 py-0.5 rounded text-xs font-bold bg-red-100 text-red-800">
                 ${req.blood_group || '—'}
               </span>
             </td>
@@ -755,7 +838,7 @@
             <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between">
               <div>
                 <div class="flex items-center justify-between gap-2 pb-3 border-b border-slate-100">
-                  <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-slate-100 text-slate-700">
+                  <span class="px-2 py-0.5 rounded text-[10px] font-semibold uppercase bg-slate-100 text-slate-700">
                     ${org.type || 'HOSPITAL'}
                   </span>
                   <span class="inline-flex items-center gap-1 text-[11px] text-slate-400">
@@ -765,7 +848,7 @@
                 </div>
 
                 <div class="mt-3">
-                  <h3 class="font-extrabold text-sm text-slate-900">${escapeHtml(org.name || 'Verified Storage')}</h3>
+                  <h3 class="font-semibold text-sm text-slate-900">${escapeHtml(org.name || 'Verified Storage')}</h3>
                   ${
                     org.contactPhone
                       ? `<p class="text-[11px] text-slate-500 mt-0.5">📞 ${escapeHtml(org.contactPhone)}</p>`
@@ -775,7 +858,7 @@
 
                 <div class="mt-4 p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
                   <div class="flex items-center gap-2">
-                    <span class="w-8 h-8 rounded-lg bg-red-600 text-white font-black text-xs flex items-center justify-center">
+                    <span class="w-8 h-8 rounded-lg bg-red-600 text-white font-bold text-xs flex items-center justify-center">
                       ${item.bloodGroup}
                     </span>
                     <div>
@@ -784,7 +867,7 @@
                     </div>
                   </div>
                   <div class="text-right">
-                    <span class="text-base font-extrabold ${isHighStock ? 'text-emerald-600' : 'text-amber-600'}">
+                    <span class="text-base font-bold ${isHighStock ? 'text-emerald-600' : 'text-amber-600'}">
                       ${item.availableUnits}
                     </span>
                     <span class="text-[10px] text-slate-400 block font-medium">available</span>
@@ -1283,6 +1366,23 @@
       });
     }
 
+    // Overview Welcome Banner Refresh Button
+    const refreshOverviewBtn = document.getElementById('refreshOverviewBtn');
+    if (refreshOverviewBtn) {
+      refreshOverviewBtn.addEventListener('click', async () => {
+        const icon = document.getElementById('refreshOverviewIcon');
+        if (icon) icon.classList.add('animate-spin');
+        refreshOverviewBtn.disabled = true;
+        try {
+          await refreshAllData();
+          showToast('Dashboard statistics refreshed.', 'info');
+        } finally {
+          if (icon) icon.classList.remove('animate-spin');
+          refreshOverviewBtn.disabled = false;
+        }
+      });
+    }
+
     // 3. Find Blood Filters Form & Reset
     const findBloodForm = document.getElementById('findBloodFilterForm');
     if (findBloodForm) {
@@ -1369,19 +1469,19 @@
     };
 
     const tabAll = document.getElementById('tabCountAll');
-    if (tabAll) tabAll.textContent = counts.ALL;
+    if (tabAll) animateValueCounter(tabAll, counts.ALL, { duration: 800, startFromZero: true });
 
     const tabActive = document.getElementById('tabCountActive');
-    if (tabActive) tabActive.textContent = counts.ACTIVE;
+    if (tabActive) animateValueCounter(tabActive, counts.ACTIVE, { duration: 800, startFromZero: true });
 
     const tabCompleted = document.getElementById('tabCountCompleted');
-    if (tabCompleted) tabCompleted.textContent = counts.COMPLETED;
+    if (tabCompleted) animateValueCounter(tabCompleted, counts.COMPLETED, { duration: 800, startFromZero: true });
 
     const tabCancelled = document.getElementById('tabCountCancelled');
-    if (tabCancelled) tabCancelled.textContent = counts.CANCELLED;
+    if (tabCancelled) animateValueCounter(tabCancelled, counts.CANCELLED, { duration: 800, startFromZero: true });
 
     const tabRejected = document.getElementById('tabCountRejected');
-    if (tabRejected) tabRejected.textContent = counts.REJECTED;
+    if (tabRejected) animateValueCounter(tabRejected, counts.REJECTED, { duration: 800, startFromZero: true });
 
     // 2. Filter list by active tab
     let filtered = State.requests.filter((r) => {
@@ -1445,7 +1545,7 @@
           <tr class="hover:bg-slate-50/70 transition-colors">
             <td class="py-3 px-4 font-mono font-bold text-slate-900">#${req.id}</td>
             <td class="py-3 px-4">
-              <span class="inline-flex px-2 py-0.5 rounded text-xs font-black bg-red-100 text-red-800">
+              <span class="inline-flex px-2 py-0.5 rounded text-xs font-bold bg-red-100 text-red-800">
                 ${req.blood_group || '—'}
               </span>
             </td>
@@ -1522,8 +1622,8 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
               <div class="flex items-center gap-3">
                 <span class="w-3 h-3 rounded-full bg-amber-500 animate-pulse"></span>
-                <span class="font-extrabold text-base text-slate-900">Requisition #${req.id}</span>
-                <span class="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase ${getStatusBadgeClasses(req.status)}">
+                <span class="font-semibold text-base text-slate-900">Requisition #${req.id}</span>
+                <span class="px-2.5 py-0.5 rounded-md text-[10px] font-semibold uppercase ${getStatusBadgeClasses(req.status)}">
                   ${formatStatusLabel(req.status)}
                 </span>
                 <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${getPriorityBadgeClasses(req.priority)}">
@@ -1540,12 +1640,12 @@
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100 text-xs">
               <div>
                 <span class="text-slate-400 text-[10px] uppercase font-bold block">Required Blood</span>
-                <span class="text-base font-black text-red-700">${req.blood_group}</span>
+                <span class="text-base font-bold text-red-700">${req.blood_group}</span>
                 <span class="text-slate-500 text-[11px] block">${formatComponentLabel(req.component)}</span>
               </div>
               <div>
                 <span class="text-slate-400 text-[10px] uppercase font-bold block">Units Required</span>
-                <span class="text-base font-extrabold text-slate-900">${req.quantity} ${req.quantity === 1 ? 'Unit' : 'Units'}</span>
+                <span class="text-base font-bold text-slate-900">${req.quantity} ${req.quantity === 1 ? 'Unit' : 'Units'}</span>
                 <span class="text-slate-500 text-[11px] block">Fulfilled: ${req.fulfilled_quantity || 0}</span>
               </div>
               <div>
@@ -1898,7 +1998,7 @@
           <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
             <div>
               <span class="text-[10px] text-slate-400 font-bold uppercase block">Current Workflow Status</span>
-              <span class="inline-flex px-2.5 py-0.5 rounded text-xs font-black uppercase mt-1 ${getStatusBadgeClasses(req.status)}">
+              <span class="inline-flex px-2.5 py-0.5 rounded text-xs font-semibold uppercase mt-1 ${getStatusBadgeClasses(req.status)}">
                 ${formatStatusLabel(req.status)}
               </span>
             </div>
@@ -1914,7 +2014,7 @@
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-white p-3.5 rounded-xl border border-slate-100">
             <div>
               <span class="text-slate-400 text-[10px] uppercase font-bold block">Blood Group</span>
-              <span class="text-base font-black text-red-700">${req.blood_group}</span>
+              <span class="text-base font-bold text-red-700">${req.blood_group}</span>
             </div>
             <div>
               <span class="text-slate-400 text-[10px] uppercase font-bold block">Component</span>
@@ -1951,7 +2051,7 @@
           ${
             req.cancellation_reason
               ? `<div class="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-900">
-                  <span class="text-rose-600 text-[10px] uppercase font-extrabold block mb-0.5">Cancellation Audit Record</span>
+                  <span class="text-rose-600 text-[10px] uppercase font-semibold block mb-0.5">Cancellation Audit Record</span>
                   <p>Reason: <strong>${escapeHtml(req.cancellation_reason)}</strong></p>
                   <span class="text-[10px] text-rose-500 mt-1 block">Cancelled at ${formatDate(req.cancelled_at)}</span>
                 </div>`
@@ -2325,7 +2425,7 @@
         <div class="p-3.5 rounded-xl bg-${config.color}-50 border border-${config.color}-200 flex items-start gap-3 text-xs text-${config.color}-900">
           <svg class="w-5 h-5 text-${config.color}-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
           <div>
-            <h5 class="font-extrabold text-${config.color}-800">${config.title}</h5>
+            <h5 class="font-semibold text-${config.color}-800">${config.title}</h5>
             <p class="text-[11px] mt-0.5 text-${config.color}-700">${config.desc}</p>
           </div>
         </div>
@@ -2353,7 +2453,7 @@
             } else if (isCurrent) {
               iconHtml = `<span class="w-2 h-2 rounded-full bg-white animate-ping"></span>`;
               ringClass = 'bg-red-600 text-white ring-4 ring-red-100';
-              titleClass = 'text-red-700 font-extrabold';
+              titleClass = 'text-red-700 font-semibold';
             } else {
               iconHtml = `<span class="text-[10px] font-bold text-slate-400">${idx + 1}</span>`;
               ringClass = 'bg-slate-100 text-slate-400 border border-slate-200';
@@ -2391,7 +2491,7 @@
       <div class="space-y-1.5">
         <div class="flex items-center justify-between text-xs">
           <span class="font-bold text-slate-700">Workflow Progress</span>
-          <span class="font-extrabold text-red-600">${percent}% (${formatStatusLabel(currentStatus)})</span>
+          <span class="font-semibold text-red-600">${percent}% (${formatStatusLabel(currentStatus)})</span>
         </div>
         <div class="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
           <div class="h-full bg-red-600 rounded-full transition-all duration-500" style="width: ${percent}%"></div>
