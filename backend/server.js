@@ -32,6 +32,7 @@ const publicRoutes = require('./routes/publicRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const userRoutes = require('./routes/userRoutes');
 const requestRoutes = require('./routes/requestRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 
 // Initialize the Express application
 const app = express();
@@ -224,6 +225,9 @@ app.use('/api/admin', adminRoutes);
 // Mount Blood Requests Routes (§9, §11, §18)
 app.use('/api/blood-requests', requestRoutes);
 app.use('/api/requests', requestRoutes);
+
+// Mount Notifications Routes (§18, §22)
+app.use('/api/notifications', notificationRoutes);
 
 // ============================================================================
 // ERROR HANDLING & FALLBACKS (§18 & §25)

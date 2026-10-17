@@ -363,6 +363,7 @@ async function runTests() {
     if (server) {
       server.close();
     }
+    process.exit(process.exitCode || 0);
   }
 }
 

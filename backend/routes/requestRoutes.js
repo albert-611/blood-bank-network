@@ -11,7 +11,11 @@ const express = require('express');
 const { authenticate } = require('../middleware/auth');
 const checkPermission = require('../middleware/checkPermission');
 const requestController = require('../controllers/requestController');
-const { validateCreateBloodRequest } = require('../validators/requestValidators');
+const {
+  validateCreateBloodRequest,
+  validateUpdateBloodRequest,
+  validateCancelBloodRequest
+} = require('../validators/requestValidators');
 
 const router = express.Router();
 
@@ -38,10 +42,39 @@ router.post(
 router.get('/', requestController.listBloodRequests);
 
 /**
+ * @route   GET /api/blood-requests/summary
+ * @desc    Get aggregate request KPI metrics (total, active, ready for collection, completed)
+ * @access  Protected
+ */
+router.get('/summary', requestController.getBloodRequestsSummary);
+
+/**
  * @route   GET /api/blood-requests/:id
  * @desc    Get details of a single blood requisition
  * @access  Protected (Author / Assigned Org / Super Admin)
  */
 router.get('/:id', requestController.getBloodRequestById);
+
+/**
+ * @route   PUT /api/blood-requests/:id
+ * @desc    Update an active blood requisition (within 6-hour edit window)
+ * @access  Protected (Requester Author / Super Admin)
+ */
+router.put(
+  '/:id',
+  validateUpdateBloodRequest,
+  requestController.updateBloodRequest
+);
+
+/**
+ * @route   POST /api/blood-requests/:id/cancel
+ * @desc    Cancel an active blood requisition at any time and release reserved units safely
+ * @access  Protected (Requester Author / Fulfilling Org Staff / Super Admin)
+ */
+router.post(
+  '/:id/cancel',
+  validateCancelBloodRequest,
+  requestController.cancelBloodRequest
+);
 
 module.exports = router;

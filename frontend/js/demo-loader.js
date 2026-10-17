@@ -555,6 +555,138 @@
     },
 
     /**
+     * Update request in demo mode with 6-hour edit window enforcement
+     * @param {string|number} id
+     * @param {Object} payload
+     */
+    async updateRequest(id, payload) {
+      const data = await this.loadData();
+      let req = runtimeOverrides.createdRequests.find(r => String(r.id) === String(id));
+      if (!req && data.requests) {
+        req = data.requests.find(r => String(r.id) === String(id));
+      }
+      if (!req && data.requesters) {
+        for (const user of Object.values(data.requesters)) {
+          if (user.requests) {
+            const found = user.requests.find(r => String(r.id) === String(id));
+            if (found) { req = found; break; }
+          }
+        }
+      }
+
+      if (!req) {
+        throw new Error('Requisition not found.');
+      }
+
+      if (req.status === 'CANCELLED') {
+        throw new Error('Cannot edit a cancelled blood request.');
+      }
+      if (req.status === 'ISSUED' || req.status === 'COMPLETED') {
+        throw new Error('Cannot edit a requisition that has already been issued or completed.');
+      }
+
+      // Check 6-hour window from original submission timestamp
+      const createdMs = new Date(req.createdAt || req.created_at || Date.now()).getTime();
+      const diffHours = (Date.now() - createdMs) / (1000 * 60 * 60);
+      if (diffHours > 6) {
+        const err = new Error('The 6-hour editing window has expired. Requisitions cannot be modified after 6 hours from original submission.');
+        err.code = 'EDIT_WINDOW_EXPIRED';
+        throw err;
+      }
+
+      // Update fields
+      if (payload.blood_group) req.bloodGroup = payload.blood_group;
+      if (payload.component) req.component = payload.component;
+      if (payload.quantity || payload.units) req.units = Number(payload.quantity || payload.units);
+      if (payload.priority) req.priority = payload.priority;
+      if (payload.notes !== undefined) req.recipient = payload.notes;
+
+      if (payload.preferred_organization_id || payload.preferred_facility_name) {
+        req.preferredFacility = {
+          name: payload.preferred_facility_name || 'Selected Treatment Facility',
+          type: payload.preferred_facility_name ? 'UNREGISTERED' : 'REGISTERED',
+          location: payload.preferred_facility_location || 'General Ward'
+        };
+      }
+
+      req.updatedAt = new Date().toISOString();
+      return {
+        success: true,
+        message: 'Requisition updated successfully.',
+        data: req
+      };
+    },
+
+    /**
+     * Cancel request in demo mode (anytime cancellation)
+     * @param {string|number} id
+     * @param {string} reason
+     */
+    async cancelRequest(id, reason = '') {
+      const data = await this.loadData();
+      let req = runtimeOverrides.createdRequests.find(r => String(r.id) === String(id));
+      if (!req && data.requests) {
+        req = data.requests.find(r => String(r.id) === String(id));
+      }
+      if (!req && data.requesters) {
+        for (const user of Object.values(data.requesters)) {
+          if (user.requests) {
+            const found = user.requests.find(r => String(r.id) === String(id));
+            if (found) { req = found; break; }
+          }
+        }
+      }
+
+      if (!req) {
+        throw new Error('Requisition not found.');
+      }
+
+      if (req.status === 'CANCELLED') {
+        throw new Error('This blood request is already cancelled.');
+      }
+      if (req.status === 'ISSUED' || req.status === 'COMPLETED') {
+        throw new Error('Cannot cancel a blood request that has already been issued or completed. Physical units have already been dispatched. Please contact blood bank staff directly.');
+      }
+
+      req.status = 'CANCELLED';
+      req.cancellation_reason = reason || 'Cancelled by requester';
+      req.cancelled_at = new Date().toISOString();
+      req.trackingStage = 'Cancelled';
+
+      return {
+        success: true,
+        message: 'Requisition cancelled successfully.',
+        data: req
+      };
+    },
+
+    /**
+     * Requisition statistics for demo session
+     */
+    async getRequestStats() {
+      const data = await this.loadData();
+      const user = window.BloodBankAuth?.getUser();
+      const email = user?.email || 'requester.jane@bloodbank.dev';
+      const reqData = await this.getRequesterData(email);
+      const list = (reqData?.requests || []).concat(runtimeOverrides.createdRequests);
+      const total = list.length;
+      const active = list.filter(r => ['PENDING', 'VERIFIED', 'SEARCHING', 'PARTIALLY_FULFILLED', 'RESERVED', 'Under Review'].includes(r.status || r.trackingStage)).length;
+      const readyForCollection = list.filter(r => ['RESERVED', 'Ready for Collection'].includes(r.status || r.trackingStage)).length;
+      const completed = list.filter(r => ['ISSUED', 'COMPLETED', 'FULFILLED', 'Fulfilled'].includes(r.status || r.trackingStage)).length;
+      const cancelled = list.filter(r => ['CANCELLED', 'Cancelled'].includes(r.status || r.trackingStage)).length;
+      const rejected = list.filter(r => ['REJECTED', 'EXPIRED'].includes(r.status || r.trackingStage)).length;
+      return {
+        total,
+        active,
+        readyForCollection,
+        completed,
+        cancelled,
+        rejected,
+        requestsList: list
+      };
+    },
+
+    /**
      * Hospital clinical staff (§10)
      */
     async getHospitalStaff() {

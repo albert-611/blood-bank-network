@@ -249,6 +249,8 @@ CREATE TABLE blood_requests (
   preferred_organization_id BIGINT UNSIGNED NULL,
   preferred_facility_name VARCHAR(150) NULL,
   preferred_facility_location VARCHAR(255) NULL,
+  cancellation_reason VARCHAR(255) NULL,
+  cancelled_at DATETIME NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT fk_blood_requests_user FOREIGN KEY (requester_user_id) 

@@ -166,7 +166,9 @@ const BloodBankAuth = {
 
     if (role === 'SUPER_ADMIN') {
       return '/dashboard/super-admin/index.html';
-    } else if (role === 'DONOR' || role === 'REQUESTER' || emailPrefix.includes('donor') || emailPrefix.includes('requester')) {
+    } else if (role === 'REQUESTER' || emailPrefix.includes('requester')) {
+      return '/dashboard/requester/index.html';
+    } else if (role === 'DONOR' || emailPrefix.includes('donor')) {
       return '/dashboard/donor/index.html';
     } else if (role === 'HOSPITAL_ADMIN' || staffRole === 'HOSPITAL_ADMIN' || (staffRole === 'ORGANIZATION_ADMIN' && orgType === 'HOSPITAL') || (!staff && emailPrefix.includes('hospital'))) {
       return '/dashboard/hospital-admin/index.html';

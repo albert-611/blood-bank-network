@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Requester Dashboard — BloodLink Platform</title>
+  <meta name="description" content="Blood requisition and availability tracking dashboard for patient representatives and requesters.">
+  <meta name="api-base-url" content="">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    .shadow-2xs { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04); }
+    .shadow-xs { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03); }
+    /* Stepper connector lines */
+    .step-line-active { background-color: #dc2626; }
+    .step-line-inactive { background-color: #e2e8f0; }
+    /* Custom scrollbar for dropdowns and tables */
+    .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900 flex flex-col antialiased" data-auth-required="true" data-allowed-roles="REQUESTER">
+
+  <!-- ========================================================================= -->
+  <!-- TOP NAVIGATION BAR (§4.B)                                                 -->
+  <!-- ========================================================================= -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+    <div class="w-full px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- Left: Hamburger (mobile) + Brand logo -->
+        <div class="flex items-center gap-3">
+          <!-- Mobile Sidebar Drawer Toggle Button (Visible on < lg screens) -->
+          <button 
+            type="button" 
+            id="mobileSidebarToggleBtn" 
+            class="lg:hidden p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors shadow-2xs cursor-pointer inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-red-500"
+            aria-label="Open Navigation Menu"
+            title="Open Menu"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </button>
+
+          <!-- Platform Logo & Role Badge -->
+          <a href="#overview" class="flex items-center gap-2.5 sm:gap-3 group">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-white shadow-md shadow-red-500/20 shrink-0">
+              <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="font-extrabold text-base tracking-tight text-slate-900">Blood<span class="text-red-600">Link</span></span>
+              <span class="hidden sm:inline-flex px-2 py-0.5 text-[10px] font-bold uppercase rounded-md bg-red-50 text-red-700 border border-red-200">
+                Requester
+              </span>
+            </div>
+          </a>
+
+          <!-- Current Breadcrumb (Desktop) -->
+          <div class="hidden md:flex items-center gap-2 pl-4 border-l border-slate-200 text-xs text-slate-400">
+            <span>Portal</span>
+            <span>/</span>
+            <span id="topBreadcrumbTitle" class="font-semibold text-slate-700">Dashboard Overview</span>
+          </div>
+        </div>
+
+        <!-- Right: Actions, Notifications Bell, User Avatar & Logout -->
+        <div class="flex items-center gap-2 sm:gap-3">
+          
+          <!-- Environment Indicator -->
+          <div id="demoBadgeContainer" class="hidden xl:flex items-center">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              <span id="envBadgeText">HEALTHCARE NETWORK</span>
+            </span>
+          </div>
+
+          <!-- Main Landing Page Shortcut -->
+          <a href="/" title="Go to Main Website" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-200 transition-colors shadow-2xs cursor-pointer">
+            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+            <span class="hidden md:inline">Website</span>
+          </a>
+
+          <!-- Notifications Bell Action -->
+          <a 
+            href="#notifications" 
+            id="topNotificationsBtn" 
+            title="View Notifications" 
+            class="relative p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors shadow-2xs cursor-pointer inline-flex items-center justify-center"
+          >
+            <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+            </svg>
+            <span id="topNotificationBadge" class="hidden absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-600 text-white text-[9px] font-black flex items-center justify-center">0</span>
+          </a>
+
+          <!-- Profile Badge / Dropdown Toggle -->
+          <div class="relative" id="profileDropdownContainer">
+            <button 
+              type="button" 
+              id="topProfileDropdownBtn" 
+              class="flex items-center gap-2 pl-2 pr-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-colors cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-red-500"
+              aria-haspopup="true"
+              aria-expanded="false"
+            >
+              <div class="w-7 h-7 rounded-lg bg-red-600 text-white font-bold text-xs flex items-center justify-center uppercase shrink-0" id="topAvatarInitials">
+                JF
+              </div>
+              <div class="hidden sm:block text-left min-w-0">
+                <span data-user-name class="font-bold text-xs text-slate-800 block truncate max-w-[130px]">Jane Foster</span>
+                <span class="text-[10px] text-slate-500 block leading-tight">Patient Requester</span>
+              </div>
+              <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </button>
+
+            <!-- Profile Dropdown Menu -->
+            <div 
+              id="topProfileMenu" 
+              class="hidden absolute right-0 mt-1.5 w-52 bg-white rounded-2xl shadow-xl border border-slate-200 py-1.5 z-50 transition-all text-xs"
+              role="menu"
+            >
+              <div class="px-3.5 py-2 border-b border-slate-100">
+                <p class="font-bold text-slate-900 truncate" id="menuFullName">Jane Foster</p>
+                <p class="text-[11px] text-slate-400 font-mono truncate" id="menuEmail">requester.jane@bloodbank.dev</p>
+              </div>
+              <a href="#profile" class="flex items-center gap-2.5 px-3.5 py-2 text-slate-700 hover:bg-slate-50 hover:text-slate-900 font-medium transition-colors" role="menuitem">
+                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                <span>Profile & Settings</span>
+              </a>
+              <a href="#my-requests" class="flex items-center gap-2.5 px-3.5 py-2 text-slate-700 hover:bg-slate-50 hover:text-slate-900 font-medium transition-colors" role="menuitem">
+                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                <span>My Requests</span>
+              </a>
+              <div class="border-t border-slate-100 my-1"></div>
+              <button 
+                type="button" 
+                data-logout-btn 
+                class="w-full text-left flex items-center gap-2.5 px-3.5 py-2 text-rose-600 hover:bg-rose-50 font-bold transition-colors cursor-pointer"
+                role="menuitem"
+              >
+                <svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+                <span>Log Out</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Direct Logout Button (Desktop) -->
+          <button 
+            type="button" 
+            data-logout-btn 
+            title="Log out of Requester Portal" 
+            class="logout-btn hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 transition-all shadow-2xs hover:border-rose-300 cursor-pointer"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+            </svg>
+            <span>Log Out</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Drawer Backdrop Overlay -->
+  <div id="mobileDrawerBackdrop" class="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-xs hidden lg:hidden transition-opacity"></div>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN WORKSPACE LAYOUT (SIDEBAR + CONTENT)                                  -->
+  <!-- ========================================================================= -->
+  <div class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="flex flex-col lg:flex-row gap-6 items-start">
+
+      <!-- ===================================================================== -->
+      <!-- SIDEBAR NAVIGATION (§4.A & §15)                                       -->
+      <!-- ===================================================================== -->
+      <aside 
+        id="portalSidebar" 
+        class="fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 p-4 flex flex-col justify-between transform -translate-x-full lg:translate-x-0 lg:static lg:inset-auto lg:w-64 lg:h-auto lg:rounded-2xl lg:border lg:border-slate-200 lg:shadow-xs transition-transform duration-200 ease-in-out shrink-0"
+        aria-label="Sidebar Navigation"
+      >
+        <!-- Top of Sidebar -->
+        <div class="space-y-4">
+          <!-- Mobile Drawer Header -->
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100 lg:hidden">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg bg-red-600 text-white flex items-center justify-center font-bold text-xs">
+                BL
+              </div>
+              <span class="font-extrabold text-sm text-slate-900">Requester Menu</span>
+            </div>
+            <button 
+              type="button" 
+              id="closeMobileSidebarBtn" 
+              class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+              aria-label="Close Navigation Menu"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+
+          <!-- Section Label -->
+          <div class="px-2">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Workspace Navigation</span>
+          </div>
+
+          <!-- 7 Menu Items (§4.A) -->
+          <nav class="space-y-1" id="sidebarNav">
+            <!-- 1. Dashboard Overview -->
+            <a 
+              href="#overview" 
+              data-route="overview" 
+              class="sidebar-nav-item flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-xl transition-colors bg-red-50 text-red-700 border border-red-100"
+            >
+              <svg class="w-4 h-4 shrink-0 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+              </svg>
+              <span>Dashboard Overview</span>
+            </a>
+
+            <!-- 2. Find Blood -->
+            <a 
+              href="#find-blood" 
+              data-route="find-blood" 
+              class="sidebar-nav-item flex items-center justify-between px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+            >
+              <div class="flex items-center gap-3">
+                <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                <span>Find Blood</span>
+              </div>
+              <span class="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase bg-slate-100 text-slate-500">Live</span>
+            </a>
+
+            <!-- 3. Create Blood Request -->
+            <a 
+              href="#create-request" 
+              data-route="create-request" 
+              class="sidebar-nav-item flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+            >
+              <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span>Create Blood Request</span>
+            </a>
+
+            <!-- 4. My Requests -->
+            <a 
+              href="#my-requests" 
+              data-route="my-requests" 
+              class="sidebar-nav-item flex items-center justify-between px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+            >
+              <div class="flex items-center gap-3">
+                <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+                <span>My Requests</span>
+              </div>
+              <span id="sidebarTotalBadge" class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">0</span>
+            </a>
+
+            <!-- 5. Active Request Progress -->
+            <a 
+              href="#active-progress" 
+              data-route="active-progress" 
+              class="sidebar-nav-item flex items-center justify-between px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+            >
+              <div class="flex items-center gap-3">
+                <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                <span>Active Progress</span>
+              </div>
+              <span id="sidebarActiveBadge" class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">0</span>
+            </a>
+
+            <!-- 6. Notifications -->
+            <a 
+              href="#notifications" 
+              data-route="notifications" 
+              class="sidebar-nav-item flex items-center justify-between px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+            >
+              <div class="flex items-center gap-3">
+                <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                </svg>
+                <span>Notifications</span>
+              </div>
+              <span id="sidebarUnreadBadge" class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700 hidden">0</span>
+            </a>
+
+            <!-- 7. Profile & Settings -->
+            <a 
+              href="#profile" 
+              data-route="profile" 
+              class="sidebar-nav-item flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+            >
+              <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              <span>Profile & Settings</span>
+            </a>
+          </nav>
+        </div>
+
+        <!-- Sidebar Footer (§4.A) -->
+        <div class="pt-4 mt-4 border-t border-slate-100 space-y-3">
+          <!-- Requester Identity Card -->
+          <a href="#profile" class="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-50 transition-colors group cursor-pointer">
+            <div class="w-8 h-8 rounded-lg bg-red-100 text-red-700 font-bold text-xs flex items-center justify-center shrink-0 uppercase" id="sidebarAvatarInitials">
+              JF
+            </div>
+            <div class="min-w-0 flex-1">
+              <span data-user-name class="font-bold text-xs text-slate-800 block truncate group-hover:text-red-700">Jane Foster</span>
+              <span class="text-[10px] text-slate-400 block truncate">Patient Requester</span>
+            </div>
+          </a>
+
+          <!-- Logout Button -->
+          <button 
+            type="button" 
+            data-logout-btn 
+            class="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold rounded-xl text-rose-600 hover:bg-rose-50 border border-rose-200 transition-colors cursor-pointer"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+            <span>Sign Out</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- ===================================================================== -->
+      <!-- MAIN CONTENT CONTAINER (VIEWPORT)                                     -->
+      <!-- ===================================================================== -->
+      <main class="flex-1 w-full min-w-0" id="mainContentArea">
+
+        <!-- =================================================================== -->
+        <!-- VIEW 1: DASHBOARD OVERVIEW (§5)                                     -->
+        <!-- =================================================================== -->
+        <div id="view-overview" class="portal-view space-y-6">
+
+          <!-- Welcome Banner -->
+          <div class="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-2 mb-1.5">
+                <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-red-50 text-red-700 border border-red-200">
+                  Requester Workspace
+                </span>
+                <span class="text-xs text-slate-400">•</span>
+                <span class="text-xs font-medium text-slate-500">Authorized Patient Representative</span>
+              </div>
+              <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">
+                Welcome back, <span id="overviewWelcomeName">Jane Foster</span>
+              </h1>
+              <p class="text-xs sm:text-sm text-slate-500 mt-1">
+                Find available blood, manage your requests, and follow their progress.
+              </p>
+            </div>
+
+            <!-- Primary & Secondary Action CTAs (§5) -->
+            <div class="flex flex-wrap items-center gap-2.5 w-full sm:w-auto shrink-0">
+              <a 
+                href="#find-blood" 
+                class="inline-flex items-center justify-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-2xs transition-colors cursor-pointer"
+              >
+                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <span>Find Available Blood</span>
+              </a>
+
+              <a 
+                href="#create-request" 
+                class="inline-flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold rounded-xl bg-red-600 hover:bg-red-700 text-white shadow-xs transition-colors cursor-pointer"
+              >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                <span>Create Blood Request</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- 4 Summary Cards (§5.A) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="overviewKpiGrid">
+            
+            <!-- Card 1: Total Requests -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Requests</span>
+                <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                </div>
+              </div>
+              <div class="mt-3">
+                <span id="kpiTotalRequests" class="text-2xl sm:text-3xl font-extrabold text-slate-900 block leading-tight">0</span>
+                <span class="text-[11px] text-slate-400 mt-1 block">All requisitions created</span>
+              </div>
+            </div>
+
+            <!-- Card 2: Active Requests -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-amber-700 uppercase tracking-wider">Active Requests</span>
+                <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+              </div>
+              <div class="mt-3">
+                <span id="kpiActiveRequests" class="text-2xl sm:text-3xl font-extrabold text-amber-600 block leading-tight">0</span>
+                <span class="text-[11px] text-slate-400 mt-1 block">Currently being processed</span>
+              </div>
+            </div>
+
+            <!-- Card 3: Ready for Collection -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-purple-700 uppercase tracking-wider">Ready for Collection</span>
+                <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+                </div>
+              </div>
+              <div class="mt-3">
+                <span id="kpiReadyRequests" class="text-2xl sm:text-3xl font-extrabold text-purple-700 block leading-tight">0</span>
+                <span class="text-[11px] text-slate-400 mt-1 block">Stock reserved & ready</span>
+              </div>
+            </div>
+
+            <!-- Card 4: Completed Requests -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-emerald-700 uppercase tracking-wider">Completed Requests</span>
+                <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+              </div>
+              <div class="mt-3">
+                <span id="kpiCompletedRequests" class="text-2xl sm:text-3xl font-extrabold text-emerald-600 block leading-tight">0</span>
+                <span class="text-[11px] text-slate-400 mt-1 block">Successfully fulfilled</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Active Request Progress Preview Widget (§5.C) -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+            <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+                <h2 class="font-bold text-sm text-slate-900">Active Request Progress</h2>
+              </div>
+              <a href="#active-progress" class="text-xs font-semibold text-red-600 hover:text-red-700 hover:underline">
+                View All Active Requests →
+              </a>
+            </div>
+            
+            <div id="overviewActiveProgressContainer" class="p-5">
+              <!-- Populated dynamically via JS -->
+              <div class="text-center py-6 text-slate-400 text-xs">
+                Loading active request status...
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Requests Table (§5.B) -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+            <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <h2 class="font-bold text-sm text-slate-900">Recent Requests</h2>
+                <p class="text-xs text-slate-500 mt-0.5">Summary of your latest blood requisitions and current workflow statuses.</p>
+              </div>
+              <a href="#my-requests" class="text-xs font-semibold text-red-600 hover:text-red-700 hover:underline">
+                View All Requests in Table →
+              </a>
+            </div>
+
+            <!-- Table (Desktop) / Cards (Mobile) -->
+            <div class="overflow-x-auto custom-scrollbar">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                    <th class="py-3 px-4">Request ID</th>
+                    <th class="py-3 px-4">Blood Group</th>
+                    <th class="py-3 px-4">Component</th>
+                    <th class="py-3 px-4">Units</th>
+                    <th class="py-3 px-4">Hospital / Clinic</th>
+                    <th class="py-3 px-4">Priority</th>
+                    <th class="py-3 px-4">Status</th>
+                    <th class="py-3 px-4">Submitted Date</th>
+                    <th class="py-3 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="overviewRecentRequestsTableBody" class="divide-y divide-slate-100">
+                  <!-- Populated via JS -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Empty State for Recent Requests -->
+            <div id="overviewRecentEmptyState" class="hidden p-8 text-center">
+              <div class="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-3">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              </div>
+              <h3 class="font-bold text-sm text-slate-900">No Blood Requests Yet</h3>
+              <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+                You haven't submitted any blood requisitions. Search for available units or create a new request for your patient.
+              </p>
+              <div class="mt-4 flex items-center justify-center gap-2">
+                <a href="#find-blood" class="px-3.5 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50">
+                  Find Blood
+                </a>
+                <a href="#create-request" class="px-3.5 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold">
+                  Create Blood Request
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Important Notifications Preview (§5.D) -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                </svg>
+                <h2 class="font-bold text-sm text-slate-900">Recent Notifications</h2>
+              </div>
+              <a href="#notifications" class="text-xs font-semibold text-red-600 hover:text-red-700 hover:underline">
+                View All Notifications →
+              </a>
+            </div>
+
+            <div id="overviewNotificationsPreview" class="divide-y divide-slate-100 mt-1">
+              <!-- Populated via JS -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- =================================================================== -->
+        <!-- VIEW 2: FIND BLOOD PAGE (§6)                                        -->
+        <!-- =================================================================== -->
+        <div id="view-find-blood" class="portal-view hidden space-y-6">
+
+          <!-- Header & Explanatory Notice -->
+          <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs">
+            <div class="flex items-center gap-2 mb-1.5">
+              <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700">
+                Blood Discovery
+              </span>
+              <span class="text-xs text-slate-400">•</span>
+              <span class="text-xs font-medium text-slate-500">Certified Regional Network</span>
+            </div>
+            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Find Available Blood</h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl">
+              Search live blood unit availability across approved hospitals, clinics, and blood banks. 
+              Searching is strictly informational and does not deduct or reserve inventory.
+            </p>
+
+            <!-- Search & Filter Controls -->
+            <form id="findBloodFilterForm" class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <!-- Blood Group -->
+              <div>
+                <label for="filterBloodGroup" class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">
+                  Blood Group
+                </label>
+                <select id="filterBloodGroup" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-600 font-medium">
+                  <option value="">All Blood Groups</option>
+                  <option value="A+">A+ (A Positive)</option>
+                  <option value="A-">A- (A Negative)</option>
+                  <option value="B+">B+ (B Positive)</option>
+                  <option value="B-">B- (B Negative)</option>
+                  <option value="AB+">AB+ (AB Positive)</option>
+                  <option value="AB-">AB- (AB Negative)</option>
+                  <option value="O+">O+ (O Positive)</option>
+                  <option value="O-">O- (O Negative / Universal)</option>
+                </select>
+              </div>
+
+              <!-- Component -->
+              <div>
+                <label for="filterComponent" class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">
+                  Blood Component
+                </label>
+                <select id="filterComponent" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-600 font-medium">
+                  <option value="">All Components</option>
+                  <option value="PACKED_RBC">Packed Red Blood Cells (RBC)</option>
+                  <option value="WHOLE_BLOOD">Whole Blood</option>
+                  <option value="PLATELETS">Platelets (Thrombocytes)</option>
+                  <option value="PLASMA">Fresh Frozen Plasma (FFP)</option>
+                  <option value="CRYO">Cryoprecipitate</option>
+                </select>
+              </div>
+
+              <!-- City / Location -->
+              <div>
+                <label for="filterCity" class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">
+                  City / Location
+                </label>
+                <input 
+                  type="text" 
+                  id="filterCity" 
+                  placeholder="e.g. Metro City, Dhaka..." 
+                  class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-600"
+                />
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="flex items-end gap-2">
+                <button 
+                  type="submit" 
+                  class="flex-1 py-2 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                  <span>Search</span>
+                </button>
+                <button 
+                  type="button" 
+                  id="resetFindBloodFiltersBtn" 
+                  class="py-2 px-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 font-semibold text-xs transition-colors cursor-pointer"
+                  title="Reset filters"
+                >
+                  Reset
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Availability Results Container -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between px-1">
+              <h2 class="font-bold text-sm text-slate-900">
+                Search Results <span id="findBloodCountBadge" class="ml-1 text-xs font-normal text-slate-400">(0 found)</span>
+              </h2>
+              <span class="text-[11px] text-slate-400 font-medium">Updated from verified storage</span>
+            </div>
+
+            <!-- Results Grid / List -->
+            <div id="findBloodResultsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <!-- Populated dynamically via JS -->
+            </div>
+
+            <!-- Empty Results State -->
+            <div id="findBloodEmptyState" class="hidden bg-white p-10 rounded-2xl border border-slate-200 text-center">
+              <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-3">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+              </div>
+              <h3 class="font-bold text-sm text-slate-900">No Matching Stock Available</h3>
+              <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+                No verified units currently match your selected filters. Try clearing the location filter or selecting a compatible universal group (e.g. O-).
+              </p>
+              <div class="mt-4">
+                <a href="#create-request" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-xs">
+                  Submit a Requisition Anyway →
+                </a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- =================================================================== -->
+        <!-- VIEW 3: CREATE BLOOD REQUEST PAGE (§7)                              -->
+        <!-- =================================================================== -->
+        <div id="view-create-request" class="portal-view hidden space-y-6">
+
+          <!-- Header -->
+          <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs">
+            <div class="flex items-center gap-2 mb-1.5">
+              <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-red-50 text-red-700 border border-red-200">
+                New Requisition
+              </span>
+              <span class="text-xs text-slate-400">•</span>
+              <span class="text-xs font-medium text-slate-500">Multi-Section Requisition Protocol</span>
+            </div>
+            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Create Blood Request</h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl">
+              Submit an official blood availability request. The request will be forwarded to the designated treatment facility and fulfilling blood bank for clinical review.
+            </p>
+          </div>
+
+          <!-- Form Container -->
+          <form id="createRequestForm" class="space-y-6">
+
+            <!-- Section A: Patient Information (§7.A) -->
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4">
+              <div class="flex items-center gap-2 pb-3 border-b border-slate-100">
+                <div class="w-6 h-6 rounded-lg bg-red-100 text-red-700 flex items-center justify-center font-bold text-xs">
+                  A
+                </div>
+                <div>
+                  <h2 class="font-bold text-sm text-slate-900">Patient Information</h2>
+                  <p class="text-[11px] text-slate-500">Essential patient identification for clinical matching.</p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label for="reqPatientName" class="block text-xs font-semibold text-slate-700 mb-1">
+                    Patient Name or Patient ID <span class="text-red-600">*</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    id="reqPatientName" 
+                    required 
+                    placeholder="e.g., Robert Vance or PT-8820" 
+                    class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-600 font-medium"
+                  />
+                  <span class="text-[10px] text-slate-400 mt-1 block">Full legal name or authorized hospital identifier.</span>
+                </div>
+
+                <div>
+                  <label for="reqMedicalReference" class="block text-xs font-semibold text-slate-700 mb-1">
+                    Medical Reference / Case File ID <span class="text-slate-400 font-normal">(Optional)</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    id="reqMedicalReference" 
+                    placeholder="e.g., MRN-2026-9042" 
+                    class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-600"
+                  />
+                  <span class="text-[10px] text-slate-400 mt-1 block">Hospital admission number or doctor reference.</span>
+                </div>
+              </div>
+
+              <!-- Medical Privacy Note (§7.A) -->
+              <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-600 flex items-start gap-2.5">
+                <svg class="w-4 h-4 text-slate-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                <span>
+                  <strong>Privacy Notice:</strong> Patient data is protected by healthcare confidentiality protocols and is only shared with authorized medical staff reviewing this specific requisition.
+                </span>
+              </div>
+            </div>
+
+            <!-- Section B: Blood Requirements (§7.B) -->
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4">
+              <div class="flex items-center gap-2 pb-3 border-b border-slate-100">
+                <div class="w-6 h-6 rounded-lg bg-red-100 text-red-700 flex items-center justify-center font-bold text-xs">
+                  B
+                </div>
+                <div>
+                  <h2 class="font-bold text-sm text-slate-900">Blood Requirements</h2>
+                  <p class="text-[11px] text-slate-500">Specify blood group, component, quantity, and clinical urgency.</p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Blood Group -->
+                <div>
+                  <label for="reqBloodGroup" class="block text-xs font-semibold text-slate-700 mb-1">
+                    Required Blood Group <span class="text-red-600">*</span>
+                  </label>
+                  <select id="reqBloodGroup" required class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-600 font-bold text-red-700">
+                    <option value="">Select Blood Group</option>
+                    <option value="A+">A+ (A Positive)</option>
+                    <option value="A-">A- (A Negative)</option>
+                    <option value="B+">B+ (B Positive)</option>
+                    <option value="B-">B- (B Negative)</option>
+                    <option value="AB+">AB+ (AB Positive)</option>
+                    <option value="AB-">AB- (AB Negative)</option>
+                    <option value="O+">O+ (O Positive)</option>
+                    <option value="O-">O- (O Negative)</option>
+                  </select>
+                </div>
+
+                <!-- Component -->
+                <div>
+                  <label for="reqComponent" class="block text-xs font-semibold text-slate-700 mb-1">
+                    Required Component <span class="text-red-600">*</span>
+                  </label>
+                  <select id="reqComponent" required class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-600 font-medium">
+                    <option value="">Select Component</option>
+                    <option value="PACKED_RBC">Packed Red Blood Cells (RBC)</option>
+                    <option value="WHOLE_BLOOD">Whole Blood</option>
+                    <option value="PLATELETS">Platelets (Thrombocytes)</option>
+                    <option value="PLASMA">Fresh Frozen Plasma (FFP)</option>
+                    <option value="CRYO">Cryoprecipitate</option>
+                  </select>
+                </div>
+
+                <!-- Units -->
+                <div>
+                  <label for="reqQuantity" class="block text-xs font-semibold text-slate-700 mb-1">
+                    Number of Units <span class="text-red-600">*</span>
+                  </label>
+                  <input 
+                    type="number" 
+                    id="reqQuantity" 
+                    required 
+                    min="1" 
+                    max="10" 
+                    value="1" 
+                    class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-600 font-bold"
+                  />
+                  <span class="text-[10px] text-slate-400 mt-1 block">Maximum 10 units per standard requisition.</span>
+                </div>
+
+                <!-- Priority -->
+                <div>
+                  <label for="reqPriority" class="block text-xs font-semibold text-slate-700 mb-1">
+                    Priority Level <span class="text-red-600">*</span>
+                  </label>
+                  <select id="reqPriority" required class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-600 font-medium">
+                    <option value="ROUTINE" selected>ROUTINE — Standard Scheduled Care</option>
+                    <option value="URGENT">URGENT — Needed within 6-12 hours</option>
+                    <option value="CRITICAL">CRITICAL — Immediate surgical need</option>
+                  </select>
+                  <span class="text-[10px] text-slate-400 mt-1 block">Priority guides triage order, not independent clinical approval.</span>
+                </div>
+
+                <!-- Required Date -->
+                <div>
+                  <label for="reqRequiredDate" class="block text-xs font-semibold text-slate-700 mb-1">
+                    Required Date
+                  </label>
+                  <input 
+                    type="date" 
+                    id="reqRequiredDate" 
+                    class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-600"
+                  />
+                </div>
+
+                <!-- Required Time -->
+                <div>
+                  <label for="reqRequiredTime" class="block text-xs font-semibold text-slate-700 mb-1">
+                    Required Time
+                  </label>
+                  <input 
+                    type="time" 
+                    id="reqRequiredTime" 
+                    class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-600"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Section C: Required Organization / Treatment Facility (§7.C) -->
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4">
+              <div class="flex items-center gap-2 pb-3 border-b border-slate-100">
+                <div class="w-6 h-6 rounded-lg bg-red-100 text-red-700 flex items-center justify-center font-bold text-xs">
+                  C
+                </div>
+                <div>
+                  <h2 class="font-bold text-sm text-slate-900">Treatment Facility (Hospital or Clinic)</h2>
+                  <p class="text-[11px] text-slate-500">Specify the medical center where the patient is admitted or receiving care.</p>
+                </div>
+              </div>
+
+              <!-- Searchable Facility Combobox Container -->
+              <div class="space-y-3">
+                <input type="hidden" id="reqPreferredOrgId" value="" />
+                <input type="hidden" id="reqFacilitySelectionMode" value="REGISTERED" />
+
+                <!-- Radio Choice: Registered Facility vs Manual Facility -->
+                <div class="flex items-center gap-4 text-xs font-medium">
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="facilityMode" id="facilityModeRegistered" value="REGISTERED" checked class="text-red-600 focus:ring-red-500" />
+                    <span>Select Registered Hospital / Clinic</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="facilityMode" id="facilityModeManual" value="MANUAL" class="text-red-600 focus:ring-red-500" />
+                    <span>Enter Unlisted Facility Manually</span>
+                  </label>
+                </div>
+
+                <!-- 1. Registered Facility Selector -->
+                <div id="registeredFacilityFieldContainer" class="relative">
+                  <label for="facilitySearchCombobox" class="block text-xs font-semibold text-slate-700 mb-1">
+                    Search Registered Facilities <span class="text-red-600">*</span>
+                  </label>
+                  <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </div>
+                    <input 
+                      type="text" 
+                      id="facilitySearchCombobox" 
+                      autocomplete="off" 
+                      placeholder="Type hospital or clinic name (e.g. City General Hospital)..." 
+                      class="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-600 text-xs font-medium"
+                    />
+                    <button type="button" id="clearFacilityComboboxBtn" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 hidden cursor-pointer">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                  </div>
+
+                  <!-- Dropdown List -->
+                  <div id="facilityDropdownMenu" class="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden hidden max-h-60 custom-scrollbar overflow-y-auto">
+                    <div id="facilityListItems" class="divide-y divide-slate-100">
+                      <!-- Populated via JS -->
+                    </div>
+                  </div>
+
+                  <!-- Selected Facility Badge -->
+                  <div id="selectedFacilityPreview" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                      <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">
+                        ✓
+                      </div>
+                      <div>
+                        <span class="font-bold text-xs text-emerald-900 block" id="selectedFacilityName">City General Hospital</span>
+                        <span class="text-[11px] text-emerald-700 block" id="selectedFacilityMeta">HOSPITAL • Metro City</span>
+                      </div>
+                    </div>
+                    <button type="button" id="changeSelectedFacilityBtn" class="text-xs font-semibold text-emerald-800 hover:underline">
+                      Change
+                    </button>
+                  </div>
+                </div>
+
+                <!-- 2. Manual Facility Fields (hidden by default) -->
+                <div id="manualFacilityFieldContainer" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                  <div>
+                    <label for="reqManualFacilityName" class="block text-xs font-semibold text-slate-700 mb-1">
+                      Facility Name <span class="text-red-600">*</span>
+                    </label>
+                    <input 
+                      type="text" 
+                      id="reqManualFacilityName" 
+                      placeholder="e.g. St. Jude Regional Diagnostic Clinic" 
+                      class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-600"
+                    />
+                  </div>
+                  <div>
+                    <label for="reqManualFacilityLocation" class="block text-xs font-semibold text-slate-700 mb-1">
+                      Facility Location / City <span class="text-slate-400 font-normal">(Optional)</span>
+                    </label>
+                    <input 
+                      type="text" 
+                      id="reqManualFacilityLocation" 
+                      placeholder="e.g. North Sector, Metro City" 
+                      class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-600"
+                    />
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Section D: Contact Information (§7.D) -->
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4">
+              <div class="flex items-center gap-2 pb-3 border-b border-slate-100">
+                <div class="w-6 h-6 rounded-lg bg-red-100 text-red-700 flex items-center justify-center font-bold text-xs">
+                  D
+                </div>
+                <div>
+                  <h2 class="font-bold text-sm text-slate-900">Requester Contact Information</h2>
+                  <p class="text-[11px] text-slate-500">Contact details for operational verification and delivery updates.</p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                  <label for="reqContactName" class="block text-xs font-semibold text-slate-700 mb-1">
+                    Requester Full Name
+                  </label>
+                  <input 
+                    type="text" 
+                    id="reqContactName" 
+                    readonly 
+                    class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label for="reqContactPhone" class="block text-xs font-semibold text-slate-700 mb-1">
+                    Contact Phone Number <span class="text-red-600">*</span>
+                  </label>
+                  <input 
+                    type="tel" 
+                    id="reqContactPhone" 
+                    required 
+                    class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-600 font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label for="reqContactEmail" class="block text-xs font-semibold text-slate-700 mb-1">
+                    Contact Email Address
+                  </label>
+                  <input 
+                    type="email" 
+                    id="reqContactEmail" 
+                    readonly 
+                    class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-medium font-mono"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Section E: Supporting Documents & Notes (§7.E) -->
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4">
+              <div class="flex items-center gap-2 pb-3 border-b border-slate-100">
+                <div class="w-6 h-6 rounded-lg bg-red-100 text-red-700 flex items-center justify-center font-bold text-xs">
+                  E
+                </div>
+                <div>
+                  <h2 class="font-bold text-sm text-slate-900">Clinical Notes & Supporting Documents</h2>
+                  <p class="text-[11px] text-slate-500">Provide medical requisition details or upload doctor requisition slips.</p>
+                </div>
+              </div>
+
+              <div>
+                <label for="reqClinicalNotes" class="block text-xs font-semibold text-slate-700 mb-1">
+                  Clinical Notes / Doctor Notes / Transfusion Reason
+                </label>
+                <textarea 
+                  id="reqClinicalNotes" 
+                  rows="3" 
+                  placeholder="e.g. Patient undergoing orthopedic hip revision surgery at 09:00 tomorrow. Type and screen confirmed."
+                  class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-600 custom-scrollbar"
+                ></textarea>
+              </div>
+
+              <div>
+                <label for="reqSupportingDoc" class="block text-xs font-semibold text-slate-700 mb-1">
+                  Requisition Slip or Prescription File <span class="text-slate-400 font-normal">(Optional PDF / JPG / PNG, Max 5MB)</span>
+                </label>
+                <input 
+                  type="file" 
+                  id="reqSupportingDoc" 
+                  accept=".pdf,.jpg,.jpeg,.png" 
+                  class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer"
+                />
+                <span class="text-[10px] text-slate-400 mt-1 block">Uploaded medical documents are stored in secure storage strictly for clinician verification.</span>
+              </div>
+            </div>
+
+            <!-- Section F: Review and Submit (§7.F) -->
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4">
+              <div class="flex items-center gap-2 pb-3 border-b border-slate-100">
+                <div class="w-6 h-6 rounded-lg bg-red-100 text-red-700 flex items-center justify-center font-bold text-xs">
+                  F
+                </div>
+                <div>
+                  <h2 class="font-bold text-sm text-slate-900">Review & Submit Blood Requisition</h2>
+                  <p class="text-[11px] text-slate-500">Confirm entered clinical requisition details before submitting.</p>
+                </div>
+              </div>
+
+              <!-- Real-Time Requisition Summary Panel -->
+              <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2.5 text-xs">
+                <div class="flex items-center justify-between pb-2 border-b border-slate-200/60 font-semibold text-slate-800">
+                  <span>Requisition Summary Preview</span>
+                  <span class="text-[10px] text-amber-700 font-bold uppercase bg-amber-50 px-2 py-0.5 rounded border border-amber-200">Pending Submission</span>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+                  <div>
+                    <span class="text-slate-400 block">Patient Name:</span>
+                    <span class="font-bold text-slate-800" id="summaryPatientPreview">—</span>
+                  </div>
+                  <div>
+                    <span class="text-slate-400 block">Blood Group:</span>
+                    <span class="font-bold text-red-600" id="summaryBloodGroupPreview">—</span>
+                  </div>
+                  <div>
+                    <span class="text-slate-400 block">Component / Units:</span>
+                    <span class="font-bold text-slate-800" id="summaryComponentUnitsPreview">—</span>
+                  </div>
+                  <div>
+                    <span class="text-slate-400 block">Priority:</span>
+                    <span class="font-bold text-slate-800" id="summaryPriorityPreview">ROUTINE</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Authoritative Operational Safety Disclaimer (§7.F & §17) -->
+              <div class="p-4 rounded-xl bg-amber-50/70 border border-amber-200 text-xs text-amber-900 flex items-start gap-3">
+                <svg class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <div class="text-[11px] leading-relaxed">
+                  <strong>Clinical Notice:</strong> Submitting this request places it in <em>PENDING</em> status for medical review. 
+                  Blood units are <strong>not</strong> deducted or reserved until officially verified and approved by the fulfilling blood bank. 
+                  You will have an authoritative <strong>6-hour window</strong> after submission to make any corrections.
+                </div>
+              </div>
+
+              <!-- Form Submit Controls -->
+              <div class="flex items-center justify-end gap-3 pt-2">
+                <button 
+                  type="reset" 
+                  class="px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs transition-colors cursor-pointer"
+                >
+                  Clear Form
+                </button>
+                <button 
+                  type="submit" 
+                  id="submitCreateRequestBtn" 
+                  class="px-6 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-md shadow-red-600/20 transition-all cursor-pointer flex items-center gap-2"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  <span>Submit Blood Request</span>
+                </button>
+              </div>
+
+              <!-- Submission Alert / Status Banner -->
+              <div id="createRequestAlert" class="hidden p-4 rounded-xl text-xs font-medium"></div>
+
+            </div>
+
+          </form>
+
+        </div>
+
+        <!-- =================================================================== -->
+        <!-- VIEW 4: MY REQUESTS PAGE (§8)                                       -->
+        <!-- =================================================================== -->
+        <div id="view-my-requests" class="portal-view hidden space-y-6">
+
+          <!-- Header -->
+          <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-2 mb-1.5">
+                <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700">
+                  Request Management
+                </span>
+                <span class="text-xs text-slate-400">•</span>
+                <span class="text-xs font-medium text-slate-500">Personal Requisition History</span>
+              </div>
+              <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">My Blood Requests</h1>
+              <p class="text-xs sm:text-sm text-slate-500 mt-1">
+                View, filter, track, edit eligible requests within 6 hours, or cancel in-progress requests.
+              </p>
+            </div>
+
+            <a 
+              href="#create-request" 
+              class="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl bg-red-600 hover:bg-red-700 text-white shadow-xs transition-colors shrink-0"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+              <span>New Request</span>
+            </a>
+          </div>
+
+          <!-- Suggested Tabs (§8) -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+            <div class="border-b border-slate-200 px-4 pt-3 flex flex-wrap gap-2 text-xs font-semibold">
+              <button type="button" class="my-requests-tab py-2.5 px-3 border-b-2 border-red-600 text-red-600 cursor-pointer" data-tab="ALL">
+                All Requests (<span id="tabCountAll">0</span>)
+              </button>
+              <button type="button" class="my-requests-tab py-2.5 px-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 cursor-pointer" data-tab="ACTIVE">
+                Active (<span id="tabCountActive">0</span>)
+              </button>
+              <button type="button" class="my-requests-tab py-2.5 px-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 cursor-pointer" data-tab="COMPLETED">
+                Completed (<span id="tabCountCompleted">0</span>)
+              </button>
+              <button type="button" class="my-requests-tab py-2.5 px-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 cursor-pointer" data-tab="CANCELLED">
+                Cancelled (<span id="tabCountCancelled">0</span>)
+              </button>
+              <button type="button" class="my-requests-tab py-2.5 px-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 cursor-pointer" data-tab="REJECTED">
+                Rejected / Expired (<span id="tabCountRejected">0</span>)
+              </button>
+            </div>
+
+            <!-- Filters Bar inside My Requests -->
+            <div class="p-4 bg-slate-50/60 border-b border-slate-100 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-3 text-xs">
+              <div>
+                <input 
+                  type="text" 
+                  id="myRequestsSearchInput" 
+                  placeholder="Search by Request ID, hospital, group..." 
+                  class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-600"
+                />
+              </div>
+              <div>
+                <select id="myRequestsPriorityFilter" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-600">
+                  <option value="">All Priorities</option>
+                  <option value="ROUTINE">Routine</option>
+                  <option value="URGENT">Urgent</option>
+                  <option value="CRITICAL">Critical</option>
+                </select>
+              </div>
+              <div>
+                <select id="myRequestsSortFilter" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-600">
+                  <option value="newest">Sort by: Newest First</option>
+                  <option value="oldest">Sort by: Oldest First</option>
+                </select>
+              </div>
+              <div class="flex items-center justify-end">
+                <button type="button" id="refreshMyRequestsBtn" class="px-3 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl transition-colors cursor-pointer flex items-center gap-1.5">
+                  <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                  <span>Refresh</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Table of Requests -->
+            <div class="overflow-x-auto custom-scrollbar">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                    <th class="py-3 px-4">Request ID</th>
+                    <th class="py-3 px-4">Blood Group</th>
+                    <th class="py-3 px-4">Component</th>
+                    <th class="py-3 px-4">Units</th>
+                    <th class="py-3 px-4">Hospital / Clinic</th>
+                    <th class="py-3 px-4">Priority</th>
+                    <th class="py-3 px-4">Status</th>
+                    <th class="py-3 px-4">Submitted Date</th>
+                    <th class="py-3 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="myRequestsTableBody" class="divide-y divide-slate-100">
+                  <!-- Populated via JS -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Empty State for My Requests -->
+            <div id="myRequestsEmptyNotice" class="hidden p-10 text-center">
+              <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+              </div>
+              <h3 class="font-bold text-sm text-slate-800">No Requisitions Found</h3>
+              <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto" id="myRequestsEmptyMessage">
+                No blood requests match this filter tab or search query.
+              </p>
+              <div class="mt-4">
+                <a href="#create-request" class="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-xs">
+                  <span>Create Blood Request</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- =================================================================== -->
+        <!-- VIEW 5: ACTIVE REQUEST PROGRESS PAGE (§12 & §9)                     -->
+        <!-- =================================================================== -->
+        <div id="view-active-progress" class="portal-view hidden space-y-6">
+
+          <!-- Header -->
+          <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-2 mb-1.5">
+                <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200">
+                  Live Tracking
+                </span>
+                <span class="text-xs text-slate-400">•</span>
+                <span class="text-xs font-medium text-slate-500">Real-Time Clinical Status</span>
+              </div>
+              <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Active Request Progress</h1>
+              <p class="text-xs sm:text-sm text-slate-500 mt-1">
+                Track each active blood requisition through the authorized 6-stage lifecycle.
+              </p>
+            </div>
+
+            <button 
+              type="button" 
+              id="refreshActiveProgressBtn" 
+              class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-2xs transition-colors cursor-pointer"
+            >
+              <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              <span>Refresh Progress</span>
+            </button>
+          </div>
+
+          <!-- Active Requests Cards List -->
+          <div id="activeProgressCardsContainer" class="space-y-5">
+            <!-- Populated via JS -->
+          </div>
+
+          <!-- Empty State for Active Progress -->
+          <div id="activeProgressEmptyState" class="hidden bg-white p-12 rounded-2xl border border-slate-200 text-center">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <h3 class="font-bold text-sm text-slate-900">No Active Requests in Progress</h3>
+            <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+              All your previous requisitions have been fulfilled or closed. There are currently no blood requests undergoing clinical processing.
+            </p>
+            <div class="mt-4 flex items-center justify-center gap-2">
+              <a href="#my-requests" class="px-3.5 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50">
+                View Past Requisitions
+              </a>
+              <a href="#create-request" class="px-4 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-xs">
+                Create New Request
+              </a>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- =================================================================== -->
+        <!-- VIEW 6: NOTIFICATIONS PAGE (§13)                                    -->
+        <!-- =================================================================== -->
+        <div id="view-notifications" class="portal-view hidden space-y-6">
+
+          <!-- Header -->
+          <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-2 mb-1.5">
+                <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700">
+                  Notification Center
+                </span>
+                <span class="text-xs text-slate-400">•</span>
+                <span class="text-xs font-medium text-slate-500">Audit & Lifecycle Updates</span>
+              </div>
+              <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Notifications</h1>
+              <p class="text-xs sm:text-sm text-slate-500 mt-1">
+                Real-time alerts regarding request submissions, reviews, stock reservations, and completions.
+              </p>
+            </div>
+
+            <!-- Notification Actions -->
+            <div class="flex items-center gap-2">
+              <button 
+                type="button" 
+                id="markAllNotificationsReadBtn" 
+                class="px-3.5 py-2 text-xs font-semibold rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 transition-colors shadow-2xs cursor-pointer flex items-center gap-1.5"
+              >
+                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                <span>Mark All as Read</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Notifications List Container -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+            <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+              <div class="flex items-center gap-2 text-xs">
+                <button type="button" id="notifFilterAll" class="font-bold text-red-600 border-b-2 border-red-600 pb-1 px-1">All Notifications</button>
+                <button type="button" id="notifFilterUnread" class="font-medium text-slate-500 hover:text-slate-800 pb-1 px-1">Unread Only</button>
+              </div>
+              <span id="notificationsCountSummary" class="text-xs text-slate-400">0 updates</span>
+            </div>
+
+            <!-- List Body -->
+            <div id="notificationsListItems" class="divide-y divide-slate-100">
+              <!-- Populated via JS -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="notificationsEmptyState" class="hidden p-10 text-center">
+              <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+              </div>
+              <h3 class="font-bold text-sm text-slate-900">No Notifications</h3>
+              <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+                You have no pending alerts or notifications. Updates on submitted requests will appear here.
+              </p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- =================================================================== -->
+        <!-- VIEW 7: PROFILE & SETTINGS PAGE (§14)                               -->
+        <!-- =================================================================== -->
+        <div id="view-profile" class="portal-view hidden space-y-6">
+
+          <!-- Header -->
+          <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs">
+            <div class="flex items-center gap-2 mb-1.5">
+              <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700">
+                Account Settings
+              </span>
+              <span class="text-xs text-slate-400">•</span>
+              <span class="text-xs font-medium text-slate-500">Security & Profile Details</span>
+            </div>
+            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Profile & Settings</h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+              Manage your personal information, phone number, and security preferences.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- Profile Summary Card -->
+            <div class="lg:col-span-1 bg-white rounded-2xl p-6 border border-slate-200 shadow-xs flex flex-col items-center text-center">
+              <div class="w-20 h-20 rounded-2xl bg-red-600 text-white font-extrabold text-2xl flex items-center justify-center uppercase shadow-md shadow-red-500/20 mb-3" id="profileBigAvatarInitials">
+                JF
+              </div>
+              <h2 class="font-extrabold text-base text-slate-900" id="profileCardFullName">Jane Foster</h2>
+              <span class="text-xs font-medium text-slate-500 mt-0.5 block" id="profileCardEmail">requester.jane@bloodbank.dev</span>
+
+              <div class="mt-4 pt-4 border-t border-slate-100 w-full space-y-2 text-xs text-left">
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-400">Account Role:</span>
+                  <span class="font-bold text-red-700 uppercase bg-red-50 px-2 py-0.5 rounded border border-red-200 text-[10px]">
+                    Patient Requester
+                  </span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-400">Account Status:</span>
+                  <span class="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 text-[10px]">
+                    ACTIVE
+                  </span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-400">Security:</span>
+                  <span class="text-slate-700 font-medium text-[11px]">JWT Authenticated</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Profile Edit Form -->
+            <div class="lg:col-span-2 bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-5">
+              <div class="pb-3 border-b border-slate-100">
+                <h3 class="font-bold text-sm text-slate-900">Personal Information</h3>
+                <p class="text-[11px] text-slate-500">Update your contact profile. Role and security attributes are strictly protected.</p>
+              </div>
+
+              <form id="profileUpdateForm" class="space-y-4 text-xs">
+                <div>
+                  <label for="profileInputFullName" class="block font-semibold text-slate-700 mb-1">
+                    Full Name <span class="text-red-600">*</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    id="profileInputFullName" 
+                    required 
+                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-600 font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label for="profileInputEmail" class="block font-semibold text-slate-700 mb-1">
+                    Email Address <span class="text-slate-400 font-normal">(Read-only login identifier)</span>
+                  </label>
+                  <input 
+                    type="email" 
+                    id="profileInputEmail" 
+                    readonly 
+                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 font-mono font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label for="profileInputPhone" class="block font-semibold text-slate-700 mb-1">
+                    Contact Phone Number <span class="text-red-600">*</span>
+                  </label>
+                  <input 
+                    type="tel" 
+                    id="profileInputPhone" 
+                    required 
+                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-600 font-medium"
+                  />
+                  <span class="text-[10px] text-slate-400 mt-1 block">Used by hospitals and blood banks for critical delivery verification.</span>
+                </div>
+
+                <div class="pt-2 flex items-center justify-end">
+                  <button 
+                    type="submit" 
+                    id="saveProfileBtn" 
+                    class="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer flex items-center gap-1.5"
+                  >
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    <span>Save Profile Changes</span>
+                  </button>
+                </div>
+
+                <!-- Profile Update Alert -->
+                <div id="profileUpdateAlert" class="hidden p-3.5 rounded-xl text-xs font-medium"></div>
+              </form>
+
+              <!-- Security Information Section -->
+              <div class="pt-4 border-t border-slate-100">
+                <h4 class="font-bold text-xs text-slate-900 mb-1">Account Security</h4>
+                <p class="text-[11px] text-slate-500 leading-relaxed">
+                  Your credentials are encrypted using bcrypt password hashing. To change your password, request a secure single-use password reset link.
+                </p>
+                <div class="mt-2.5">
+                  <a href="/login.html" class="inline-flex items-center gap-1 text-xs font-semibold text-red-600 hover:underline">
+                    <span>Manage password at authentication portal</span>
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                  </a>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </main>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL 1: REQUEST DETAILS MODAL (§9)                                       -->
+  <!-- ========================================================================= -->
+  <div id="requestDetailsModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 border border-slate-200 shadow-2xl space-y-5 my-8" role="dialog" aria-modal="true" aria-labelledby="modalDetailTitle">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2.5">
+          <span class="w-3 h-3 rounded-full bg-red-600"></span>
+          <h3 class="font-extrabold text-base text-slate-900" id="modalDetailTitle">Requisition Details</h3>
+        </div>
+        <button type="button" id="closeDetailModalBtn" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Details Content Container -->
+      <div id="modalDetailContent" class="space-y-4 text-xs">
+        <!-- Populated via JS -->
+      </div>
+
+      <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+        <button type="button" id="closeDetailModalBottomBtn" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors cursor-pointer">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL 2: EDIT REQUEST MODAL (6-HOUR WINDOW §10)                           -->
+  <!-- ========================================================================= -->
+  <div id="editRequestModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 border border-slate-200 shadow-2xl space-y-4 my-8" role="dialog" aria-modal="true" aria-labelledby="modalEditTitle">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div>
+          <h3 class="font-extrabold text-base text-slate-900" id="modalEditTitle">Edit Blood Requisition</h3>
+          <!-- 6-Hour Editing Countdown Banner (§10) -->
+          <span id="editCountdownBanner" class="inline-block mt-1 text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+            ⏱ Editing window active
+          </span>
+        </div>
+        <button type="button" id="closeEditModalBtn" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form id="editRequestForm" class="space-y-3.5 text-xs">
+        <input type="hidden" id="editRequestId" value="" />
+
+        <div>
+          <label for="editBloodGroup" class="block font-semibold text-slate-700 mb-1">Blood Group</label>
+          <select id="editBloodGroup" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-bold text-red-700">
+            <option value="A+">A+</option>
+            <option value="A-">A-</option>
+            <option value="B+">B+</option>
+            <option value="B-">B-</option>
+            <option value="AB+">AB+</option>
+            <option value="AB-">AB-</option>
+            <option value="O+">O+</option>
+            <option value="O-">O-</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="editComponent" class="block font-semibold text-slate-700 mb-1">Component</label>
+          <select id="editComponent" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-medium">
+            <option value="PACKED_RBC">Packed Red Blood Cells</option>
+            <option value="WHOLE_BLOOD">Whole Blood</option>
+            <option value="PLATELETS">Platelets</option>
+            <option value="PLASMA">Fresh Frozen Plasma</option>
+            <option value="CRYO">Cryoprecipitate</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="editQuantity" class="block font-semibold text-slate-700 mb-1">Number of Units</label>
+          <input type="number" id="editQuantity" min="1" max="10" required class="w-full px-3 py-2 rounded-xl border border-slate-200 font-bold" />
+        </div>
+
+        <div>
+          <label for="editPriority" class="block font-semibold text-slate-700 mb-1">Priority</label>
+          <select id="editPriority" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-medium">
+            <option value="ROUTINE">ROUTINE</option>
+            <option value="URGENT">URGENT</option>
+            <option value="CRITICAL">CRITICAL</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="editNotes" class="block font-semibold text-slate-700 mb-1">Clinical Notes / Reason</label>
+          <textarea id="editNotes" rows="2" class="w-full px-3 py-2 rounded-xl border border-slate-200"></textarea>
+        </div>
+
+        <!-- Revalidation Notice (§10) -->
+        <div class="p-3 rounded-xl bg-amber-50 text-[11px] text-amber-800 border border-amber-200 leading-relaxed">
+          <strong>Important Safety Note:</strong> Modifying clinical specifications (blood group, component, units) will automatically release active holds and require renewed clinical verification.
+        </div>
+
+        <!-- Feedback Alert -->
+        <div id="editRequestAlert" class="hidden p-3 rounded-xl text-xs font-medium"></div>
+
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+          <button type="button" id="closeEditModalCancelBtn" class="px-3.5 py-2 rounded-xl border border-slate-200 text-slate-700 font-semibold cursor-pointer">
+            Keep As Is
+          </button>
+          <button type="submit" id="saveEditRequestBtn" class="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold cursor-pointer">
+            Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL 3: CANCEL REQUEST CONFIRMATION DIALOG (§11)                         -->
+  <!-- ========================================================================= -->
+  <div id="cancelRequestModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 border border-slate-200 shadow-2xl space-y-4" role="dialog" aria-modal="true" aria-labelledby="modalCancelTitle">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        </div>
+        <div>
+          <h3 class="font-extrabold text-base text-slate-900" id="modalCancelTitle">Cancel Blood Request</h3>
+          <p class="text-xs text-slate-500" id="cancelRequestSubtitle">Request #REQ-000</p>
+        </div>
+      </div>
+
+      <div class="text-xs text-slate-600 space-y-2">
+        <p>
+          Are you sure you want to cancel this blood requisition?
+        </p>
+        <div class="p-3 rounded-xl bg-rose-50 text-rose-800 text-[11px] border border-rose-200 leading-relaxed">
+          <strong>Inventory Consequence:</strong> Any reserved blood units will be safely released back to the general donor availability pool for other emergency patients. Cancelled requests remain in your history for medical auditing.
+        </div>
+      </div>
+
+      <div class="space-y-1.5 text-xs">
+        <label for="cancellationReasonSelect" class="block font-semibold text-slate-700">Cancellation Reason</label>
+        <select id="cancellationReasonSelect" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white">
+          <option value="Patient condition stabilized">Patient condition stabilized</option>
+          <option value="Surgery rescheduled or postponed">Surgery rescheduled or postponed</option>
+          <option value="Alternative donor blood sourced">Alternative donor blood sourced</option>
+          <option value="Patient transferred to another facility">Patient transferred to another facility</option>
+          <option value="Requisition submitted in error">Requisition submitted in error</option>
+          <option value="Other">Other reason (specify below)</option>
+        </select>
+        <input 
+          type="text" 
+          id="cancellationCustomReason" 
+          placeholder="Please specify reason..." 
+          class="w-full px-3 py-2 rounded-xl border border-slate-200 hidden mt-1" 
+        />
+      </div>
+
+      <div id="cancelRequestAlert" class="hidden p-3 rounded-xl text-xs font-medium"></div>
+
+      <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2 text-xs">
+        <button type="button" id="abortCancelModalBtn" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 cursor-pointer">
+          Keep Request
+        </button>
+        <button type="button" id="confirmCancelModalBtn" class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold cursor-pointer flex items-center gap-1.5">
+          <span>Confirm Cancellation</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Toast Notification Container -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+
+  <!-- ========================================================================= -->
+  <!-- SCRIPTS                                                                   -->
+  <!-- ========================================================================= -->
+  <script src="/js/api.js"></script>
+  <script src="/js/demo-loader.js"></script>
+  <script src="/js/demo-auth.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/dashboard/requester/requester.js"></script>
+</body>
+</html>

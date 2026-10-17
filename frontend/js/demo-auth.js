@@ -75,7 +75,7 @@
       password: "UserDev123!",
       role: "REQUESTER",
       organization: "Patient Representative",
-      dashboard: "/dashboard/donor/index.html"
+      dashboard: "/dashboard/requester/index.html"
     }
   ];
 

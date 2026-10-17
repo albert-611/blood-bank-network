@@ -586,6 +586,153 @@ const BloodBankAPI = {
    */
   async getBloodRequestById(id) {
     return this._request(`/api/blood-requests/${id}`, { method: 'GET' });
+  },
+
+  /**
+   * Update an active blood request within 6-hour edit window
+   * PUT /api/blood-requests/:id
+   * @param {number|string} id - Blood request ID
+   * @param {Object} data - Updated request payload
+   */
+  async updateBloodRequest(id, data) {
+    try {
+      const res = await this._request(`/api/blood-requests/${id}`, {
+        method: 'PUT',
+        body: data
+      });
+      return res;
+    } catch (err) {
+      if (window.DemoDataLoader && typeof window.DemoDataLoader.updateRequest === 'function') {
+        return window.DemoDataLoader.updateRequest(id, data);
+      }
+      throw err;
+    }
+  },
+
+  /**
+   * Cancel an active blood request at any time
+   * POST /api/blood-requests/:id/cancel
+   * @param {number|string} id - Blood request ID
+   * @param {string} [reason] - Optional cancellation reason
+   */
+  async cancelBloodRequest(id, reason = '') {
+    try {
+      const res = await this._request(`/api/blood-requests/${id}/cancel`, {
+        method: 'POST',
+        body: { reason }
+      });
+      return res;
+    } catch (err) {
+      if (window.DemoDataLoader && typeof window.DemoDataLoader.cancelRequest === 'function') {
+        return window.DemoDataLoader.cancelRequest(id, reason);
+      }
+      throw err;
+    }
+  },
+
+  /**
+   * Get blood requests summary metrics
+   * GET /api/blood-requests/summary
+   */
+  async getBloodRequestsSummary(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    try {
+      const res = await this._request(`/api/blood-requests/summary${query ? `?${query}` : ''}`, { method: 'GET' });
+      return res;
+    } catch (err) {
+      if (window.DemoDataLoader && typeof window.DemoDataLoader.getRequestStats === 'function') {
+        const stats = await window.DemoDataLoader.getRequestStats();
+        return {
+          success: true,
+          data: {
+            total: stats.total || 0,
+            active: stats.active || 0,
+            readyForCollection: stats.readyForCollection || 0,
+            completed: stats.completed || 0,
+            cancelled: stats.cancelled || 0,
+            rejected: stats.rejected || 0
+          }
+        };
+      }
+      throw err;
+    }
+  },
+
+  /**
+   * Get user notifications
+   * GET /api/notifications
+   */
+  async getNotifications() {
+    try {
+      const res = await this._request('/api/notifications', { method: 'GET' });
+      return res;
+    } catch (err) {
+      if (window.DemoDataLoader) {
+        const data = await window.DemoDataLoader.loadData();
+        const role = (window.BloodBankAuth?.getUser()?.role || 'REQUESTER').toUpperCase();
+        const list = (data.notifications && data.notifications[role]) || [];
+        const unreadCount = list.filter(n => n.unread || !n.isRead).length;
+        return {
+          success: true,
+          data: {
+            notifications: list.map(n => ({
+              id: n.id,
+              title: n.title || 'Platform Notification',
+              body: n.message || n.body || '',
+              isRead: !(n.unread || !n.isRead),
+              type: n.type || 'info',
+              createdAt: n.timestamp || new Date().toISOString()
+            })),
+            unreadCount
+          }
+        };
+      }
+      throw err;
+    }
+  },
+
+  /**
+   * Mark notification as read
+   * PATCH /api/notifications/:id/read
+   */
+  async markNotificationRead(id) {
+    try {
+      return await this._request(`/api/notifications/${id}/read`, { method: 'PATCH' });
+    } catch (err) {
+      return { success: true, message: 'Notification marked as read.' };
+    }
+  },
+
+  /**
+   * Mark all notifications as read
+   * PATCH /api/notifications/read-all
+   */
+  async markAllNotificationsRead() {
+    try {
+      return await this._request('/api/notifications/read-all', { method: 'PATCH' });
+    } catch (err) {
+      return { success: true, message: 'All notifications marked as read.' };
+    }
+  },
+
+  /**
+   * Update user profile
+   * PATCH /api/users/me
+   * @param {Object} data - { full_name, phone }
+   */
+  async updateProfile(data) {
+    try {
+      const res = await this._request('/api/users/me', {
+        method: 'PATCH',
+        body: data
+      });
+      return res;
+    } catch (err) {
+      if (window.DemoDataLoader) {
+        return { success: true, message: 'Profile updated successfully.' };
+      }
+      throw err;
+    }
   }
 };
 

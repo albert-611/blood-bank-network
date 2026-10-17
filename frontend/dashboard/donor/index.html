@@ -12,16 +12,36 @@
   <style>
     body { font-family: 'Inter', sans-serif; }
     .shadow-2xs { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04); }
+    #portalSidebar {
+      box-shadow: none !important;
+      filter: none !important;
+    }
+    #portalSidebar::-webkit-scrollbar { width: 4px; }
+    #portalSidebar::-webkit-scrollbar-thumb { background-color: #e2e8f0; border-radius: 9999px; }
+    #portalSidebar::-webkit-scrollbar-track { background: transparent; }
   </style>
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-900 flex flex-col antialiased" data-auth-required="true" data-allowed-roles="DONOR,REQUESTER">
 
   <!-- Navigation Bar -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="w-full px-4 sm:px-6 lg:px-6">
       <div class="flex items-center justify-between h-16">
-        <div class="flex items-center gap-3">
-          <a href="/" class="flex items-center gap-3 group">
+        <div class="flex items-center gap-2.5 sm:gap-3">
+          <!-- Mobile & Tablet Sidebar Menu Toggle Button (Visible on < lg screens) -->
+          <button 
+            type="button" 
+            id="mobileSidebarToggleBtn" 
+            class="lg:hidden p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors shadow-2xs cursor-pointer inline-flex items-center justify-center"
+            aria-label="Open Navigation Menu"
+            title="Open Portal Navigation Menu"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </button>
+
+          <a href="/" class="flex items-center gap-2.5 sm:gap-3 group">
             <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-white shadow-md shadow-red-500/20">
               <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
             </div>
@@ -46,7 +66,7 @@
             <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
             </svg>
-            <span>Main Page</span>
+            <span class="hidden sm:inline">Main Page</span>
           </a>
 
           <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs">
@@ -66,64 +86,111 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
             </svg>
-            <span>Log Out</span>
+            <span class="hidden sm:inline">Log Out</span>
           </button>
         </div>
       </div>
     </div>
   </header>
 
+  <!-- Mobile & Tablet Sidebar Overlay Backdrop -->
+  <div id="mobileSidebarBackdrop" class="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-xs hidden lg:hidden transition-opacity"></div>
+
   <!-- Workspace Container -->
-  <div class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
-    <div class="flex flex-col md:flex-row gap-6">
+  <div class="flex-1 w-full px-4 sm:px-6 lg:px-6 py-6 sm:py-8">
+    <div class="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
 
-      <!-- Sidebar -->
-      <aside class="w-full md:w-64 bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-1 h-fit sticky top-24">
-        <!-- Donor Links -->
-        <div id="donorSidebarLinks" class="space-y-1">
-          <a href="#overview" class="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-xl bg-red-50 text-red-700 border border-red-100">
-            <svg class="w-4 h-4 text-red-600 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
-            <span>Donor Profile</span>
-          </a>
-          <a href="#history-section" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-            <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <span>Donation History</span>
-          </a>
-          <a href="#appointment-section" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-            <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-            <span>Upcoming Donation</span>
-          </a>
-          <a href="#centers-section" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-            <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-            <span>Donation Centers</span>
-          </a>
-        </div>
+      <!-- Sidebar / Drawer -->
+      <aside 
+        id="portalSidebar" 
+        class="fixed lg:static inset-y-0 left-0 z-50 lg:z-20 w-72 sm:w-80 lg:w-72 xl:w-80 min-w-[280px] h-full lg:h-fit max-h-screen lg:max-h-[calc(100vh-7rem)] flex flex-col justify-between bg-white lg:rounded-2xl p-4 sm:p-5 border-r lg:border border-slate-200 shadow-none transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out shrink-0 flex-shrink-0 lg:sticky lg:top-24 overflow-y-auto"
+      >
+        <div class="space-y-4">
+          <!-- Mobile / Tablet Drawer Header (Hidden on lg+ Desktop) -->
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100 lg:hidden">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-white">
+                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+              </div>
+              <div>
+                <span class="font-extrabold text-sm text-slate-900">Portal Navigation</span>
+                <span id="drawerRoleLabel" class="block text-[10px] text-slate-500 font-medium">Quick Links</span>
+              </div>
+            </div>
+            <button 
+              type="button" 
+              id="closeMobileSidebarBtn" 
+              class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              aria-label="Close Navigation Menu"
+              title="Close Menu"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
 
-        <!-- Requester Links -->
-        <div id="requesterSidebarLinks" class="space-y-1 hidden">
-          <a href="#overview" class="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-100">
-            <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
-            <span>Requester Overview</span>
-          </a>
-          <a href="#create-request-section" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-            <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <span>Create Blood Request</span>
-          </a>
-          <a href="#tracking-section" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-            <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            <span>Request Tracking</span>
-          </a>
-          <a href="#requester-history-section" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-            <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            <span>Request History</span>
-          </a>
+          <!-- User Quick Card in Drawer for mobile/tablet -->
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center gap-2.5 lg:hidden">
+            <div class="w-9 h-9 rounded-xl bg-slate-200 text-slate-700 font-bold flex items-center justify-center shrink-0 text-sm">
+              <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              </svg>
+            </div>
+            <div class="min-w-0 flex-1">
+              <span data-user-name class="font-bold text-xs text-slate-900 block truncate">User</span>
+              <span data-user-role class="text-[10px] text-slate-500 block truncate">Verified Profile</span>
+            </div>
+          </div>
+
+          <!-- Donor Links -->
+          <div id="donorSidebarLinks" class="space-y-1.5">
+            <a href="#overview" data-nav-link class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-semibold rounded-xl bg-red-50 text-red-700 border border-red-100 transition-colors">
+              <svg class="w-4 h-4 text-red-600 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+              <span>Donor Profile</span>
+            </a>
+            <a href="#history-section" data-nav-link class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+              <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span>Donation History</span>
+            </a>
+            <a href="#appointment-section" data-nav-link class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+              <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              <span>Upcoming Donation</span>
+            </a>
+            <a href="#centers-section" data-nav-link class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+              <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+              <span>Donation Centers</span>
+            </a>
+          </div>
+
+          <!-- Requester Links -->
+          <div id="requesterSidebarLinks" class="space-y-1.5 hidden">
+            <a href="#overview" data-nav-link class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-semibold rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-100 transition-colors">
+              <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+              </svg>
+              <span>Dashboard</span>
+            </a>
+            <a href="#create-request-section" data-nav-link class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+              <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span>Create Blood Request</span>
+            </a>
+            <a href="#tracking-section" data-nav-link class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+              <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+              <span>Active Request Progress</span>
+            </a>
+            <a href="#requester-history-section" data-nav-link class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+              <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              <span>Request History</span>
+            </a>
+          </div>
         </div>
 
         <div class="pt-4 mt-4 border-t border-slate-100">
           <button 
             type="button" 
             data-logout-btn 
-            class="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold rounded-xl text-rose-600 hover:bg-rose-50 border border-rose-200 transition-colors cursor-pointer"
+            class="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 text-xs font-semibold rounded-xl text-rose-600 hover:bg-rose-50 border border-rose-200 transition-colors cursor-pointer"
           >
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
             <span>Sign Out</span>
@@ -132,7 +199,7 @@
       </aside>
 
       <!-- Main Portal Content -->
-      <main class="flex-1 space-y-6" id="overview">
+      <main class="flex-1 w-full min-w-0" id="overview">
 
         <!-- ================================================================= -->
         <!-- VIEW A: DONOR VIEW (Johnathan Mercer O+ & Sarah Jenkins O-)        -->
@@ -274,30 +341,24 @@
         <div id="requesterViewContainer" class="space-y-6 hidden">
 
           <!-- Welcome Banner -->
-          <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm flex flex-col items-start gap-4">
             <div>
-              <div class="flex items-center gap-2 mb-2">
-                <span class="text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-                  Patient Blood Requester Portal
-                </span>
-                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-50 text-amber-800 border border-amber-200">
-                  <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Demo Dataset
-                </span>
-              </div>
               <h1 class="text-2xl font-extrabold text-slate-900">
                 Welcome, <span id="requesterDisplayFullName">Jane Foster</span>
               </h1>
-              <p class="text-sm text-slate-500 mt-1">
+              <p class="text-sm text-slate-500 mt-1.5 leading-relaxed">
                 Patient Representative & Family Liaison. Submit structured blood requisitions and monitor fulfillment progress across regional medical centers.
               </p>
             </div>
-            <a 
-              href="#create-request-section" 
-              class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-              <span>Submit Requisition</span>
-            </a>
+            <div>
+              <a 
+                href="#create-request-section" 
+                class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors shadow-sm hover:shadow cursor-pointer"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                <span>+ Submit Requisition</span>
+              </a>
+            </div>
           </div>
 
           <!-- Requester KPI Cards (Animated 0 -> Target, §9, §20) -->
@@ -327,33 +388,46 @@
             </div>
           </div>
 
-          <!-- VISUAL REQUEST TRACKING WORKFLOW (§9, §18) -->
-          <div id="tracking-section" class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-4">
-            <h2 class="text-base font-bold text-slate-900">Active Request Progress: REQ-9902 (1 Unit O- Whole Blood)</h2>
-            <p class="text-xs text-slate-500">Live operational workflow status from Central Red Cross Blood Bank</p>
+          <!-- ACTIVE REQUEST PROGRESS (COLLAPSIBLE DROPDOWN PANEL) -->
+          <div id="tracking-section" class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden transition-all">
+            <!-- Collapsible Trigger Header -->
+            <button 
+              type="button" 
+              id="toggleActiveProgressBtn"
+              class="w-full p-6 sm:p-7 flex items-center justify-between text-left hover:bg-slate-50/70 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer"
+              aria-expanded="true"
+              aria-controls="activeProgressContent"
+            >
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h2 class="text-base font-bold text-slate-900">Active Request Progress</h2>
+                    <span id="activeRequestsCountBadge" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                      0 Active
+                    </span>
+                  </div>
+                  <p class="text-xs text-slate-500 mt-0.5">Live operational workflow status, inventory reservation, and clinical dispatch</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2.5 shrink-0">
+                <span class="text-xs font-semibold text-slate-500 hidden sm:inline" id="toggleActiveProgressLabel">Collapse</span>
+                <div class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 transition-transform duration-200" id="activeProgressChevron">
+                  <svg class="w-4 h-4 transform rotate-180 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                  </svg>
+                </div>
+              </div>
+            </button>
 
-            <div class="grid grid-cols-4 gap-2 pt-3 text-center text-xs">
-              <div class="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800">
-                <span class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center mx-auto mb-1">
-                  <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                </span>
-                <span class="font-bold block">1. Submitted</span>
-                <span class="text-[10px] text-emerald-600">Sep 24, 09:00</span>
-              </div>
-              <div class="p-3 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 ring-2 ring-amber-400/30">
-                <span class="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold mx-auto mb-1 animate-pulse">2</span>
-                <span class="font-bold block">2. Under Review</span>
-                <span class="text-[10px] text-amber-700">Coordinator Active</span>
-              </div>
-              <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-400">
-                <span class="w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold mx-auto mb-1">3</span>
-                <span class="font-bold block">3. Reserved</span>
-                <span class="text-[10px]">Cold storage lock</span>
-              </div>
-              <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-400">
-                <span class="w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold mx-auto mb-1">4</span>
-                <span class="font-bold block">4. Fulfilled</span>
-                <span class="text-[10px]">Delivered to OR</span>
+            <!-- Collapsible Content -->
+            <div id="activeProgressContent" class="px-6 pb-6 sm:px-8 sm:pb-8 border-t border-slate-100 pt-5 space-y-4">
+              <div id="activeRequestsListContainer" class="space-y-4">
+                <!-- Dynamic active requests rendered here -->
               </div>
             </div>
           </div>
@@ -721,6 +795,137 @@
     </div>
   </div>
 
+  <!-- Edit Requisition Modal (Enforced 6-hour edit window) -->
+  <div id="editRequestModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 border border-slate-200 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div class="flex items-center gap-2.5">
+          <span class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+            <svg class="w-5 h-5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          </span>
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">Edit Requisition <span id="editModalReqId">#</span></h3>
+            <span class="text-[10px] text-slate-500" id="editModalDeadlineText">6-Hour Modification Window Active</span>
+          </div>
+        </div>
+        <button type="button" id="closeEditModalBtn" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Editing Window Info Alert -->
+      <div id="editModalTimeBadge" class="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-center justify-between">
+        <span class="font-medium">Original Submission: <strong id="editModalOriginalTime">Just now</strong></span>
+        <span class="font-bold text-[11px] text-emerald-700 bg-white px-2 py-0.5 rounded-full border border-emerald-200" id="editModalRemainingText">Active</span>
+      </div>
+
+      <!-- Edit Form Alert -->
+      <div id="editModalAlert" class="hidden p-3 rounded-xl border text-xs"></div>
+
+      <form id="editRequisitionForm" class="space-y-4 text-xs">
+        <input type="hidden" id="editTargetReqId" />
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="editReqBloodGroup" class="block font-semibold uppercase tracking-wider text-slate-700 mb-1">Blood Group *</label>
+            <select id="editReqBloodGroup" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600">
+              <option>O-</option>
+              <option>O+</option>
+              <option>A+</option>
+              <option>A-</option>
+              <option>B+</option>
+              <option>B-</option>
+              <option>AB+</option>
+              <option>AB-</option>
+            </select>
+          </div>
+          <div>
+            <label for="editReqComponent" class="block font-semibold uppercase tracking-wider text-slate-700 mb-1">Component *</label>
+            <select id="editReqComponent" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600">
+              <option value="PACKED_RBC">Red Blood Cells (PRBC)</option>
+              <option value="WHOLE_BLOOD">Whole Blood</option>
+              <option value="PLATELETS">Platelets</option>
+              <option value="PLASMA">Fresh Frozen Plasma</option>
+              <option value="CRYO">Cryoprecipitate</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="editReqUnits" class="block font-semibold uppercase tracking-wider text-slate-700 mb-1">Units (1-10) *</label>
+            <input type="number" id="editReqUnits" min="1" max="10" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600" />
+          </div>
+          <div>
+            <label for="editReqPriority" class="block font-semibold uppercase tracking-wider text-slate-700 mb-1">Priority Level *</label>
+            <select id="editReqPriority" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600">
+              <option value="ROUTINE">ROUTINE</option>
+              <option value="URGENT">URGENT</option>
+              <option value="CRITICAL">CRITICAL</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label for="editReqFacilityName" class="block font-semibold uppercase tracking-wider text-slate-700 mb-1">Preferred Hospital / Clinic</label>
+          <input type="text" id="editReqFacilityName" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600" placeholder="e.g. City General Hospital" />
+        </div>
+
+        <div>
+          <label for="editReqNotes" class="block font-semibold uppercase tracking-wider text-slate-700 mb-1">Context / Patient Reference</label>
+          <textarea id="editReqNotes" rows="2" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600" placeholder="Special requirements or recipient notes"></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-2.5 pt-2">
+          <button type="button" id="cancelEditModalBtn" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors cursor-pointer">
+            Discard
+          </button>
+          <button type="submit" id="saveEditModalBtn" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors shadow-sm cursor-pointer">
+            Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Cancel Requisition Confirmation Modal (Anytime Cancellation) -->
+  <div id="cancelRequestModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 border border-slate-200 shadow-2xl space-y-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-slate-900">Cancel Blood Requisition</h3>
+          <span class="text-xs text-slate-500" id="cancelModalReqSubtitle">Requisition #</span>
+        </div>
+      </div>
+
+      <p class="text-xs text-slate-600 leading-relaxed">
+        Are you sure you want to cancel this requisition? If units have been allocated or reserved in the regional blood bank, they will be safely released back to available inventory.
+      </p>
+
+      <div class="space-y-1.5">
+        <label for="cancelReasonInput" class="block text-[11px] font-semibold uppercase tracking-wider text-slate-700">Cancellation Reason (Optional)</label>
+        <textarea id="cancelReasonInput" rows="2" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500" placeholder="e.g., Surgery rescheduled, patient transferred, alternative blood acquired..."></textarea>
+      </div>
+
+      <!-- Feedback alert -->
+      <div id="cancelModalAlert" class="hidden p-3 rounded-xl border text-xs"></div>
+
+      <div class="flex items-center justify-end gap-2.5 pt-2">
+        <button type="button" id="dismissCancelModalBtn" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors cursor-pointer">
+          Keep Requisition
+        </button>
+        <button type="button" id="confirmCancelReqBtn" class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs transition-colors shadow-sm cursor-pointer">
+          Confirm Cancellation
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Scripts -->
   <script src="/js/demo-loader.js"></script>
   <script src="/js/api.js"></script>
@@ -754,6 +959,10 @@
         if (portalHeader) {
           portalHeader.textContent = 'Requester Portal';
           portalHeader.className = 'ml-2 px-2 py-0.5 text-[10px] font-bold uppercase rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200';
+        }
+        const drawerRole = document.getElementById('drawerRoleLabel');
+        if (drawerRole) {
+          drawerRole.textContent = 'Requester Navigation';
         }
 
         // =====================================================================
@@ -1202,7 +1411,278 @@
           const badge = document.getElementById('requesterTableCountBadge');
           if (badge) badge.textContent = `${total} records`;
 
-          // Render Table
+          // ===================================================================
+          // RENDER ACTIVE REQUEST PROGRESS (COLLAPSIBLE DROPDOWN PANEL, §2 & §3)
+          // ===================================================================
+          const activeContainer = document.getElementById('activeRequestsListContainer');
+          const activeBadge = document.getElementById('activeRequestsCountBadge');
+
+          // Active requests are non-terminal requests
+          const activeReqs = reqs.filter(r => !['CANCELLED', 'REJECTED', 'EXPIRED', 'COMPLETED', 'ISSUED'].includes(r.status));
+
+          if (activeBadge) {
+            activeBadge.textContent = `${activeReqs.length} Active`;
+          }
+
+          if (activeContainer) {
+            if (activeReqs.length === 0) {
+              activeContainer.innerHTML = `
+                <div class="py-8 px-4 text-center rounded-2xl bg-slate-50/80 border border-slate-200/80">
+                  <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3 border border-emerald-100">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  </div>
+                  <h3 class="text-sm font-bold text-slate-900">No Active Requisitions</h3>
+                  <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">You currently have no blood requisitions in progress. Use the form below to submit a new requisition whenever needed.</p>
+                </div>
+              `;
+            } else {
+              activeContainer.innerHTML = activeReqs.map(r => {
+                const pref = r.preferred_facility || r.preferredFacility;
+                const prefName = pref ? pref.name : (r.organization || 'Regional Blood Bank');
+                const prefType = pref ? (pref.is_manual || pref.type === 'UNREGISTERED' ? 'Manual Unregistered' : (pref.type || 'HOSPITAL')) : 'REGISTERED';
+                const bloodGroup = r.blood_group || r.bloodGroup || 'O-';
+                const component = (r.component || 'PACKED_RBC').replace('_', ' ');
+                const units = r.quantity || r.units || 1;
+
+                // 6-hour edit window calculation (§3.A)
+                const createdDateObj = new Date(r.created_at || r.createdAt || Date.now());
+                const createdAtMs = createdDateObj.getTime();
+                const nowMs = Date.now();
+                const elapsedHours = (nowMs - createdAtMs) / (1000 * 60 * 60);
+                const isWithin6Hours = elapsedHours <= 6;
+                const remainingMs = Math.max(0, (6 * 3600 * 1000) - (nowMs - createdAtMs));
+                const remainingHours = Math.floor(remainingMs / (1000 * 60 * 60));
+                const remainingMins = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+
+                const formattedTime = createdDateObj.toLocaleString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                });
+
+                // Status Badge
+                let statusBadgeClass = 'bg-amber-100 text-amber-800 border-amber-200';
+                if (r.status === 'VERIFIED' || r.status === 'APPROVED') statusBadgeClass = 'bg-blue-100 text-blue-800 border-blue-200';
+                else if (r.status === 'RESERVED') statusBadgeClass = 'bg-indigo-100 text-indigo-800 border-indigo-200';
+                else if (r.status === 'PARTIALLY_FULFILLED') statusBadgeClass = 'bg-teal-100 text-teal-800 border-teal-200';
+
+                // Edit button & Window status
+                let editBtnHtml = '';
+                let editBadgeHtml = '';
+
+                if (isWithin6Hours) {
+                  editBtnHtml = `
+                    <button 
+                      type="button" 
+                      onclick="window.openEditRequestModal('${r.id}')"
+                      class="px-3 py-1.5 rounded-xl bg-white hover:bg-emerald-50 text-emerald-700 font-semibold text-xs border border-emerald-300 transition-colors shadow-2xs cursor-pointer flex items-center gap-1.5"
+                      title="Edit this requisition (permitted within 6 hours of submission)"
+                    >
+                      <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                      <span>Edit Request</span>
+                    </button>
+                  `;
+                  editBadgeHtml = `
+                    <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 mt-0.5">
+                      <svg class="w-3 h-3 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                      <span>${remainingHours}h ${remainingMins}m left</span>
+                    </span>
+                  `;
+                } else {
+                  editBtnHtml = `
+                    <button 
+                      type="button" 
+                      disabled
+                      class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-400 font-medium text-xs border border-slate-200 cursor-not-allowed flex items-center gap-1.5"
+                      title="The 6-hour editing window has expired. Requisition is locked for fulfillment."
+                    >
+                      <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                      <span>Edit Expired</span>
+                    </button>
+                  `;
+                  editBadgeHtml = `
+                    <span class="inline-flex items-center gap-1 text-[11px] text-slate-500 font-medium mt-0.5" title="The 6-hour editing window has expired based on original submission timestamp.">
+                      <svg class="w-3 h-3 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                      <span>6h window expired</span>
+                    </span>
+                  `;
+                }
+
+                // 4-Step Visual Progress Tracker
+                const step2Done = ['VERIFIED', 'APPROVED', 'SEARCHING', 'RESERVED', 'PARTIALLY_FULFILLED', 'FULFILLED', 'COMPLETED', 'ISSUED'].includes(r.status);
+                const step3Done = ['RESERVED', 'PARTIALLY_FULFILLED', 'FULFILLED', 'COMPLETED', 'ISSUED'].includes(r.status);
+                const step4Done = ['FULFILLED', 'COMPLETED', 'ISSUED'].includes(r.status);
+
+                // Step 2 HTML
+                let step2Html = '';
+                if (step2Done) {
+                  step2Html = `
+                    <div class="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800">
+                      <span class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center mx-auto mb-1">
+                        <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                      </span>
+                      <span class="font-bold block">2. Verified</span>
+                      <span class="text-[10px] text-emerald-600">Review Passed</span>
+                    </div>
+                  `;
+                } else {
+                  step2Html = `
+                    <div class="p-3 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 ring-2 ring-amber-400/30">
+                      <span class="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold mx-auto mb-1 animate-pulse">2</span>
+                      <span class="font-bold block">2. Under Review</span>
+                      <span class="text-[10px] text-amber-700">Coordinator Active</span>
+                    </div>
+                  `;
+                }
+
+                // Step 3 HTML
+                let step3Html = '';
+                if (step3Done) {
+                  step3Html = `
+                    <div class="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800">
+                      <span class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center mx-auto mb-1">
+                        <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                      </span>
+                      <span class="font-bold block">3. Reserved</span>
+                      <span class="text-[10px] text-emerald-600">Units Allocated</span>
+                    </div>
+                  `;
+                } else if (r.status === 'VERIFIED' || r.status === 'SEARCHING' || r.status === 'APPROVED') {
+                  step3Html = `
+                    <div class="p-3 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 ring-2 ring-amber-400/30">
+                      <span class="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold mx-auto mb-1 animate-pulse">3</span>
+                      <span class="font-bold block">3. Reserving</span>
+                      <span class="text-[10px] text-amber-700">Matching stock</span>
+                    </div>
+                  `;
+                } else {
+                  step3Html = `
+                    <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-400">
+                      <span class="w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold mx-auto mb-1">3</span>
+                      <span class="font-bold block">3. Reserved</span>
+                      <span class="text-[10px]">Cold storage lock</span>
+                    </div>
+                  `;
+                }
+
+                // Step 4 HTML
+                let step4Html = '';
+                if (step4Done) {
+                  step4Html = `
+                    <div class="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800">
+                      <span class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center mx-auto mb-1">
+                        <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                      </span>
+                      <span class="font-bold block">4. Fulfilled</span>
+                      <span class="text-[10px] text-emerald-600">Dispatched to OR</span>
+                    </div>
+                  `;
+                } else if (r.status === 'RESERVED' || r.status === 'PARTIALLY_FULFILLED') {
+                  step4Html = `
+                    <div class="p-3 rounded-2xl bg-blue-50 border border-blue-200 text-blue-900">
+                      <span class="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold mx-auto mb-1">4</span>
+                      <span class="font-bold block">4. In Transit</span>
+                      <span class="text-[10px] text-blue-700">Ready for dispatch</span>
+                    </div>
+                  `;
+                } else {
+                  step4Html = `
+                    <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-400">
+                      <span class="w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold mx-auto mb-1">4</span>
+                      <span class="font-bold block">4. Fulfilled</span>
+                      <span class="text-[10px]">Delivered to OR</span>
+                    </div>
+                  `;
+                }
+
+                return `
+                  <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-4">
+                    <!-- Top Strip -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                      <div class="flex items-center gap-2.5">
+                        <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 font-extrabold text-xs flex items-center justify-center border border-emerald-100 shrink-0">
+                          #
+                        </span>
+                        <div>
+                          <div class="flex items-center gap-2">
+                            <span class="font-bold text-slate-900 text-sm">${r.id}</span>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusBadgeClass}">
+                              ${r.status}
+                            </span>
+                            ${r.priority === 'CRITICAL' ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-700 border border-rose-200">CRITICAL STAT</span>' : ''}
+                          </div>
+                          <span class="text-[11px] text-slate-500 block mt-0.5">
+                            Submitted ${formattedTime} · Preferred Center: <strong>${prefName}</strong> (${prefType})
+                          </span>
+                        </div>
+                      </div>
+
+                      <!-- Action Buttons -->
+                      <div class="flex items-center gap-2 self-end sm:self-auto flex-wrap">
+                        ${editBtnHtml}
+                        <button 
+                          type="button" 
+                          onclick="window.openCancelRequestModal('${r.id}')"
+                          class="px-3 py-1.5 rounded-xl bg-white hover:bg-rose-50 text-rose-600 font-semibold text-xs border border-rose-200 hover:border-rose-300 transition-colors shadow-2xs cursor-pointer flex items-center gap-1.5"
+                          title="Cancel this requisition (releases reserved units)"
+                        >
+                          <svg class="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                          <span>Cancel Request</span>
+                        </button>
+                        <button 
+                          type="button" 
+                          onclick="window.openRequestDetailsModal('${r.id}')"
+                          class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs transition-colors cursor-pointer"
+                          title="View complete requisition details"
+                        >
+                          Details
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Details Summary Box -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs bg-slate-50/70 p-3 rounded-xl border border-slate-100">
+                      <div>
+                        <span class="text-[10px] text-slate-400 font-medium uppercase block">Blood Group & Component</span>
+                        <span class="font-bold text-red-600">${bloodGroup} · ${component}</span>
+                      </div>
+                      <div>
+                        <span class="text-[10px] text-slate-400 font-medium uppercase block">Units Requested</span>
+                        <span class="font-bold text-slate-900">${units} Unit(s)</span>
+                      </div>
+                      <div>
+                        <span class="text-[10px] text-slate-400 font-medium uppercase block">Treatment Facility</span>
+                        <span class="font-bold text-slate-800 truncate block">${prefName}</span>
+                      </div>
+                      <div>
+                        <span class="text-[10px] text-slate-400 font-medium uppercase block">Edit Window Status</span>
+                        ${editBadgeHtml}
+                      </div>
+                    </div>
+
+                    <!-- 4-Step Visual Tracker -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-center text-xs">
+                      <div class="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800">
+                        <span class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center mx-auto mb-1">
+                          <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        </span>
+                        <span class="font-bold block">1. Submitted</span>
+                        <span class="text-[10px] text-emerald-600">${formattedTime}</span>
+                      </div>
+                      ${step2Html}
+                      ${step3Html}
+                      ${step4Html}
+                    </div>
+                  </div>
+                `;
+              }).join('');
+            }
+          }
+
+          // ===================================================================
+          // RENDER REQUISITION HISTORY TABLE
+          // ===================================================================
           const rTable = document.getElementById('requesterHistoryTableBody');
           if (rTable) {
             if (reqs.length === 0) {
@@ -1250,10 +1730,21 @@
                 `;
               }
 
-              const bloodGroup = r.blood_group || r.bloodGroup;
+              const bloodGroup = r.blood_group || r.bloodGroup || 'O-';
               const component = (r.component || 'PACKED_RBC').replace('_', ' ');
-              const units = r.quantity || r.units;
+              const units = r.quantity || r.units || 1;
               const createdDate = r.created_at ? new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : (r.createdDate || 'Sep 24');
+
+              // 6-hour edit window check for table action
+              const createdDateObj = new Date(r.created_at || r.createdAt || Date.now());
+              const isWithin6Hours = (Date.now() - createdDateObj.getTime()) / (1000 * 60 * 60) <= 6;
+              const isActive = !['CANCELLED', 'REJECTED', 'EXPIRED', 'COMPLETED', 'ISSUED'].includes(r.status);
+
+              let statusBadgeClass = 'bg-slate-100 text-slate-700 border-slate-200';
+              if (r.status === 'PENDING') statusBadgeClass = 'bg-amber-100 text-amber-800 border-amber-200';
+              else if (r.status === 'APPROVED' || r.status === 'VERIFIED') statusBadgeClass = 'bg-blue-100 text-blue-800 border-blue-200';
+              else if (r.status === 'FULFILLED' || r.status === 'COMPLETED') statusBadgeClass = 'bg-emerald-100 text-emerald-800 border-emerald-200';
+              else if (r.status === 'CANCELLED') statusBadgeClass = 'bg-rose-100 text-rose-800 border-rose-200';
 
               return `
                 <tr class="hover:bg-slate-50 transition-colors">
@@ -1266,28 +1757,238 @@
                   <td class="py-3 px-4 text-slate-700 truncate max-w-[140px]">${r.notes || r.recipient || 'Inpatient Transfusion'}</td>
                   <td class="py-3 px-4 text-slate-500">${createdDate}</td>
                   <td class="py-3 px-4">
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                      r.status === 'PENDING' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
-                      r.status === 'APPROVED' ? 'bg-blue-100 text-blue-800 border border-blue-200' :
-                      r.status === 'FULFILLED' || r.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
-                      'bg-slate-100 text-slate-700 border border-slate-200'
-                    }">
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusBadgeClass}" title="${r.cancellation_reason ? 'Reason: ' + r.cancellation_reason : r.status}">
                       ${r.status}
                     </span>
                   </td>
                   <td class="py-3 px-4 text-right">
-                    <button 
-                      type="button" 
-                      onclick="window.openRequestDetailsModal('${r.id}')"
-                      class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition-colors shadow-2xs cursor-pointer"
-                    >
-                      View
-                    </button>
+                    <div class="inline-flex items-center gap-1.5 justify-end">
+                      <button 
+                        type="button" 
+                        onclick="window.openRequestDetailsModal('${r.id}')"
+                        class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition-colors shadow-2xs cursor-pointer"
+                      >
+                        View
+                      </button>
+                      ${isActive && isWithin6Hours ? `
+                        <button 
+                          type="button" 
+                          onclick="window.openEditRequestModal('${r.id}')"
+                          class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white hover:bg-emerald-50 text-emerald-700 border border-emerald-200 transition-colors shadow-2xs cursor-pointer"
+                          title="Edit request (within 6 hours)"
+                        >
+                          Edit
+                        </button>
+                      ` : ''}
+                      ${isActive ? `
+                        <button 
+                          type="button" 
+                          onclick="window.openCancelRequestModal('${r.id}')"
+                          class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 transition-colors shadow-2xs cursor-pointer"
+                          title="Cancel requisition"
+                        >
+                          Cancel
+                        </button>
+                      ` : ''}
+                    </div>
                   </td>
                 </tr>
               `;
             }).join('');
           }
+        }
+
+        // =====================================================================
+        // COLLAPSIBLE DROPDOWN CONTROLLER (Active Request Progress, §2)
+        // =====================================================================
+        const toggleActiveBtn = document.getElementById('toggleActiveProgressBtn');
+        const activeContent = document.getElementById('activeProgressContent');
+        const activeChevron = document.getElementById('activeProgressChevron');
+        const activeToggleLabel = document.getElementById('toggleActiveProgressLabel');
+
+        if (toggleActiveBtn && activeContent) {
+          toggleActiveBtn.addEventListener('click', () => {
+            const isHidden = activeContent.classList.contains('hidden');
+            if (isHidden) {
+              activeContent.classList.remove('hidden');
+              toggleActiveBtn.setAttribute('aria-expanded', 'true');
+              if (activeChevron) {
+                const svg = activeChevron.querySelector('svg');
+                if (svg) svg.classList.add('rotate-180');
+              }
+              if (activeToggleLabel) activeToggleLabel.textContent = 'Collapse';
+            } else {
+              activeContent.classList.add('hidden');
+              toggleActiveBtn.setAttribute('aria-expanded', 'false');
+              if (activeChevron) {
+                const svg = activeChevron.querySelector('svg');
+                if (svg) svg.classList.remove('rotate-180');
+              }
+              if (activeToggleLabel) activeToggleLabel.textContent = 'Expand';
+            }
+          });
+        }
+
+        // =====================================================================
+        // EDIT REQUISITION MODAL CONTROLLER (§3.A — 6-Hour Edit Window)
+        // =====================================================================
+        const editModal = document.getElementById('editRequestModal');
+        const closeEditBtn = document.getElementById('closeEditModalBtn');
+        const cancelEditBtn = document.getElementById('cancelEditModalBtn');
+        const editForm = document.getElementById('editRequisitionForm');
+        const editAlert = document.getElementById('editModalAlert');
+
+        function closeEditModal() {
+          if (editModal) editModal.classList.add('hidden');
+        }
+        if (closeEditBtn) closeEditBtn.addEventListener('click', closeEditModal);
+        if (cancelEditBtn) cancelEditBtn.addEventListener('click', closeEditModal);
+        if (editModal) {
+          editModal.addEventListener('click', (e) => {
+            if (e.target === editModal) closeEditModal();
+          });
+        }
+
+        window.openEditRequestModal = function(reqId) {
+          const req = cachedRequests.find(r => String(r.id) === String(reqId));
+          if (!req || !editModal) return;
+
+          const createdDateObj = new Date(req.created_at || req.createdAt || Date.now());
+          const elapsedHours = (Date.now() - createdDateObj.getTime()) / (1000 * 60 * 60);
+
+          if (elapsedHours > 6) {
+            alert('The 6-hour editing window has expired. Requisitions cannot be modified after 6 hours from original submission.');
+            return;
+          }
+
+          const remainingMs = Math.max(0, (6 * 3600 * 1000) - (Date.now() - createdDateObj.getTime()));
+          const remH = Math.floor(remainingMs / (1000 * 60 * 60));
+          const remM = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+
+          document.getElementById('editModalReqId').textContent = `#${req.id}`;
+          document.getElementById('editTargetReqId').value = req.id;
+          document.getElementById('editReqBloodGroup').value = req.blood_group || req.bloodGroup || 'O-';
+          document.getElementById('editReqComponent').value = req.component || 'PACKED_RBC';
+          document.getElementById('editReqUnits').value = req.quantity || req.units || 1;
+          document.getElementById('editReqPriority').value = req.priority || 'ROUTINE';
+          document.getElementById('editReqFacilityName').value = req.preferred_facility?.name || req.preferredFacility?.name || req.preferred_facility_name || req.organization || '';
+          document.getElementById('editReqNotes').value = req.notes || req.recipient || '';
+
+          document.getElementById('editModalOriginalTime').textContent = createdDateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' (' + createdDateObj.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ')';
+          document.getElementById('editModalRemainingText').textContent = `${remH}h ${remM}m remaining`;
+
+          if (editAlert) editAlert.classList.add('hidden');
+          editModal.classList.remove('hidden');
+        };
+
+        if (editForm) {
+          editForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const reqId = document.getElementById('editTargetReqId').value;
+            const saveBtn = document.getElementById('saveEditModalBtn');
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving Changes...';
+
+            try {
+              const payload = {
+                blood_group: document.getElementById('editReqBloodGroup').value,
+                component: document.getElementById('editReqComponent').value,
+                quantity: parseInt(document.getElementById('editReqUnits').value, 10) || 1,
+                priority: document.getElementById('editReqPriority').value,
+                preferred_facility_name: document.getElementById('editReqFacilityName').value.trim() || null,
+                notes: document.getElementById('editReqNotes').value.trim() || 'Updated by requester'
+              };
+
+              await window.BloodBankAPI.updateBloodRequest(reqId, payload);
+
+              closeEditModal();
+              await reloadRequesterData();
+
+              // Display success notification banner
+              const banner = document.getElementById('requisitionAlertBanner');
+              if (banner) {
+                banner.className = 'p-4 rounded-2xl border bg-emerald-50 border-emerald-200 text-emerald-900 transition-all block';
+                document.getElementById('requisitionAlertTitle').textContent = 'Requisition Updated!';
+                document.getElementById('requisitionAlertMessage').textContent = `Requisition #${reqId} was successfully updated within the permitted 6-hour edit window.`;
+                banner.classList.remove('hidden');
+              }
+            } catch (err) {
+              if (editAlert) {
+                editAlert.className = 'p-3 rounded-xl border bg-rose-50 border-rose-200 text-rose-900 text-xs block';
+                editAlert.textContent = err.message || 'Failed to update requisition. Edit window may have expired.';
+                editAlert.classList.remove('hidden');
+              }
+            } finally {
+              saveBtn.disabled = false;
+              saveBtn.textContent = 'Save Changes';
+            }
+          });
+        }
+
+        // =====================================================================
+        // CANCEL REQUISITION MODAL CONTROLLER (§3.B — Anytime Cancellation)
+        // =====================================================================
+        const cancelModal = document.getElementById('cancelRequestModal');
+        const dismissCancelBtn = document.getElementById('dismissCancelModalBtn');
+        const confirmCancelBtn = document.getElementById('confirmCancelReqBtn');
+        const cancelReasonInput = document.getElementById('cancelReasonInput');
+        const cancelAlert = document.getElementById('cancelModalAlert');
+        let targetCancelReqId = null;
+
+        function closeCancelModal() {
+          if (cancelModal) cancelModal.classList.add('hidden');
+          targetCancelReqId = null;
+        }
+        if (dismissCancelBtn) dismissCancelBtn.addEventListener('click', closeCancelModal);
+        if (cancelModal) {
+          cancelModal.addEventListener('click', (e) => {
+            if (e.target === cancelModal) closeCancelModal();
+          });
+        }
+
+        window.openCancelRequestModal = function(reqId) {
+          const req = cachedRequests.find(r => String(r.id) === String(reqId));
+          if (!req || !cancelModal) return;
+
+          targetCancelReqId = req.id;
+          document.getElementById('cancelModalReqSubtitle').textContent = `Requisition #${req.id} (${req.blood_group || req.bloodGroup || 'O-'} · ${req.quantity || req.units || 1} Unit(s))`;
+          if (cancelReasonInput) cancelReasonInput.value = '';
+          if (cancelAlert) cancelAlert.classList.add('hidden');
+          cancelModal.classList.remove('hidden');
+        };
+
+        if (confirmCancelBtn) {
+          confirmCancelBtn.addEventListener('click', async () => {
+            if (!targetCancelReqId) return;
+            confirmCancelBtn.disabled = true;
+            confirmCancelBtn.textContent = 'Cancelling...';
+
+            try {
+              const reason = cancelReasonInput ? cancelReasonInput.value.trim() : '';
+              await window.BloodBankAPI.cancelBloodRequest(targetCancelReqId, reason);
+
+              closeCancelModal();
+              await reloadRequesterData();
+
+              // Display cancellation notification banner
+              const banner = document.getElementById('requisitionAlertBanner');
+              if (banner) {
+                banner.className = 'p-4 rounded-2xl border bg-amber-50 border-amber-200 text-amber-900 transition-all block';
+                document.getElementById('requisitionAlertTitle').textContent = 'Requisition Cancelled';
+                document.getElementById('requisitionAlertMessage').textContent = `Requisition #${targetCancelReqId} has been cancelled and any reserved units safely released back to available inventory.`;
+                banner.classList.remove('hidden');
+              }
+            } catch (err) {
+              if (cancelAlert) {
+                cancelAlert.className = 'p-3 rounded-xl border bg-rose-50 border-rose-200 text-rose-900 text-xs block';
+                cancelAlert.textContent = err.message || 'Unable to cancel requisition.';
+                cancelAlert.classList.remove('hidden');
+              }
+            } finally {
+              confirmCancelBtn.disabled = false;
+              confirmCancelBtn.textContent = 'Confirm Cancellation';
+            }
+          });
         }
 
         // Initialize requester portal data
@@ -1358,6 +2059,93 @@
           }
         }
       }
+
+      // =======================================================================
+      // SIDEBAR NAVIGATION & MOBILE/TABLET DRAWER CONTROLLER
+      // =======================================================================
+      const mobileToggleBtn = document.getElementById('mobileSidebarToggleBtn');
+      const closeSidebarBtn = document.getElementById('closeMobileSidebarBtn');
+      const sidebar = document.getElementById('portalSidebar');
+      const backdrop = document.getElementById('mobileSidebarBackdrop');
+
+      function openMobileSidebar() {
+        if (!sidebar || !backdrop) return;
+        sidebar.classList.remove('-translate-x-full');
+        backdrop.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden', 'lg:overflow-auto');
+      }
+
+      function closeMobileSidebar() {
+        if (!sidebar || !backdrop) return;
+        sidebar.classList.add('-translate-x-full');
+        backdrop.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden', 'lg:overflow-auto');
+      }
+
+      if (mobileToggleBtn) {
+        mobileToggleBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openMobileSidebar();
+        });
+      }
+      if (closeSidebarBtn) {
+        closeSidebarBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          closeMobileSidebar();
+        });
+      }
+      if (backdrop) {
+        backdrop.addEventListener('click', closeMobileSidebar);
+      }
+
+      // Automatically close drawer when clicking on any in-page anchor link on tablet/mobile screens
+      if (sidebar) {
+        sidebar.querySelectorAll('a[href^="#"]').forEach((link) => {
+          link.addEventListener('click', () => {
+            // Update active link styling
+            const parent = link.closest('#requesterSidebarLinks, #donorSidebarLinks');
+            if (parent) {
+              const isReq = parent.id === 'requesterSidebarLinks';
+              parent.querySelectorAll('a[href^="#"]').forEach(sibling => {
+                if (isReq) {
+                  sibling.classList.remove('bg-emerald-50', 'text-emerald-800', 'border-emerald-100', 'font-semibold');
+                  sibling.classList.add('text-slate-600', 'font-medium');
+                } else {
+                  sibling.classList.remove('bg-red-50', 'text-red-700', 'border-red-100', 'font-semibold');
+                  sibling.classList.add('text-slate-600', 'font-medium');
+                }
+              });
+              if (isReq) {
+                link.classList.remove('text-slate-600', 'font-medium');
+                link.classList.add('bg-emerald-50', 'text-emerald-800', 'border-emerald-100', 'font-semibold');
+              } else {
+                link.classList.remove('text-slate-600', 'font-medium');
+                link.classList.add('bg-red-50', 'text-red-700', 'border-red-100', 'font-semibold');
+              }
+            }
+
+            if (window.innerWidth < 1024) {
+              closeMobileSidebar();
+            }
+          });
+        });
+      }
+
+      // Close drawer when pressing Escape
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && sidebar && !sidebar.classList.contains('-translate-x-full')) {
+          closeMobileSidebar();
+        }
+      });
+
+      // Synchronize drawer state on window resize
+      window.addEventListener('resize', () => {
+        if (window.innerWidth >= 1024) {
+          if (backdrop && !backdrop.classList.contains('hidden')) {
+            closeMobileSidebar();
+          }
+        }
+      });
     });
   </script>
 </body>
